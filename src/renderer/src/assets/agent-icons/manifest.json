@@ -1,0 +1,77 @@
+{
+  "package": "@lobehub/icons-static-svg",
+  "version": "1.101.0",
+  "gitCommit": "aea0ecb0fe1439467219197c52ffaeb579dfe33f",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2023 LobeHub",
+  "homepage": "https://github.com/lobehub/lobe-icons",
+  "runtimeNetwork": false,
+  "icons": [
+    {
+      "agentId": "claude-code",
+      "file": "claudecode-color.svg",
+      "source": "https://unpkg.com/@lobehub/icons-static-svg@1.101.0/icons/claudecode-color.svg",
+      "sha256": "670b3d8d749d0815ad8f7e62a59d51cb5e2053cb19403f3541a8aed7036a877f"
+    },
+    {
+      "agentId": "claude-desktop",
+      "file": "claude-color.svg",
+      "source": "https://unpkg.com/@lobehub/icons-static-svg@1.101.0/icons/claude-color.svg",
+      "sha256": "a3101f3047a119aa11825ad9369510f0c472428c8c52d420e31bc62db44a8364"
+    },
+    {
+      "agentId": "codex",
+      "file": "codex-color.svg",
+      "source": "https://unpkg.com/@lobehub/icons-static-svg@1.101.0/icons/codex-color.svg",
+      "sha256": "4a2f43ce46b5b6e3722c95088f88d26ef91e6a8c2e598e70642a1c54367386e4"
+    },
+    {
+      "agentId": "gemini-cli",
+      "file": "geminicli-color.svg",
+      "source": "https://unpkg.com/@lobehub/icons-static-svg@1.101.0/icons/geminicli-color.svg",
+      "sha256": "c2f54ebaa4c3b9191c6a07f7b0c66bc78e4abe486003dc564469cf650672663e"
+    },
+    {
+      "agentId": "cursor",
+      "file": "cursor.svg",
+      "source": "https://unpkg.com/@lobehub/icons-static-svg@1.101.0/icons/cursor.svg",
+      "sha256": "0cb51bddf264ae108926fd554c063ef40fc1aac3c5c921ddb39ad184e4e5d0ef"
+    },
+    {
+      "agentId": "copilot",
+      "file": "githubcopilot.svg",
+      "source": "https://unpkg.com/@lobehub/icons-static-svg@1.101.0/icons/githubcopilot.svg",
+      "sha256": "bbc7fddc13448236e5edea8c399d2072dc40aa5da5bca07f7a2f412405c500a3"
+    },
+    {
+      "agentId": "opencode",
+      "file": "opencode.svg",
+      "source": "https://unpkg.com/@lobehub/icons-static-svg@1.101.0/icons/opencode.svg",
+      "sha256": "7cfa6e9d6726f7c9fa26c7d9aef0dfec52d20a137380454340f30f12ccbfd302"
+    },
+    {
+      "agentId": "windsurf",
+      "file": "windsurf.svg",
+      "source": "https://unpkg.com/@lobehub/icons-static-svg@1.101.0/icons/windsurf.svg",
+      "sha256": "e3c836aae05a3741e33d5c5a38d4167aacfbb69e480d098b8b94cad8c90e0d08"
+    },
+    {
+      "agentId": "workbuddy",
+      "file": "workbuddy-color.svg",
+      "source": "https://unpkg.com/@lobehub/icons-static-svg@1.101.0/icons/workbuddy-color.svg",
+      "sha256": "dd8aa855627024a5217836cdaebecb8adf220e84cb6b50fec2dbac115abb326c"
+    },
+    {
+      "agentId": "doubao",
+      "file": "doubao-color.svg",
+      "source": "https://unpkg.com/@lobehub/icons-static-svg@1.101.0/icons/doubao-color.svg",
+      "sha256": "3cd31ba03ae44b8c29561597a3b863809efecb13fcdfd08407a086df86a69b55"
+    },
+    {
+      "agentId": "trae",
+      "file": "trae-color.svg",
+      "source": "https://unpkg.com/@lobehub/icons-static-svg@1.101.0/icons/trae-color.svg",
+      "sha256": "e7aca314ce71b8fa0a7aece005d585772bac24266fc6688cf398e622d4acaf02"
+    }
+  ]
+}
