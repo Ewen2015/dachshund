@@ -25,7 +25,9 @@ export function UpdateNotice({
     update.progress === null ? null : Math.max(0, Math.min(100, Math.round(update.progress * 100)))
   const isDownloading = update.phase === 'downloading'
   const isDownloaded = update.phase === 'downloaded'
+  const isInstalling = update.phase === 'installing'
   const isError = update.phase === 'error'
+  const canOpenManualInstaller = isError && Boolean(update.downloadedPath)
 
   let title = `dachshund ${version} is available`
   let detail = `You are on ${update.currentVersion}. Download the new Apple Silicon build.`
@@ -33,16 +35,21 @@ export function UpdateNotice({
     title = `Downloading dachshund ${version}`
     detail = percent === null ? 'Starting download...' : `${percent}% of the installer`
   } else if (isDownloaded) {
-    title = `dachshund ${version} is ready`
-    detail = 'Open the downloaded DMG to replace the app.'
+    title = `dachshund ${version} is downloaded`
+    detail = 'Restarting to install. Your memory library will stay in place.'
+  } else if (isInstalling) {
+    title = `Installing dachshund ${version}`
+    detail = 'The app will close, install, and reopen automatically.'
   } else if (isError) {
-    title = 'Could not download the update'
+    title = canOpenManualInstaller
+      ? 'Could not install the update automatically'
+      : 'Could not download the update'
     detail = update.error ?? 'Try again in a moment.'
   }
 
   return (
     <section
-      className={`update-notice ${compact ? 'compact' : ''} ${isError ? 'error' : ''}`}
+      className={`update-notice ${compact ? 'compact' : ''} ${isError ? 'error' : ''} ${isInstalling ? 'installing' : ''}`}
       aria-live="polite"
     >
       <div className="update-mark">
@@ -51,22 +58,37 @@ export function UpdateNotice({
       <div className="update-copy">
         <strong>{title}</strong>
         <span>{detail}</span>
-        {isDownloading && (
-          <span className="update-progress" aria-label={percent === null ? 'Downloading' : `${percent}% downloaded`}>
+        {(isDownloading || isDownloaded || isInstalling) && (
+          <span
+            className="update-progress"
+            aria-label={
+              isInstalling
+                ? 'Installing update'
+                : isDownloaded
+                  ? 'Download complete'
+                  : percent === null
+                    ? 'Downloading'
+                    : `${percent}% downloaded`
+            }
+          >
             <span
-              className={percent === null ? 'indeterminate' : ''}
-              style={percent === null ? undefined : { width: `${percent}%` }}
+              className={isInstalling || (isDownloading && percent === null) ? 'indeterminate' : ''}
+              style={
+                isInstalling || (isDownloading && percent === null)
+                  ? undefined
+                  : { width: `${isDownloaded ? 100 : percent}%` }
+              }
             />
           </span>
         )}
       </div>
       <div className="update-actions">
-        {!isDownloading && !isDownloaded && (
+        {!isDownloading && !isDownloaded && !isInstalling && !canOpenManualInstaller && (
           <button className="update-primary" type="button" onClick={onDownload}>
             {isError ? 'Try again' : 'Download'}
           </button>
         )}
-        {isDownloaded && (
+        {canOpenManualInstaller && (
           <button className="update-primary" type="button" onClick={onOpenDownloaded}>
             Open installer
           </button>
@@ -92,7 +114,7 @@ export function UpdateNotice({
             Show in Finder
           </button>
         )}
-        {!isDownloading && (
+        {!isDownloading && !isDownloaded && !isInstalling && (
           <button
             className="update-close"
             type="button"

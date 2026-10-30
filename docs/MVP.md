@@ -28,6 +28,8 @@ discover existing agent memory
 - MCP bridge with five tools.
 - MCP config installation for JSON, Codex TOML, and OpenCode.
 - macOS app icon, tray template icon, and brand mark.
+- In-app update download, digest verification, in-place replacement, rollback,
+  and automatic relaunch.
 - Automated MCP integration smoke test.
 
 ## Acceptance Checks
@@ -43,6 +45,8 @@ The MVP is considered healthy when:
 7. The compact panel remains usable at 420 x 620 logical pixels.
 8. The settings screen reports the correct MCP bridge path.
 9. `npm run dist:mac` produces a DMG.
+10. A packaged previous version can download a newer release, replace itself
+    in place, pass code-signature verification, and reopen.
 
 ## Current Verification
 
@@ -61,11 +65,13 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development settings screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.2-arm64.dmg` was produced on 2026-10-31.
+- `release/dachshund-0.1.3-arm64.dmg` was produced on 2026-10-31.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.2`.
-- The packaged app compared its `0.1.2` version against a mocked `0.1.3`
-  Release and reached the `available` update state.
+  healthy loopback service at version `0.1.3`.
+- A packaged `0.1.2` build containing the new installer downloaded a local
+  `0.1.3` DMG, reached the installing state, replaced its bundle, passed
+  `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
+- The installer log reported `installed 0.1.3`.
 - The packaged `Contents/Resources/mcp/index.cjs` passed the same five-tool MCP
   smoke test.
 - The packaged app is ad-hoc signed only; Gatekeeper assessment fails because it
@@ -74,7 +80,7 @@ Verified in this repository:
 The DMG SHA-256 from this build is:
 
 ```text
-8d7cd71feb1f5645cc14ea9126aece9f7b4dea25be769b7da3b2f28580f5f78c
+6375529f5868864d9f9e4729ad772edb828bcc0a215b5ce75d7a7e14ba8f0cc1
 ```
 
 ## Known Limitations
@@ -109,8 +115,9 @@ notarization, and a release policy.
 
 ### Update And Backup
 
-There is no automatic app update, scheduled backup, or restore UI. Users can
-back up the Markdown directory with any normal file-based tool.
+The app update itself is downloaded, verified, and replaced in place from
+`0.1.3` onward. There is still no scheduled memory backup or restore UI. Users
+can back up the Markdown directory with any normal file-based tool.
 
 ### Security
 
@@ -119,7 +126,7 @@ token are not a defense against a compromised account.
 
 ## Next Milestones
 
-### 0.2: Trustworthy Incremental Import
+### 0.1.4: Trustworthy Incremental Import
 
 - persist per-source mtime, size, and hash;
 - update an existing memory when its source changes;
@@ -127,7 +134,7 @@ token are not a defense against a compromised account.
 - expose source status in the detail view;
 - add importer fixtures and regression tests.
 
-### 0.3: Reviewable Consolidation
+### 0.1.5: Reviewable Consolidation
 
 - near-duplicate suggestions;
 - merge and split flows;
@@ -135,7 +142,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-### 0.4: Recall Quality
+### 0.1.6: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -143,7 +150,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-### 0.5: Distribution
+### 0.1.7: Distribution
 
 - signed and notarized universal build;
 - update channel;

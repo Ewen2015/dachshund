@@ -295,6 +295,10 @@ kbd {
   color: #fff;
 }
 
+.update-notice.installing .update-mark svg {
+  animation: spin 0.9s linear infinite;
+}
+
 .update-copy {
   flex: 1;
   min-width: 0;

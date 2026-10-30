@@ -10,7 +10,7 @@
 dachshund 找到这些 Agent 已经写在本机的 Memory，把它们汇入一份 Markdown
 记忆库，再通过 MCP 提供给所有 Agent 使用。无需账号，无需上云，也不依赖模型
 
-[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.2/dachshund-0.1.2-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
+[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.3/dachshund-0.1.3-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -44,7 +44,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 
 | 平台 | 架构 | 安装包 | 大小 | 下载 |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.2](https://github.com/Ewen2015/dachshund/releases/download/v0.1.2/dachshund-0.1.2-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.3](https://github.com/Ewen2015/dachshund/releases/download/v0.1.3/dachshund-0.1.3-arm64.dmg)** |
 
 **系统要求：** Apple Silicon Mac
 
@@ -53,13 +53,16 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 > 选择“打开”
 
 [所有版本](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.2/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.3/SHA256SUMS)
 
 **安装**
 
 1. 下载 DMG
-2. 打开安装镜像，将 `dachshund.app` 拖入“应用程序”
+2. 首次安装或恢复时，打开安装镜像，将 `dachshund.app` 拖入“应用程序”一次
 3. 从“应用程序”启动 dachshund
+
+从 `0.1.3` 开始，应用内下载完更新后会直接原位替换、自动重启，不再出现第二次
+“把应用拖到 Applications”的安装步骤。拖动只用于第一次安装或故障恢复
 
 <details>
 <summary>可选：校验下载文件完整性</summary>
@@ -69,7 +72,7 @@ SHA-256 用于确认下载的 DMG 与正式发布文件一致。它不是激活�
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.2/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.3/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -166,8 +169,8 @@ Pulse 不是一张为了好看而做的使用量报表。它能看出哪些 Agen
 ### 在同一个安静入口里完成更新
 
 发布新的 GitHub Release 后，菜单栏面板和完整应用都会出现更新卡片，显示新版本
-和发布说明。dachshund 会显示 DMG 下载进度，并在完成后打开安装镜像。当前版本为
-ad-hoc 签名，因此不会尝试不安全的静默自我替换
+和发布说明。dachshund 会下载并校验 DMG，然后退出应用，由一个小型独立安装器原位
+替换当前版本；新版本会自动重新打开。只有自动替换失败时，才会打开 DMG 作为兜底
 
 <table>
 <tr>
@@ -223,7 +226,7 @@ dachshund 的本地性来自架构，而不是配置开关
 | **[Agent 图标](docs/AGENT_ICONS.md)** | 固定图标来源和许可 |
 | **[MVP](docs/MVP.md)** | 验证结果、校验值和已知限制 |
 | **[开发](docs/DEVELOPMENT.md)** | 数据隔离、测试、截图和打包 |
-| **[更新](docs/UPDATES.md)** | 发布约定、更新检查与下载流程 |
+| **[更新](docs/UPDATES.md)** | 发布约定、下载校验与原位安装流程 |
 | **[竞品调研](docs/COMPETITORS.md)** | 本地优先 Memory 产品格局与 dachshund 的切入点 |
 
 ## 本地开发

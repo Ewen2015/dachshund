@@ -11,7 +11,7 @@ dachshund finds the memory files your agents already keep, brings them into one
 Markdown library, and serves that library back through MCP. No account, no cloud,
 no model requirement.
 
-[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.2/dachshund-0.1.2-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
+[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.3/dachshund-0.1.3-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -52,7 +52,7 @@ already remembers everything you need, you probably do not need dachshund.
 
 | Platform | Architecture | Package | Size | Download |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.2](https://github.com/Ewen2015/dachshund/releases/download/v0.1.2/dachshund-0.1.2-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.3](https://github.com/Ewen2015/dachshund/releases/download/v0.1.3/dachshund-0.1.3-arm64.dmg)** |
 
 **System requirement:** macOS on Apple Silicon
 
@@ -61,13 +61,17 @@ already remembers everything you need, you probably do not need dachshund.
 > **Open** on first launch.
 
 [All releases](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.2/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.3/SHA256SUMS)
 
 **Install**
 
 1. Download the DMG.
-2. Open the image and drag `dachshund.app` into **Applications**.
+2. Open the image and drag `dachshund.app` into **Applications** once.
 3. Launch dachshund from Applications.
+
+The drag is only needed for the first install or recovery. From `0.1.3` onward,
+a downloaded update replaces the installed app in place, relaunches it
+automatically, and does not show another Applications drag target.
 
 <details>
 <summary>Optional: verify download integrity</summary>
@@ -78,7 +82,7 @@ into the app.
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.2/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.3/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -188,9 +192,10 @@ is available from the menu bar panel.
 ### Updates in the same quiet surface
 
 When a new GitHub Release is published, the menu bar panel and full app show an
-update card with the version and release notes. dachshund downloads the DMG with
-progress and opens the installer when it is ready. The current ad-hoc-signed
-build does not attempt an unsafe silent self-replacement.
+update card with the version and release notes. dachshund downloads and verifies
+the DMG, then exits while a small detached installer replaces the app in place.
+The new version reopens automatically; the DMG is only opened as a fallback if
+installation fails.
 
 <table>
 <tr>
@@ -247,7 +252,7 @@ dachshund is local by architecture, not by configuration.
 | **[Agent icons](docs/AGENT_ICONS.md)** | Pinned icon sources and licensing |
 | **[MVP](docs/MVP.md)** | Verification, checksums and known limitations |
 | **[Development](docs/DEVELOPMENT.md)** | Data isolation, tests, screenshots and packaging |
-| **[Updates](docs/UPDATES.md)** | Release contract, update checks and download flow |
+| **[Updates](docs/UPDATES.md)** | Release contract, download verification and in-place installation |
 | **[Competitor research](docs/COMPETITORS.md)** | Local-first memory landscape and product wedge |
 
 ## Development

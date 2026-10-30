@@ -1,4 +1,5 @@
 import { app, net, shell } from 'electron'
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { Readable, Transform } from 'node:stream'
@@ -13,6 +14,7 @@ const REQUEST_TIMEOUT = 20_000
 interface GitHubAsset {
   name: string
   browser_download_url: string
+  digest?: string | null
 }
 
 interface GitHubRelease {
@@ -143,6 +145,7 @@ export class UpdateService {
       releaseUrl: null,
       downloadUrl: null,
       assetName: null,
+      downloadDigest: null,
       downloadedPath: null,
       progress: null,
       checkedAt: null,
@@ -239,6 +242,7 @@ export class UpdateService {
           releaseUrl: release.html_url,
           downloadUrl: pickDmgAsset(release)?.browser_download_url ?? null,
           assetName: pickDmgAsset(release)?.name ?? null,
+          downloadDigest: pickDmgAsset(release)?.digest ?? null,
           progress: null,
           checkedAt: Date.now(),
           error: null
@@ -254,6 +258,7 @@ export class UpdateService {
         releaseUrl: release.html_url,
         downloadUrl: asset?.browser_download_url ?? release.html_url,
         assetName: asset?.name ?? null,
+        downloadDigest: asset?.digest ?? null,
         downloadedPath: null,
         progress: null,
         checkedAt: Date.now(),
@@ -298,6 +303,8 @@ export class UpdateService {
     const downloadDir = process.env.DACHSHUND_DOWNLOAD_DIR ?? app.getPath('downloads')
     const destination = path.join(downloadDir, filename)
     const temporary = `${destination}.part`
+    const expectedDigest = this.state.downloadDigest
+    const hash = createHash('sha256')
     this.publish({ phase: 'downloading', progress: 0, error: null })
 
     try {
@@ -312,6 +319,7 @@ export class UpdateService {
       const meter = new Transform({
         transform(chunk: Buffer, _encoding, callback) {
           received += chunk.length
+          hash.update(chunk)
           const now = Date.now()
           if (now - lastUpdate > 120) {
             lastUpdate = now
@@ -331,6 +339,10 @@ export class UpdateService {
         meter,
         fs.createWriteStream(temporary)
       )
+      const actualDigest = `sha256:${hash.digest('hex')}`
+      if (expectedDigest && actualDigest !== expectedDigest) {
+        throw new Error('Downloaded installer did not match the release digest')
+      }
       await fs.promises.rename(temporary, destination)
       return this.publish({
         phase: 'downloaded',
@@ -361,5 +373,13 @@ export class UpdateService {
     } catch {
       return false
     }
+  }
+
+  markInstalling(): UpdateState {
+    return this.publish({ phase: 'installing', progress: 1, error: null })
+  }
+
+  markInstallError(message: string): UpdateState {
+    return this.publish({ phase: 'error', progress: null, error: message })
   }
 }

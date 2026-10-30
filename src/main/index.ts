@@ -22,6 +22,11 @@ import type {
 } from '../shared/types'
 import { LIBRARY_DIR, expandHome } from './paths'
 import { UpdateService } from './updater'
+import {
+  currentAppBundlePath,
+  installerLogPath,
+  launchUpdateInstaller
+} from './installer'
 import packageJson from '../../package.json'
 
 app.setName('dachshund')
@@ -41,6 +46,7 @@ let updateService: UpdateService | null = null
 let latestUpdateState: UpdateState | null = null
 let closeServer: (() => void) | null = null
 let quitting = false
+let installScheduled = false
 
 function bridgePath(): string {
   if (process.env.DACHSHUND_MCP_BRIDGE) return process.env.DACHSHUND_MCP_BRIDGE
@@ -175,21 +181,19 @@ function rebuildTrayMenu(): void {
   if (!tray) return
   const update = latestUpdateState
   const updateItem =
-    update && ['available', 'downloading', 'downloaded'].includes(update.phase)
+    update && ['available', 'downloading', 'downloaded', 'installing'].includes(update.phase)
       ? [
           {
             label:
-              update.phase === 'downloaded'
-                ? `Open dachshund ${update.latestVersion} installer`
+              update.phase === 'installing' || update.phase === 'downloaded'
+                ? `Installing dachshund ${update.latestVersion}...`
                 : update.phase === 'downloading'
                   ? `Downloading dachshund ${update.latestVersion}...`
                   : `Download dachshund ${update.latestVersion}`,
-            enabled: update.phase !== 'downloading',
+            enabled: update.phase === 'available',
             click: () => {
               showPanel()
-              if (update.phase === 'downloaded') {
-                void updateService?.openDownloadedUpdate()
-              } else if (update.phase === 'available') {
+              if (update.phase === 'available') {
                 void updateService?.downloadUpdate()
               }
             }
@@ -376,6 +380,53 @@ async function checkForUpdates(manual = false): Promise<UpdateState | null> {
   return state
 }
 
+async function installDownloadedUpdate(): Promise<void> {
+  const state = updateService?.getState()
+  if (!state?.downloadedPath || !state.latestVersion) {
+    installScheduled = false
+    return
+  }
+  if (!app.isPackaged) {
+    installScheduled = false
+    updateService?.markInstallError(
+      'Automatic installation is available only in the packaged macOS app'
+    )
+    return
+  }
+
+  updateService?.markInstalling()
+  const result = await launchUpdateInstaller({
+    dmgPath: state.downloadedPath,
+    version: state.latestVersion,
+    digest: state.downloadDigest,
+    targetAppPath: currentAppBundlePath()
+  })
+  if (!result.ok) {
+    installScheduled = false
+    updateService?.markInstallError(result.message)
+    await dialog.showMessageBox({
+      type: 'warning',
+      message: 'Could not install the update automatically',
+      detail: `${result.message}\n\nThe downloaded DMG will open so you can finish manually. Update log: ${installerLogPath()}`
+    })
+    await updateService?.openDownloadedUpdate()
+    return
+  }
+
+  setTimeout(() => {
+    quitting = true
+    app.quit()
+  }, 900)
+}
+
+function scheduleAutomaticInstall(state: UpdateState): void {
+  if (installScheduled || state.phase !== 'downloaded' || !state.downloadedPath) return
+  installScheduled = true
+  setTimeout(() => {
+    void installDownloadedUpdate()
+  }, 700)
+}
+
 function registerIpc(): void {
   ipcMain.handle('app:state', () => store.state())
   ipcMain.handle('app:scan', async () => {
@@ -468,6 +519,7 @@ if (!gotLock) {
       latestUpdateState = state
       broadcastUpdate(state)
       rebuildTrayMenu()
+      scheduleAutomaticInstall(state)
     })
     updateService.start()
     globalShortcut.register('CommandOrControl+Shift+D', togglePanel)

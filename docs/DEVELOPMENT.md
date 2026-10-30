@@ -55,6 +55,8 @@ Additional switches:
 - `DACHSHUND_UPDATE_DELAY_MS=50` makes the startup update check immediate.
 - `DACHSHUND_DOWNLOAD_DIR=/tmp/dachshund-downloads` isolates downloaded update
   files.
+- `DACHSHUND_UPDATE_INSTALL_OPEN=0` performs an automatic replacement without
+  reopening the app, for isolated update tests.
 
 `npm run test:mcp` creates its own temporary workspace and cleans it up after a
 successful run.
@@ -138,12 +140,18 @@ and notarized.
 
 Verified build:
 
-- output: `release/dachshund-0.1.2-arm64.dmg`
+- output: `release/dachshund-0.1.3-arm64.dmg`
 - SHA-256:
-  `8d7cd71feb1f5645cc14ea9126aece9f7b4dea25be769b7da3b2f28580f5f78c`
+  `6375529f5868864d9f9e4729ad772edb828bcc0a215b5ce75d7a7e14ba8f0cc1`
 - packaged app launch and packaged MCP bridge smoke test pass
+- automatic in-place update, signature verification and relaunch pass
 - code signing: ad-hoc only
 - Gatekeeper assessment: fails without Developer ID signing and notarization
+
+Automatic update diagnostics are written to
+`~/Library/Logs/dachshund/update-install.log`. The installer verifies the DMG
+digest when available, the app's ad-hoc signature, bundle identifier and
+version, stages a replacement, keeps a rollback copy, and relaunches the app.
 
 Packaged resource paths:
 
@@ -162,6 +170,7 @@ During development, the MCP bridge path is resolved from
 | `src/main/index.ts` | Electron lifecycle, windows, tray, shortcuts, IPC |
 | `src/main/server.ts` | Authenticated loopback HTTP API |
 | `src/main/updater.ts` | GitHub Release lookup and streamed update downloads |
+| `src/main/installer.ts` | DMG mount, signature checks, atomic replacement and relaunch |
 | `src/main/store/` | Markdown library, SQLite schema, search, counts |
 | `src/main/agents/` | Discovery, importers, MCP config writers |
 | `src/mcp/index.ts` | MCP stdio bridge |

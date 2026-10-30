@@ -68,6 +68,7 @@ export type UpdatePhase =
   | 'available'
   | 'downloading'
   | 'downloaded'
+  | 'installing'
   | 'up-to-date'
   | 'error'
 
@@ -80,6 +81,7 @@ export interface UpdateState {
   releaseUrl: string | null
   downloadUrl: string | null
   assetName: string | null
+  downloadDigest: string | null
   downloadedPath: string | null
   progress: number | null
   checkedAt: number | null
