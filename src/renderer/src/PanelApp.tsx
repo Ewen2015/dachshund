@@ -12,7 +12,9 @@ import {
   SearchIcon
 } from './components/Icons'
 import { Mark } from './components/Mark'
+import { UpdateNotice } from './components/UpdateNotice'
 import { kindLabel, relativeTime, uniqueSources } from './lib/format'
+import { useUpdater } from './lib/useUpdater'
 
 type Tab = 'memory' | 'agents'
 
@@ -22,6 +24,7 @@ export default function PanelApp() {
   const [query, setQuery] = useState('')
   const [memories, setMemories] = useState<MemorySummary[]>([])
   const [scanning, setScanning] = useState(false)
+  const updater = useUpdater()
 
   useEffect(() => {
     document.documentElement.classList.add('panel-mode')
@@ -115,6 +118,16 @@ export default function PanelApp() {
           </button>
         </div>
       </header>
+
+      {updater.visible && updater.state && (
+        <UpdateNotice
+          update={updater.state}
+          compact
+          onDownload={() => void updater.download()}
+          onOpenDownloaded={() => void updater.openDownloaded()}
+          onDismiss={updater.dismiss}
+        />
+      )}
 
       <div className="panel-tabs">
         <button

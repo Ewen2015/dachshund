@@ -49,6 +49,12 @@ Additional switches:
 - `DACHSHUND_MCP_BRIDGE=/absolute/path/to/mcp/index.cjs` overrides the bridge.
 - `DACHSHUND_MCP_ENTRY=/absolute/path/to/index.cjs` makes the smoke test exercise
   a specific bridge bundle.
+- `DACHSHUND_UPDATE_DISABLED=1` suppresses update checks.
+- `DACHSHUND_UPDATE_MANIFEST=/absolute/path/to/release.json` mocks GitHub
+  Releases for update UI and download tests.
+- `DACHSHUND_UPDATE_DELAY_MS=50` makes the startup update check immediate.
+- `DACHSHUND_DOWNLOAD_DIR=/tmp/dachshund-downloads` isolates downloaded update
+  files.
 
 `npm run test:mcp` creates its own temporary workspace and cleans it up after a
 successful run.
@@ -132,9 +138,9 @@ and notarized.
 
 Verified build:
 
-- output: `release/dachshund-0.1.0-arm64.dmg`
+- output: `release/dachshund-0.1.1-arm64.dmg`
 - SHA-256:
-  `6f5b818009224ff1c974c9586f313bfba27dbd9b232263fcbcec888d38562e60`
+  `add780d04f068c3ea00554aeb8068239217cab155c870e066b9a9a0dbcfe4241`
 - packaged app launch and packaged MCP bridge smoke test pass
 - code signing: ad-hoc only
 - Gatekeeper assessment: fails without Developer ID signing and notarization
@@ -155,6 +161,7 @@ During development, the MCP bridge path is resolved from
 | --- | --- |
 | `src/main/index.ts` | Electron lifecycle, windows, tray, shortcuts, IPC |
 | `src/main/server.ts` | Authenticated loopback HTTP API |
+| `src/main/updater.ts` | GitHub Release lookup and streamed update downloads |
 | `src/main/store/` | Markdown library, SQLite schema, search, counts |
 | `src/main/agents/` | Discovery, importers, MCP config writers |
 | `src/mcp/index.ts` | MCP stdio bridge |

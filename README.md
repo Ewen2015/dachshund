@@ -11,9 +11,11 @@ dachshund finds the memory files your agents already keep, brings them into one
 Markdown library, and serves that library back through MCP. No account, no cloud,
 no model requirement.
 
-[![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![macOS](https://img.shields.io/badge/macOS-arm64-000000?logo=apple&logoColor=white)](#quick-start) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
+[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/dachshund-0.1.1-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
 
-**[Quick start](#quick-start)** &nbsp;·&nbsp; **[Supported agents](#supported-agents)** &nbsp;·&nbsp; **[How it works](#how-it-works)** &nbsp;·&nbsp; **[Docs](#documentation)** &nbsp;·&nbsp; **[Competitor research](docs/COMPETITORS.md)**
+**[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
+
+**[Download](#download)** &nbsp;·&nbsp; **[Quick start](#quick-start)** &nbsp;·&nbsp; **[Supported agents](#supported-agents)** &nbsp;·&nbsp; **[How it works](#how-it-works)** &nbsp;·&nbsp; **[Docs](#documentation)** &nbsp;·&nbsp; **[Competitor research](docs/COMPETITORS.md)**
 
 <br>
 
@@ -46,15 +48,31 @@ surface:
 It is for you if you use more than one coding or desktop agent. If one agent
 already remembers everything you need, you probably do not need dachshund.
 
+## Download
+
+<div align="center">
+
+### [Download dachshund v0.1.1 for macOS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/dachshund-0.1.1-arm64.dmg)
+
+Apple Silicon · macOS · about 120 MB
+
+[View all releases](https://github.com/Ewen2015/dachshund/releases)
+
+</div>
+
+The current MVP is ad-hoc signed and not notarized. macOS Gatekeeper may require
+you to right-click the app in Finder and choose **Open** on first launch.
+
+DMG SHA-256:
+
+```text
+add780d04f068c3ea00554aeb8068239217cab155c870e066b9a9a0dbcfe4241
+```
+
 ## Quick start
 
-**1 · Build.** Requirements: macOS on Apple Silicon, Node.js 22 or newer, and npm.
-
-```sh
-npm install
-npm run build
-npm start
-```
+**1 · Download and install.** Open the DMG, drag `dachshund.app` into
+**Applications**, then launch it.
 
 **2 · Let it scan.** On first launch, dachshund detects the agents installed on
 this Mac and imports their existing memory into:
@@ -67,13 +85,23 @@ this Mac and imports their existing memory into:
 agent, then choose **Connect MCP**. dachshund writes only its own named MCP entry
 and creates a backup before changing an existing config.
 
+### Build from source
+
+Requirements: macOS on Apple Silicon, Node.js 22 or newer, and npm.
+
+```sh
+git clone https://github.com/Ewen2015/dachshund.git
+cd dachshund
+npm install
+npm run build
+npm start
+```
+
 Build the Apple Silicon DMG:
 
 ```sh
 npm run dist:mac
 ```
-
-<sub>The current MVP is ad-hoc signed and not notarized. Gatekeeper may require a manual open. Production distribution still needs Developer ID signing and notarization.</sub>
 
 ## Supported agents
 
@@ -136,6 +164,13 @@ The tray icon, global shortcuts and 420 × 620 popover make the library ambient.
 Use `Cmd+Shift+M` to minimize to the menu bar or `Cmd+Shift+D` to toggle the
 compact panel.
 
+### Updates in the same quiet surface
+
+When a new GitHub Release is published, the menu bar panel and full app show an
+update card with the version and release notes. dachshund downloads the DMG with
+progress and opens the installer when it is ready. The current ad-hoc-signed
+build does not attempt an unsafe silent self-replacement.
+
 <table>
 <tr>
 <td width="50%"><img src="docs/screenshots/02-agents.png" alt="dachshund Agents page with real product marks and memory counts"></td>
@@ -172,6 +207,7 @@ remote icon requests at runtime.
 - No user account and no hosted service.
 - No analytics, telemetry or remote logging.
 - No API key, LLM or embedding call on the core path.
+- The only update network request is the public GitHub Releases endpoint.
 - Agent-owned files are read in place and never rewritten by import.
 - Archiving a shared memory does not delete the original agent file.
 - The HTTP service is loopback-only and requires a random bearer token.
@@ -189,6 +225,7 @@ dachshund is local by architecture, not by configuration.
 | **[Agent icons](docs/AGENT_ICONS.md)** | Pinned icon sources and licensing |
 | **[MVP](docs/MVP.md)** | Verification, checksums and known limitations |
 | **[Development](docs/DEVELOPMENT.md)** | Data isolation, tests, screenshots and packaging |
+| **[Updates](docs/UPDATES.md)** | Release contract, update checks and download flow |
 | **[Competitor research](docs/COMPETITORS.md)** | Local-first memory landscape and product wedge |
 
 ## Development

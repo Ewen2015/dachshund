@@ -62,6 +62,30 @@ export interface AppState {
   version: string
 }
 
+export type UpdatePhase =
+  | 'idle'
+  | 'checking'
+  | 'available'
+  | 'downloading'
+  | 'downloaded'
+  | 'up-to-date'
+  | 'error'
+
+export interface UpdateState {
+  phase: UpdatePhase
+  currentVersion: string
+  latestVersion: string | null
+  releaseName: string | null
+  releaseNotes: string | null
+  releaseUrl: string | null
+  downloadUrl: string | null
+  assetName: string | null
+  downloadedPath: string | null
+  progress: number | null
+  checkedAt: number | null
+  error: string | null
+}
+
 export interface SearchQuery {
   query?: string
   agentId?: string

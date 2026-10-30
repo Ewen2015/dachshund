@@ -10,6 +10,7 @@ MCP bridge:
 2. React renderer: full window and compact menu bar panel.
 3. Local HTTP API: loopback-only authenticated memory operations.
 4. MCP stdio bridge: translates agent tool calls into authenticated HTTP calls.
+5. Update service: checks GitHub Releases and downloads a newer DMG.
 
 ```text
 Claude Code / Codex / Cursor / ...
@@ -84,6 +85,13 @@ The following environment variables override defaults for tests and development:
 - `DACHSHUND_DISABLE_IMPORT=1`
 - `DACHSHUND_AUTOLAUNCH=0`
 - `DACHSHUND_MCP_BRIDGE`
+- `DACHSHUND_UPDATE_DISABLED=1`
+- `DACHSHUND_UPDATE_MANIFEST`
+- `DACHSHUND_UPDATE_DELAY_MS`
+- `DACHSHUND_UPDATE_INTERVAL_MS`
+- `DACHSHUND_DOWNLOAD_DIR`
+
+See [Updates](UPDATES.md) for the release contract and updater state machine.
 
 ## Discovery And Import
 

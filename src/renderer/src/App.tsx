@@ -14,6 +14,8 @@ import { MemoryFeed } from './components/MemoryFeed'
 import { Onboarding } from './components/Onboarding'
 import { SettingsView } from './components/SettingsView'
 import { Toast } from './components/Toast'
+import { UpdateNotice } from './components/UpdateNotice'
+import { useUpdater } from './lib/useUpdater'
 
 type View = 'memory' | 'agents' | 'settings'
 
@@ -30,6 +32,7 @@ export default function App() {
   const [progress, setProgress] = useState<Record<string, ScanProgress>>({})
   const [toast, setToast] = useState<{ message: string; error?: boolean } | null>(null)
   const [bridgePath, setBridgePath] = useState('')
+  const updater = useUpdater()
   const searchRef = useRef<HTMLInputElement>(null)
   const toastTimer = useRef<number | null>(null)
 
@@ -221,6 +224,14 @@ export default function App() {
         agents={state.counts.agents}
       />
       <main className="main">
+        {updater.visible && updater.state && (
+          <UpdateNotice
+            update={updater.state}
+            onDownload={() => void updater.download()}
+            onOpenDownloaded={() => void updater.openDownloaded()}
+            onDismiss={updater.dismiss}
+          />
+        )}
         <div className="content-scroll">
           {view === 'memory' && (
             <MemoryFeed

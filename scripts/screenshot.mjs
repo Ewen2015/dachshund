@@ -6,6 +6,29 @@ const root = process.cwd()
 const demoRoot = path.join(root, '.demo-home')
 const shots = path.join(root, 'docs', 'screenshots')
 fs.mkdirSync(shots, { recursive: true })
+fs.mkdirSync(demoRoot, { recursive: true })
+
+const updateManifest = path.join(demoRoot, 'update.json')
+fs.writeFileSync(
+  updateManifest,
+  JSON.stringify(
+    {
+      tag_name: 'v0.1.2',
+      name: 'dachshund v0.1.2',
+      body: 'Faster agent discovery and a quieter update experience.',
+      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.2',
+      assets: [
+        {
+          name: 'dachshund-0.1.2-arm64.dmg',
+          browser_download_url:
+            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.2/dachshund-0.1.2-arm64.dmg'
+        }
+      ]
+    },
+    null,
+    2
+  )
+)
 
 const app = await electron.launch({
   args: [path.join(root, 'out', 'main', 'index.js')],
@@ -14,7 +37,9 @@ const app = await electron.launch({
     DACHSHUND_HOME: path.join(demoRoot, 'data'),
     DACHSHUND_LIBRARY: path.join(demoRoot, 'Documents', 'dachshund'),
     DACHSHUND_DEMO: '1',
-    DACHSHUND_DISABLE_IMPORT: '1'
+    DACHSHUND_DISABLE_IMPORT: '1',
+    DACHSHUND_UPDATE_MANIFEST: updateManifest,
+    DACHSHUND_UPDATE_DELAY_MS: '150'
   }
 })
 

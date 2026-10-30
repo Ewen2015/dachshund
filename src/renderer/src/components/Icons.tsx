@@ -80,6 +80,15 @@ export function ArrowUpRightIcon({ size = 15, className }: IconProps) {
   )
 }
 
+export function DownloadIcon({ size = 15, className }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M12 4v10M8 10l4 4 4-4" />
+      <path d="M5 18.5h14" />
+    </svg>
+  )
+}
+
 export function LockIcon({ size = 14, className }: IconProps) {
   return (
     <svg {...base(size, className)}>

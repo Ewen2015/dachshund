@@ -7,6 +7,7 @@ import type {
   MemorySummary,
   ScanProgress,
   SearchQuery,
+  UpdateState,
   UpdateMemoryInput
 } from '../shared/types'
 
@@ -21,6 +22,11 @@ const api = {
   minimizeToTray: (): Promise<boolean> => ipcRenderer.invoke('app:minimize-to-tray'),
   hidePanel: (): Promise<boolean> => ipcRenderer.invoke('app:hide-panel'),
   quit: (): Promise<void> => ipcRenderer.invoke('app:quit'),
+  getUpdateState: (): Promise<UpdateState | null> => ipcRenderer.invoke('update:state'),
+  checkForUpdates: (): Promise<UpdateState | null> => ipcRenderer.invoke('update:check'),
+  downloadUpdate: (): Promise<UpdateState | null> => ipcRenderer.invoke('update:download'),
+  openDownloadedUpdate: (): Promise<boolean> =>
+    ipcRenderer.invoke('update:open-downloaded'),
   search: (query: SearchQuery): Promise<MemorySummary[]> =>
     ipcRenderer.invoke('memory:search', query),
   getMemory: (id: string): Promise<MemoryDetail | null> => ipcRenderer.invoke('memory:get', id),
@@ -45,6 +51,12 @@ const api = {
     const listener = (_event: Electron.IpcRendererEvent, state: AppState): void => callback(state)
     ipcRenderer.on('state:changed', listener)
     return () => ipcRenderer.removeListener('state:changed', listener)
+  },
+  onUpdateChanged: (callback: (state: UpdateState) => void): (() => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, state: UpdateState): void =>
+      callback(state)
+    ipcRenderer.on('update:changed', listener)
+    return () => ipcRenderer.removeListener('update:changed', listener)
   },
   onNewMemory: (callback: () => void): (() => void) => {
     const listener = (): void => callback()

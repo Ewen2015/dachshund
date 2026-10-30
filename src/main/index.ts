@@ -7,7 +7,8 @@ import {
   ipcMain,
   shell,
   screen,
-  globalShortcut
+  globalShortcut,
+  dialog
 } from 'electron'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -16,11 +17,15 @@ import { startHttpServer } from './server'
 import type {
   CreateMemoryInput,
   SearchQuery,
+  UpdateState,
   UpdateMemoryInput
 } from '../shared/types'
 import { LIBRARY_DIR, expandHome } from './paths'
+import { UpdateService } from './updater'
+import packageJson from '../../package.json'
 
 app.setName('dachshund')
+const APP_VERSION = packageJson.version
 
 let mainWindow: BrowserWindow | null = null
 let panelWindow: BrowserWindow | null = null
@@ -28,6 +33,8 @@ let tray: Tray | null = null
 let trayMenu: Menu | null = null
 let panelVisibleBeforeClick = false
 let store: Store
+let updateService: UpdateService | null = null
+let latestUpdateState: UpdateState | null = null
 let closeServer: (() => void) | null = null
 let quitting = false
 
@@ -160,14 +167,33 @@ function togglePanel(): void {
   else showPanel()
 }
 
-function createTray(): void {
-  const trayPath = iconPath('trayTemplate.png')
-  const image = fs.existsSync(trayPath)
-    ? nativeImage.createFromPath(trayPath)
-    : nativeImage.createEmpty()
-  image.setTemplateImage(true)
-  tray = new Tray(image)
-  tray.setToolTip('dachshund')
+function rebuildTrayMenu(): void {
+  if (!tray) return
+  const update = latestUpdateState
+  const updateItem =
+    update && ['available', 'downloading', 'downloaded'].includes(update.phase)
+      ? [
+          {
+            label:
+              update.phase === 'downloaded'
+                ? `Open dachshund ${update.latestVersion} installer`
+                : update.phase === 'downloading'
+                  ? `Downloading dachshund ${update.latestVersion}...`
+                  : `Download dachshund ${update.latestVersion}`,
+            enabled: update.phase !== 'downloading',
+            click: () => {
+              showPanel()
+              if (update.phase === 'downloaded') {
+                void updateService?.openDownloadedUpdate()
+              } else if (update.phase === 'available') {
+                void updateService?.downloadUpdate()
+              }
+            }
+          },
+          { type: 'separator' as const }
+        ]
+      : []
+
   trayMenu = Menu.buildFromTemplate([
     { label: 'Open compact panel', click: showPanel },
     { label: 'Open dachshund', click: showWindow },
@@ -184,7 +210,14 @@ function createTray(): void {
         void scanAgents()
       }
     },
+    {
+      label: 'Check for updates',
+      click: () => {
+        void checkForUpdates(true)
+      }
+    },
     { type: 'separator' },
+    ...updateItem,
     {
       label: 'Quit dachshund',
       click: () => {
@@ -193,6 +226,22 @@ function createTray(): void {
       }
     }
   ])
+  tray.setToolTip(
+    update?.phase === 'available'
+      ? `dachshund · update ${update.latestVersion} available`
+      : 'dachshund'
+  )
+}
+
+function createTray(): void {
+  const trayPath = iconPath('trayTemplate.png')
+  const image = fs.existsSync(trayPath)
+    ? nativeImage.createFromPath(trayPath)
+    : nativeImage.createEmpty()
+  image.setTemplateImage(true)
+  tray = new Tray(image)
+  tray.setToolTip('dachshund')
+  rebuildTrayMenu()
   tray.on('mouse-down', () => {
     panelVisibleBeforeClick = panelWindow?.isVisible() ?? false
   })
@@ -212,6 +261,12 @@ function buildMenu(): void {
         label: 'dachshund',
         submenu: [
           { role: 'about' },
+          {
+            label: 'Check for Updates...',
+            click: () => {
+              void checkForUpdates(true)
+            }
+          },
           { type: 'separator' },
           { role: 'hide' },
           { role: 'hideOthers' },
@@ -288,6 +343,35 @@ function broadcastState(state: ReturnType<Store['state']>): void {
   }
 }
 
+function broadcastUpdate(state: UpdateState): void {
+  for (const win of [mainWindow, panelWindow]) {
+    win?.webContents.send('update:changed', state)
+  }
+}
+
+async function checkForUpdates(manual = false): Promise<UpdateState | null> {
+  if (!updateService) return null
+  const state = await updateService.checkForUpdates()
+  if (!manual) return state
+
+  if (state.phase === 'available') {
+    showPanel()
+  } else if (state.phase === 'up-to-date') {
+    await dialog.showMessageBox({
+      type: 'info',
+      message: 'dachshund is up to date',
+      detail: `You are running the latest version, ${state.currentVersion}.`
+    })
+  } else if (state.phase === 'error') {
+    await dialog.showMessageBox({
+      type: 'warning',
+      message: 'Could not check for updates',
+      detail: state.error ?? 'Try again later.'
+    })
+  }
+  return state
+}
+
 function registerIpc(): void {
   ipcMain.handle('app:state', () => store.state())
   ipcMain.handle('app:scan', async () => {
@@ -316,6 +400,10 @@ function registerIpc(): void {
     quitting = true
     app.quit()
   })
+  ipcMain.handle('update:state', () => updateService?.getState() ?? null)
+  ipcMain.handle('update:check', () => checkForUpdates(false))
+  ipcMain.handle('update:download', () => updateService?.downloadUpdate() ?? null)
+  ipcMain.handle('update:open-downloaded', () => updateService?.openDownloadedUpdate() ?? false)
   ipcMain.handle('memory:search', (_event, query: SearchQuery) => store.search(query))
   ipcMain.handle('memory:get', (_event, id: string) => store.getMemory(id))
   ipcMain.handle('memory:create', (_event, input: CreateMemoryInput) => store.create(input))
@@ -365,13 +453,19 @@ if (!gotLock) {
       if (fs.existsSync(dockIcon)) app.dock?.setIcon(dockIcon)
     }
 
-    store = new Store(app.getVersion())
+    store = new Store(APP_VERSION)
     store.init()
     registerIpc()
     buildMenu()
     createWindow()
     createTray()
     createPanelWindow()
+    updateService = new UpdateService(APP_VERSION, (state) => {
+      latestUpdateState = state
+      broadcastUpdate(state)
+      rebuildTrayMenu()
+    })
+    updateService.start()
     globalShortcut.register('CommandOrControl+Shift+D', togglePanel)
     globalShortcut.register('CommandOrControl+Shift+M', () => {
       mainWindow?.hide()
@@ -379,7 +473,7 @@ if (!gotLock) {
     })
 
     try {
-      const server = await startHttpServer(store, app.getVersion())
+      const server = await startHttpServer(store, APP_VERSION)
       closeServer = server.close
     } catch (error) {
       console.error('Failed to start local memory server', error)
@@ -395,6 +489,7 @@ if (!gotLock) {
   app.on('before-quit', () => {
     quitting = true
     globalShortcut.unregisterAll()
+    updateService?.stop()
     closeServer?.()
     try {
       store?.db.close()

@@ -1,0 +1,235 @@
+<div align="center">
+
+<a href="https://github.com/Ewen2015/dachshund"><img src="docs/brand/dachshund-app-icon.svg" width="112" alt="dachshund"></a>
+
+# dachshund
+
+### 每个 Agent 的记忆，收进一个本地入口
+
+**Claude Code 记住一个决定，Codex 记住另一个，Cursor 记住例外。**<br>
+dachshund 找到这些 Agent 已经写在本机的 Memory，把它们汇入一份 Markdown
+记忆库，再通过 MCP 提供给所有 Agent 使用。无需账号，无需上云，也不依赖模型
+
+[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/dachshund-0.1.1-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
+
+**[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
+
+**[下载](#下载)** &nbsp;·&nbsp; **[支持 Agents](#支持-agents)** &nbsp;·&nbsp; **[工作原理](#工作原理)** &nbsp;·&nbsp; **[文档](#文档)** &nbsp;·&nbsp; **[竞品调研](docs/COMPETITORS.md)**
+
+<br>
+
+<img src="docs/screenshots/01-memory.png" width="900" alt="dachshund 将 Claude Code、Codex、Cursor 等 Agent 的记忆汇入同一个本地列表">
+
+</div>
+
+<br>
+
+## 为什么需要 dachshund
+
+每个 Agent 都只保留关于你的一部分上下文。项目规则写在 Claude Code 里，失败的
+方案留在 Codex 里，排版偏好藏在 Cursor 里。切换工具时，这些上下文不会自动跟过去
+
+dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
+
+- **发现本机已有记忆**：读取 Agent 已知的 Memory 路径，不修改原始文件
+- **维护统一记忆库**：把结果保存为普通 Markdown，同时保留来源信息
+- **合并跨 Agent 回声**：多个 Agent 记住同一件事时，只保留一份内容并展示全部来源
+- **让任意 Agent 召回**：通过仅绑定回环地址的 MCP Bridge 提供搜索、上下文、写入、归档和统计能力
+- **常驻但不打扰**：以紧凑的 macOS 菜单栏面板运行，需要时再打开完整记忆库
+
+如果你同时使用多个编码或桌面 Agent，dachshund 适合你。如果一个 Agent 已经完整记住
+了所有上下文，你可能并不需要它
+
+## 下载
+
+<div align="center">
+
+### [下载 dachshund v0.1.1 for macOS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/dachshund-0.1.1-arm64.dmg)
+
+Apple Silicon · macOS · 约 120 MB
+
+[查看所有发布版本](https://github.com/Ewen2015/dachshund/releases)
+
+</div>
+
+当前 MVP 只提供 ad-hoc 签名，尚未使用 Developer ID 签名，也未经过 Apple
+公证。首次打开时，macOS 可能要求你在 Finder 中右键应用并选择“打开”
+
+DMG SHA-256：
+
+```text
+add780d04f068c3ea00554aeb8068239217cab155c870e066b9a9a0dbcfe4241
+```
+
+需要自行构建时：
+
+```sh
+git clone https://github.com/Ewen2015/dachshund.git
+cd dachshund
+npm install
+npm run dist:mac
+```
+
+构建要求为 Apple Silicon Mac、Node.js 22 或更高版本，以及 npm
+
+## 快速开始
+
+**1 · 安装并打开。** 将 `dachshund.app` 拖入“应用程序”，然后启动它
+
+**2 · 允许扫描。** 首次启动时，dachshund 会检测本机安装的 Agent，并将已有
+Memory 导入：
+
+```text
+~/Documents/dachshund/memory/
+```
+
+**3 · 连接 Agent。** 打开 **Agents**，为已安装的 Agent 开启共享，再点击
+**Connect MCP**。dachshund 只写入自己的 MCP 条目，并会在修改现有配置前创建备份
+
+## 支持 Agents
+
+<table>
+<tr><td>
+
+Claude Code · Codex · Cursor · Gemini CLI · GitHub Copilot · OpenCode · Windsurf · Claude Desktop · WorkBuddy · Doubao · Trae
+
+</td></tr>
+</table>
+
+dachshund 只显示本机实际发现的 Agent。当前 11 个集成中有 10 个支持只读导入，
+Claude Desktop 作为 MCP 连接目标使用。Doubao 目前仅支持导入，暂不写入全局 MCP
+配置
+
+具体路径和格式见 [Agent 集成](docs/AGENTS.md)，图标来源与许可见
+[Agent 图标](docs/AGENT_ICONS.md)
+
+## 工作原理
+
+```text
+Claude Code  ─┐
+Codex        ─┼─ 只读导入 ─→ ~/Documents/dachshund/memory/
+Cursor       ─┤                         │
+其他 Agents  ─┘                         ├─→ SQLite FTS5 + BM25 索引
+                                        │
+                                        └─→ 127.0.0.1 + Bearer Token
+                                                   │
+                                                   v
+                                            MCP stdio Bridge
+                                                   │
+                                           所有已连接 Agents
+```
+
+Markdown 文件是持久化的事实来源，SQLite 只是可重建的索引。本地 HTTP 服务仅绑定
+`127.0.0.1`，MCP Bridge 从仅当前用户可读的运行时文件中获取短期 Token
+
+进程模型、存储约定、安全边界和失败处理见
+[架构文档](docs/ARCHITECTURE.md)
+
+## 核心能力
+
+### 先导入，再使用
+
+在手动创建任何 Memory 之前，你就能看到有用的内容。dachshund 支持 Markdown、
+WorkBuddy 笔记、Trae 会话 JSONL、Codex Memory 文件，以及可读取的 Codex SQLite
+记录
+
+### 一份记忆，多个来源
+
+多个 Agent 写入相同内容时，dachshund 会合并为一条 Memory，并保留全部来源，方便
+追踪内容来自哪里，同时避免记忆库被重复笔记淹没
+
+### 真正适合常驻的 Mac 工具
+
+托盘图标、全局快捷键和 420 × 620 弹出面板让记忆库随手可用。使用
+`Cmd+Shift+M` 最小化到菜单栏，使用 `Cmd+Shift+D` 打开或关闭紧凑面板
+
+### 在同一个安静入口里完成更新
+
+发布新的 GitHub Release 后，菜单栏面板和完整应用都会出现更新卡片，显示新版本
+和发布说明。dachshund 会显示 DMG 下载进度，并在完成后打开安装镜像。当前版本为
+ad-hoc 签名，因此不会尝试不安全的静默自我替换
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/02-agents.png" alt="dachshund Agents 页面，展示真实产品图标和记忆数量"></td>
+<td width="50%"><img src="docs/screenshots/06-menubar-panel.png" alt="dachshund macOS 菜单栏面板"></td>
+</tr>
+</table>
+
+### 不依赖云端 Memory 层的 MCP
+
+已连接 Agent 可以使用以下工具：
+
+- 搜索共享 Memory
+- 请求可直接放入 Prompt 的上下文块
+- 写入持久 Memory
+- 归档共享 Memory
+- 查看记忆库统计
+
+| 工具 | 用途 |
+| :-- | :-- |
+| `memory_search` | 搜索相关 Memory，并返回来源 Agent |
+| `memory_context` | 生成紧凑、可直接用于 Prompt 的上下文块 |
+| `memory_remember` | 保存一条持久共享 Memory |
+| `memory_forget` | 归档共享副本，不删除 Agent 原始文件 |
+| `memory_stats` | 显示 Memory、Agent、来源与回声数量 |
+
+### 普通文件，真实身份
+
+即使没有 dachshund，记忆库仍然可读、可迁移。Agent 图标在构建时从固定版本的
+MIT 许可 LobeHub 图标集缓存，应用运行时不会请求远程图标
+
+## 隐私
+
+- 无需用户账号，也没有托管服务
+- 不包含分析、遥测或远程日志
+- 核心路径不需要 API Key、LLM 或 Embedding 调用
+- 更新功能只会请求公开的 GitHub Releases 接口
+- Agent 文件以只读方式原地扫描，导入过程不会改写原始内容
+- 归档共享 Memory 不会删除 Agent 自己的原始文件
+- HTTP 服务只监听回环地址，并要求随机 Bearer Token
+
+dachshund 的本地性来自架构，而不是配置开关
+
+## 文档
+
+| | |
+| :-- | :-- |
+| **[产品](docs/PRODUCT.md)** | 产品定位、用户、界面和边界 |
+| **[设计](docs/DESIGN.md)** | 视觉系统、布局、动效和无障碍 |
+| **[架构](docs/ARCHITECTURE.md)** | 进程、存储、MCP 和安全边界 |
+| **[Agent 集成](docs/AGENTS.md)** | 支持路径、格式和配置写入方式 |
+| **[Agent 图标](docs/AGENT_ICONS.md)** | 固定图标来源和许可 |
+| **[MVP](docs/MVP.md)** | 验证结果、校验值和已知限制 |
+| **[开发](docs/DEVELOPMENT.md)** | 数据隔离、测试、截图和打包 |
+| **[更新](docs/UPDATES.md)** | 发布约定、更新检查与下载流程 |
+| **[竞品调研](docs/COMPETITORS.md)** | 本地优先 Memory 产品格局与 dachshund 的切入点 |
+
+## 本地开发
+
+```sh
+npm install
+npm run typecheck
+npm run build
+npm run test:mcp
+npm run demo:seed
+npm run screenshot
+```
+
+开发与测试使用隔离的 `DACHSHUND_HOME` 和 `DACHSHUND_LIBRARY` 目录，不会修改
+真实用户的 Agent 配置
+
+## 当前限制
+
+- 去重基于完全相同的内容，不做语义合并
+- 搜索使用词法检索，暂不包含本地 Embedding 模型
+- 只在启动和手动扫描时导入，没有实时文件监听
+- 来源内容修改后，尚未实现增量同步和冲突处理
+- 目前只构建 Apple Silicon 版本，且未公证
+- 暂不支持云同步、团队模式和多设备历史
+
+## License
+
+[MIT](LICENSE)
+
+dachshund 是独立项目。产品名称和图标归各自所有者；Magpie 仅作为产品设计参考
