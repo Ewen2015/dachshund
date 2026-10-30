@@ -12,12 +12,13 @@ import { Header } from './components/Header'
 import { MemoryDetail } from './components/MemoryDetail'
 import { MemoryFeed } from './components/MemoryFeed'
 import { Onboarding } from './components/Onboarding'
+import { PulseView } from './components/PulseView'
 import { SettingsView } from './components/SettingsView'
 import { Toast } from './components/Toast'
 import { UpdateNotice } from './components/UpdateNotice'
 import { useUpdater } from './lib/useUpdater'
 
-type View = 'memory' | 'agents' | 'settings'
+type View = 'memory' | 'pulse' | 'agents' | 'settings'
 
 export default function App() {
   const [state, setState] = useState<AppState | null>(null)
@@ -247,6 +248,19 @@ export default function App() {
               scanning={scanning || state.scanning}
               query={query}
               onClearQuery={() => setQuery('')}
+            />
+          )}
+          {view === 'pulse' && (
+            <PulseView
+              memories={state.memories}
+              agents={state.agents}
+              counts={state.counts}
+              scanning={scanning || state.scanning}
+              onScan={() => void scan()}
+              onOpenMemory={(id) => {
+                setView('memory')
+                void select(id)
+              }}
             />
           )}
           {view === 'agents' && (

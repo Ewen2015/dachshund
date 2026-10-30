@@ -36,6 +36,7 @@ const app = await electron.launch({
     ...process.env,
     DACHSHUND_HOME: path.join(demoRoot, 'data'),
     DACHSHUND_LIBRARY: path.join(demoRoot, 'Documents', 'dachshund'),
+    DACHSHUND_USER_DATA: path.join(demoRoot, 'electron'),
     DACHSHUND_DEMO: '1',
     DACHSHUND_DISABLE_IMPORT: '1',
     DACHSHUND_UPDATE_MANIFEST: updateManifest,
@@ -95,6 +96,10 @@ await page.getByRole('button', { name: 'Settings', exact: true }).click()
 await page.waitForTimeout(500)
 await page.screenshot({ path: path.join(shots, '05-settings.png') })
 
+await page.getByRole('button', { name: 'Pulse', exact: true }).click()
+await page.waitForTimeout(650)
+await page.screenshot({ path: path.join(shots, '07-pulse.png') })
+
 const panelPage = await waitForPage((item) => item.url().includes('panel=1'))
 await app.evaluate(async ({ BrowserWindow }) => {
   const win = BrowserWindow.getAllWindows().find((item) =>
@@ -113,6 +118,12 @@ if (panelPage) {
   await panelPage.waitForTimeout(500)
   await panelPage.screenshot({
     path: path.join(shots, '06-menubar-panel.png'),
+    scale: 'device'
+  })
+  await panelPage.getByRole('button', { name: 'Pulse', exact: true }).click()
+  await panelPage.waitForTimeout(350)
+  await panelPage.screenshot({
+    path: path.join(shots, '08-menubar-pulse.png'),
     scale: 'device'
   })
 }

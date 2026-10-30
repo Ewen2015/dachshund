@@ -81,6 +81,7 @@ The following environment variables override defaults for tests and development:
 
 - `DACHSHUND_HOME`
 - `DACHSHUND_LIBRARY`
+- `DACHSHUND_USER_DATA`
 - `DACHSHUND_DEMO=1`
 - `DACHSHUND_DISABLE_IMPORT=1`
 - `DACHSHUND_AUTOLAUNCH=0`

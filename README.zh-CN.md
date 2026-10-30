@@ -10,7 +10,7 @@
 dachshund 找到这些 Agent 已经写在本机的 Memory，把它们汇入一份 Markdown
 记忆库，再通过 MCP 提供给所有 Agent 使用。无需账号，无需上云，也不依赖模型
 
-[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/dachshund-0.1.1-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
+[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.2/dachshund-0.1.2-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -44,7 +44,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 
 | 平台 | 架构 | 安装包 | 大小 | 下载 |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.1](https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/dachshund-0.1.1-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.2](https://github.com/Ewen2015/dachshund/releases/download/v0.1.2/dachshund-0.1.2-arm64.dmg)** |
 
 **系统要求：** Apple Silicon Mac
 
@@ -53,7 +53,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 > 选择“打开”
 
 [所有版本](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.2/SHA256SUMS)
 
 **安装**
 
@@ -69,7 +69,7 @@ SHA-256 用于确认下载的 DMG 与正式发布文件一致。它不是激活�
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.2/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -155,6 +155,14 @@ WorkBuddy 笔记、Trae 会话 JSONL、Codex Memory 文件，以及可读取的 
 托盘图标、全局快捷键和 420 × 620 弹出面板让记忆库随手可用。使用
 `Cmd+Shift+M` 最小化到菜单栏，使用 `Cmd+Shift+D` 打开或关闭紧凑面板
 
+### Pulse：看清记忆的形状
+
+Pulse 不是一张为了好看而做的使用量报表。它能看出哪些 Agent 正在扩充记忆库、
+多少知识被多个 Agent 共同记住、你主要保存哪些类型的 Memory，以及记忆是否正在
+变旧。菜单栏小窗里也有同一组数据的紧凑视图
+
+<img src="docs/screenshots/07-pulse.png" width="900" alt="dachshund Pulse 页面，展示 Memory 增长、跨 Agent 重合和新鲜度">
+
 ### 在同一个安静入口里完成更新
 
 发布新的 GitHub Release 后，菜单栏面板和完整应用都会出现更新卡片，显示新版本
@@ -209,6 +217,7 @@ dachshund 的本地性来自架构，而不是配置开关
 | :-- | :-- |
 | **[产品](docs/PRODUCT.md)** | 产品定位、用户、界面和边界 |
 | **[设计](docs/DESIGN.md)** | 视觉系统、布局、动效和无障碍 |
+| **[Pulse](docs/PULSE.md)** | Memory 可视化、指标定义和设计取舍 |
 | **[架构](docs/ARCHITECTURE.md)** | 进程、存储、MCP 和安全边界 |
 | **[Agent 集成](docs/AGENTS.md)** | 支持路径、格式和配置写入方式 |
 | **[Agent 图标](docs/AGENT_ICONS.md)** | 固定图标来源和许可 |

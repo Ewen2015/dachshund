@@ -1,9 +1,9 @@
 import type { Counts } from '../../../shared/types'
-import { AgentsIcon, MemoryIcon, PlusIcon, SettingsIcon } from './Icons'
+import { AgentsIcon, MemoryIcon, PlusIcon, PulseIcon, SettingsIcon } from './Icons'
 import { Mark } from './Mark'
 import { LockIcon } from './Icons'
 
-type View = 'memory' | 'agents' | 'settings'
+type View = 'memory' | 'pulse' | 'agents' | 'settings'
 
 export function Sidebar({
   view,
@@ -39,6 +39,15 @@ export function Sidebar({
           <MemoryIcon size={17} />
           <span>Memory</span>
           <span className="nav-count">{counts.memories}</span>
+        </button>
+        <button
+          className={`nav-item ${view === 'pulse' ? 'active' : ''}`}
+          onClick={() => onChange('pulse')}
+          type="button"
+          aria-label="Pulse"
+        >
+          <PulseIcon size={17} />
+          <span>Pulse</span>
         </button>
         <button
           className={`nav-item ${view === 'agents' ? 'active' : ''}`}

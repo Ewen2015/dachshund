@@ -88,14 +88,14 @@ The manifest uses GitHub's release shape:
 
 ```json
 {
-  "tag_name": "v0.1.1",
-  "name": "dachshund v0.1.1",
+  "tag_name": "v0.1.2",
+  "name": "dachshund v0.1.2",
   "body": "Release notes",
-  "html_url": "https://github.com/Ewen2015/dachshund/releases/tag/v0.1.1",
+  "html_url": "https://github.com/Ewen2015/dachshund/releases/tag/v0.1.2",
   "assets": [
     {
-      "name": "dachshund-0.1.1-arm64.dmg",
-      "browser_download_url": "https://example.com/dachshund-0.1.1-arm64.dmg"
+      "name": "dachshund-0.1.2-arm64.dmg",
+      "browser_download_url": "https://example.com/dachshund-0.1.2-arm64.dmg"
     }
   ]
 }

@@ -68,6 +68,8 @@ the collar accent, not from decorative typography.
   and one primary button.
 - Centered content with a maximum readable width.
 - Feed rows use a left rail and a high-density text block.
+- Pulse uses a range filter, a four-cell summary strip, one stacked bar chart and
+  two compact memory-specific detail cards. See [PULSE.md](PULSE.md).
 - Memory detail opens as a right-side inspector rather than replacing the feed.
 - Settings use grouped white cards separated by generous vertical space.
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { AppState, MemorySummary } from '../../shared/types'
 import { AgentStack } from './components/AgentStack'
 import { AgentLogo } from './components/AgentLogo'
+import { PanelPulse } from './components/PanelPulse'
 import {
   ArrowUpRightIcon,
   CheckIcon,
@@ -16,7 +17,7 @@ import { UpdateNotice } from './components/UpdateNotice'
 import { kindLabel, relativeTime, uniqueSources } from './lib/format'
 import { useUpdater } from './lib/useUpdater'
 
-type Tab = 'memory' | 'agents'
+type Tab = 'memory' | 'pulse' | 'agents'
 
 export default function PanelApp() {
   const [state, setState] = useState<AppState | null>(null)
@@ -139,13 +140,24 @@ export default function PanelApp() {
         </button>
         <button
           type="button"
+          className={`panel-tab ${tab === 'pulse' ? 'active' : ''}`}
+          onClick={() => setTab('pulse')}
+        >
+          Pulse
+        </button>
+        <button
+          type="button"
           className={`panel-tab ${tab === 'agents' ? 'active' : ''}`}
           onClick={() => setTab('agents')}
         >
           Agents
         </button>
         <span className="panel-tab-count">
-          {tab === 'memory' ? `${state.counts.memories} memories` : `${installed.length} found`}
+          {tab === 'memory'
+            ? `${state.counts.memories} memories`
+            : tab === 'pulse'
+              ? `${state.counts.echoes} echoes`
+              : `${installed.length} found`}
         </span>
       </div>
 
@@ -169,6 +181,8 @@ export default function PanelApp() {
       )}
 
       <div className="panel-body">
+        {tab === 'pulse' && <PanelPulse memories={state.memories} agents={state.agents} />}
+
         {tab === 'memory' && (
           <>
             {memories.length === 0 ? (

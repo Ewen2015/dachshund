@@ -72,6 +72,7 @@ The full window is the library and control surface:
 - Memory feed grouped by recency.
 - Search and agent filters.
 - Memory detail with Markdown rendering and source provenance.
+- Pulse: growth, agent contribution, overlap, knowledge mix and freshness.
 - New-memory composer.
 - Agent discovery, sharing toggles, and MCP connection controls.
 - Settings, library path, privacy model, and index rebuild.

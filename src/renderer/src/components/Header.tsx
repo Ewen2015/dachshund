@@ -2,7 +2,7 @@ import type { RefObject } from 'react'
 import { MenuBarIcon, PlusIcon, SearchIcon } from './Icons'
 import { Mark } from './Mark'
 
-type View = 'memory' | 'agents' | 'settings'
+type View = 'memory' | 'pulse' | 'agents' | 'settings'
 
 export function Header({
   view,
@@ -30,7 +30,7 @@ export function Header({
         <span>dachshund</span>
       </div>
       <nav className="topbar-nav" aria-label="Primary">
-        {(['memory', 'agents', 'settings'] as const).map((item) => (
+        {(['memory', 'pulse', 'agents', 'settings'] as const).map((item) => (
           <button
             key={item}
             className={`topbar-tab ${view === item ? 'active' : ''}`}

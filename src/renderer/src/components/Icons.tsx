@@ -37,6 +37,15 @@ export function AgentsIcon({ size = 18, className }: IconProps) {
   )
 }
 
+export function PulseIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M3.5 18.5h17" />
+      <path d="M6 15.5V12M10 15.5V8M14 15.5v-5M18 15.5V4.5" />
+    </svg>
+  )
+}
+
 export function SettingsIcon({ size = 18, className }: IconProps) {
   return (
     <svg {...base(size, className)}>

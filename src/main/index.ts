@@ -25,6 +25,10 @@ import { UpdateService } from './updater'
 import packageJson from '../../package.json'
 
 app.setName('dachshund')
+if (process.env.DACHSHUND_USER_DATA) {
+  fs.mkdirSync(process.env.DACHSHUND_USER_DATA, { recursive: true })
+  app.setPath('userData', process.env.DACHSHUND_USER_DATA)
+}
 const APP_VERSION = packageJson.version
 
 let mainWindow: BrowserWindow | null = null
