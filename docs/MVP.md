@@ -61,10 +61,10 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development settings screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.1-arm64.dmg` was produced on 2026-10-30.
+- `release/dachshund-0.1.2-arm64.dmg` was produced on 2026-10-31.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service.
-- The packaged app compared its `0.1.1` version against a mocked `0.1.2`
+  healthy loopback service at version `0.1.2`.
+- The packaged app compared its `0.1.2` version against a mocked `0.1.3`
   Release and reached the `available` update state.
 - The packaged `Contents/Resources/mcp/index.cjs` passed the same five-tool MCP
   smoke test.
@@ -74,7 +74,7 @@ Verified in this repository:
 The DMG SHA-256 from this build is:
 
 ```text
-add780d04f068c3ea00554aeb8068239217cab155c870e066b9a9a0dbcfe4241
+8d7cd71feb1f5645cc14ea9126aece9f7b4dea25be769b7da3b2f28580f5f78c
 ```
 
 ## Known Limitations
