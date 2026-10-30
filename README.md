@@ -15,7 +15,7 @@ no model requirement.
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
-**[Download](#download)** &nbsp;·&nbsp; **[Quick start](#quick-start)** &nbsp;·&nbsp; **[Supported agents](#supported-agents)** &nbsp;·&nbsp; **[How it works](#how-it-works)** &nbsp;·&nbsp; **[Docs](#documentation)** &nbsp;·&nbsp; **[Competitor research](docs/COMPETITORS.md)**
+**[Download](#download)** &nbsp;·&nbsp; **[First run](#first-run)** &nbsp;·&nbsp; **[Supported agents](#supported-agents)** &nbsp;·&nbsp; **[How it works](#how-it-works)** &nbsp;·&nbsp; **[Docs](#documentation)** &nbsp;·&nbsp; **[Competitor research](docs/COMPETITORS.md)**
 
 <br>
 
@@ -50,40 +50,39 @@ already remembers everything you need, you probably do not need dachshund.
 
 ## Download
 
-<div align="center">
+| Platform | Architecture | Package | Size | Download |
+| :-- | :-- | :-- | :-- | :-- |
+| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.1](https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/dachshund-0.1.1-arm64.dmg)** |
 
-### [Download dachshund v0.1.1 for macOS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/dachshund-0.1.1-arm64.dmg)
+**System requirement:** macOS on Apple Silicon
 
-Apple Silicon · macOS · about 120 MB
+> **Distribution note:** The current MVP is ad-hoc signed and not notarized.
+> macOS Gatekeeper may require you to right-click the app in Finder and choose
+> **Open** on first launch.
 
-[View all releases](https://github.com/Ewen2015/dachshund/releases)
+[All releases](https://github.com/Ewen2015/dachshund/releases) ·
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/SHA256SUMS)
 
-</div>
+**Install**
 
-The current MVP is ad-hoc signed and not notarized. macOS Gatekeeper may require
-you to right-click the app in Finder and choose **Open** on first launch.
+1. Download the DMG.
+2. Open the image and drag `dachshund.app` into **Applications**.
+3. Launch dachshund from Applications.
 
-DMG SHA-256:
+<details>
+<summary>Optional: verify download integrity</summary>
 
-```text
-add780d04f068c3ea00554aeb8068239217cab155c870e066b9a9a0dbcfe4241
+The SHA-256 checksum confirms that the downloaded DMG matches the published
+release. It is not an activation or license key and does not need to be entered
+into the app.
+
+```sh
+cd ~/Downloads
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/SHA256SUMS
+shasum -a 256 -c SHA256SUMS
 ```
 
-## Quick start
-
-**1 · Download and install.** Open the DMG, drag `dachshund.app` into
-**Applications**, then launch it.
-
-**2 · Let it scan.** On first launch, dachshund detects the agents installed on
-this Mac and imports their existing memory into:
-
-```text
-~/Documents/dachshund/memory/
-```
-
-**3 · Connect an agent.** Open **Agents**, turn on sharing for an installed
-agent, then choose **Connect MCP**. dachshund writes only its own named MCP entry
-and creates a backup before changing an existing config.
+</details>
 
 ### Build from source
 
@@ -97,11 +96,24 @@ npm run build
 npm start
 ```
 
-Build the Apple Silicon DMG:
+To build the Apple Silicon DMG:
 
 ```sh
 npm run dist:mac
 ```
+
+## First run
+
+**1 · Let it scan.** On first launch, dachshund detects the agents installed on
+this Mac and imports their existing memory into:
+
+```text
+~/Documents/dachshund/memory/
+```
+
+**2 · Connect an agent.** Open **Agents**, turn on sharing for an installed
+agent, then choose **Connect MCP**. dachshund writes only its own named MCP entry
+and creates a backup before changing an existing config.
 
 ## Supported agents
 

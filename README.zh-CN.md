@@ -14,7 +14,7 @@ dachshund 找到这些 Agent 已经写在本机的 Memory，把它们汇入一�
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
-**[下载](#下载)** &nbsp;·&nbsp; **[支持 Agents](#支持-agents)** &nbsp;·&nbsp; **[工作原理](#工作原理)** &nbsp;·&nbsp; **[文档](#文档)** &nbsp;·&nbsp; **[竞品调研](docs/COMPETITORS.md)**
+**[下载](#下载)** &nbsp;·&nbsp; **[首次启动](#首次启动)** &nbsp;·&nbsp; **[支持 Agents](#支持-agents)** &nbsp;·&nbsp; **[工作原理](#工作原理)** &nbsp;·&nbsp; **[文档](#文档)** &nbsp;·&nbsp; **[竞品调研](docs/COMPETITORS.md)**
 
 <br>
 
@@ -42,26 +42,42 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 
 ## 下载
 
-<div align="center">
+| 平台 | 架构 | 安装包 | 大小 | 下载 |
+| :-- | :-- | :-- | :-- | :-- |
+| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.1](https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/dachshund-0.1.1-arm64.dmg)** |
 
-### [下载 dachshund v0.1.1 for macOS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/dachshund-0.1.1-arm64.dmg)
+**系统要求：** Apple Silicon Mac
 
-Apple Silicon · macOS · 约 120 MB
+> **分发说明：** 当前 MVP 仅提供 ad-hoc 签名，尚未使用 Developer ID 签名，
+> 也未经过 Apple 公证。首次打开时，macOS 可能要求你在 Finder 中右键应用并
+> 选择“打开”
 
-[查看所有发布版本](https://github.com/Ewen2015/dachshund/releases)
+[所有版本](https://github.com/Ewen2015/dachshund/releases) ·
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/SHA256SUMS)
 
-</div>
+**安装**
 
-当前 MVP 只提供 ad-hoc 签名，尚未使用 Developer ID 签名，也未经过 Apple
-公证。首次打开时，macOS 可能要求你在 Finder 中右键应用并选择“打开”
+1. 下载 DMG
+2. 打开安装镜像，将 `dachshund.app` 拖入“应用程序”
+3. 从“应用程序”启动 dachshund
 
-DMG SHA-256：
+<details>
+<summary>可选：校验下载文件完整性</summary>
 
-```text
-add780d04f068c3ea00554aeb8068239217cab155c870e066b9a9a0dbcfe4241
+SHA-256 用于确认下载的 DMG 与正式发布文件一致。它不是激活码或许可证，不需要
+输入到应用中
+
+```sh
+cd ~/Downloads
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.1/SHA256SUMS
+shasum -a 256 -c SHA256SUMS
 ```
 
-需要自行构建时：
+</details>
+
+### 从源码构建
+
+需要 Apple Silicon Mac、Node.js 22 或更高版本，以及 npm：
 
 ```sh
 git clone https://github.com/Ewen2015/dachshund.git
@@ -70,20 +86,16 @@ npm install
 npm run dist:mac
 ```
 
-构建要求为 Apple Silicon Mac、Node.js 22 或更高版本，以及 npm
+## 首次启动
 
-## 快速开始
-
-**1 · 安装并打开。** 将 `dachshund.app` 拖入“应用程序”，然后启动它
-
-**2 · 允许扫描。** 首次启动时，dachshund 会检测本机安装的 Agent，并将已有
+**1 · 允许扫描。** 首次启动时，dachshund 会检测本机安装的 Agent，并将已有
 Memory 导入：
 
 ```text
 ~/Documents/dachshund/memory/
 ```
 
-**3 · 连接 Agent。** 打开 **Agents**，为已安装的 Agent 开启共享，再点击
+**2 · 连接 Agent。** 打开 **Agents**，为已安装的 Agent 开启共享，再点击
 **Connect MCP**。dachshund 只写入自己的 MCP 条目，并会在修改现有配置前创建备份
 
 ## 支持 Agents
