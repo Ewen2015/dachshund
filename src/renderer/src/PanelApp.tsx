@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { AppState, MemorySummary } from '../../shared/types'
+import {
+  MEMORY_CATEGORIES,
+  categoryDefinition,
+  categoryForKind,
+  type MemoryCategoryId
+} from '../../shared/memory-taxonomy'
 import { AgentStack } from './components/AgentStack'
 import { AgentLogo } from './components/AgentLogo'
 import { PanelPulse } from './components/PanelPulse'
@@ -23,7 +29,9 @@ export default function PanelApp() {
   const [state, setState] = useState<AppState | null>(null)
   const [tab, setTab] = useState<Tab>('memory')
   const [query, setQuery] = useState('')
+  const [category, setCategory] = useState<MemoryCategoryId | null>(null)
   const [memories, setMemories] = useState<MemorySummary[]>([])
+  const [showAllAgents, setShowAllAgents] = useState(false)
   const [scanning, setScanning] = useState(false)
   const updater = useUpdater()
 
@@ -33,11 +41,11 @@ export default function PanelApp() {
     void (async () => {
       const initial = await window.dachshund.getState()
       setState(initial)
-      setMemories(initial.memories.slice(0, 8))
+      setMemories(initial.memories.slice(0, 24))
     })()
     const offState = window.dachshund.onStateChanged((next) => {
       setState(next)
-      setMemories(next.memories.slice(0, 8))
+      setMemories(next.memories.slice(0, 24))
     })
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') void window.dachshund.hidePanel()
@@ -55,7 +63,7 @@ export default function PanelApp() {
     const timer = window.setTimeout(() => {
       void (async () => {
         const list = await window.dachshund.search({ query, limit: 24 })
-        setMemories(list.slice(0, 8))
+        setMemories(list.slice(0, 24))
       })()
     }, 140)
     return () => window.clearTimeout(timer)
@@ -64,13 +72,30 @@ export default function PanelApp() {
   if (!state) return <div className="panel-shell loading-shell" />
 
   const installed = state.agents.filter((agent) => agent.installed)
+  const categoryCounts = Object.fromEntries(
+    MEMORY_CATEGORIES.map((item) => [
+      item.id,
+      memories.filter((memory) => categoryForKind(memory.kind) === item.id).length
+    ])
+  ) as Record<MemoryCategoryId, number>
+  const visibleMemories = memories
+    .filter((memory) => category === null || categoryForKind(memory.kind) === category)
+    .slice(0, 8)
+  const agentsWithMemory = installed.filter((agent) => agent.memoryCount > 0)
+  const agentsWithoutMemory = installed.filter((agent) => agent.memoryCount === 0)
+  const visibleAgents = showAllAgents
+    ? installed
+    : agentsWithMemory.length
+      ? agentsWithMemory
+      : agentsWithoutMemory
+  const hiddenAgentCount = installed.length - visibleAgents.length
 
   const scan = async () => {
     setScanning(true)
     try {
       const next = await window.dachshund.scan()
       setState(next)
-      setMemories(next.memories.slice(0, 8))
+      setMemories(next.memories.slice(0, 24))
     } finally {
       setScanning(false)
     }
@@ -162,38 +187,76 @@ export default function PanelApp() {
       </div>
 
       {tab === 'memory' && (
-        <div className="panel-search-row">
-          <label className="panel-search">
-            <SearchIcon size={13} />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search your memory"
-              aria-label="Search memory in compact panel"
-            />
-            {query && (
-              <button type="button" onClick={() => setQuery('')} aria-label="Clear search">
-                <CloseIcon size={10} />
+        <>
+          <div className="panel-search-row">
+            <label className="panel-search">
+              <SearchIcon size={13} />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search your memory"
+                aria-label="Search memory in compact panel"
+              />
+              {query && (
+                <button type="button" onClick={() => setQuery('')} aria-label="Clear search">
+                  <CloseIcon size={10} />
+                </button>
+              )}
+            </label>
+          </div>
+          <div className="panel-categories" role="tablist" aria-label="Memory categories">
+            <button
+              type="button"
+              className={`panel-category ${category === null ? 'active' : ''}`}
+              onClick={() => setCategory(null)}
+            >
+              <i />
+              <span>All</span>
+            </button>
+            {MEMORY_CATEGORIES.map((item) => (
+              <button
+                type="button"
+                key={item.id}
+                className={`panel-category ${category === item.id ? 'active' : ''}`}
+                onClick={() => setCategory(item.id)}
+                title={`${item.label}: ${categoryCounts[item.id]}`}
+              >
+                <i style={{ background: item.color }} />
+                <span>{item.shortLabel}</span>
               </button>
-            )}
-          </label>
-        </div>
+            ))}
+          </div>
+        </>
       )}
 
       <div className="panel-body">
-        {tab === 'pulse' && <PanelPulse memories={state.memories} agents={state.agents} />}
+        {tab === 'pulse' && (
+          <PanelPulse
+            memories={state.memories}
+            agents={state.agents}
+            onOpenCategory={(nextCategory) => {
+              setCategory(nextCategory)
+              setTab('memory')
+            }}
+          />
+        )}
 
         {tab === 'memory' && (
           <>
-            {memories.length === 0 ? (
+            {visibleMemories.length === 0 ? (
               <div className="panel-empty">
                 <Mark size={36} />
-                <strong>{query ? 'Nothing found' : 'No memories yet'}</strong>
-                <span>{query ? 'Try another phrase.' : 'Scan an agent or write the first note.'}</span>
+                <strong>{query || category ? 'Nothing in this view' : 'No memories yet'}</strong>
+                <span>
+                  {query || category
+                    ? 'Try another search or category.'
+                    : 'Scan an agent or write the first note.'}
+                </span>
               </div>
             ) : (
-              memories.map((memory) => {
+              visibleMemories.map((memory) => {
                 const sources = uniqueSources(memory.sources)
+                const memoryCategory = categoryDefinition(categoryForKind(memory.kind))
                 return (
                   <button
                     className="panel-memory"
@@ -203,6 +266,10 @@ export default function PanelApp() {
                   >
                     <div className="pm-meta">
                       <AgentStack sources={sources} size={15} />
+                      <span className="pm-category">
+                        <i style={{ background: memoryCategory.color }} />
+                        {memoryCategory.shortLabel}
+                      </span>
                       <span>{kindLabel(memory.kind)}</span>
                       <span className="pm-time">{relativeTime(memory.updatedAt)}</span>
                       {memory.echoCount > 1 && <span className="pm-echo">{memory.echoCount} agents</span>}
@@ -218,7 +285,7 @@ export default function PanelApp() {
 
         {tab === 'agents' && (
           <div className="panel-agents">
-            {installed.map((agent) => (
+            {visibleAgents.map((agent) => (
               <div className="panel-agent" key={agent.id}>
                 <AgentLogo
                   agentId={agent.id}
@@ -244,6 +311,24 @@ export default function PanelApp() {
                 </button>
               </div>
             ))}
+            {hiddenAgentCount > 0 && (
+              <button
+                type="button"
+                className="panel-agent-more"
+                onClick={() => setShowAllAgents(true)}
+              >
+                Show {hiddenAgentCount} other {hiddenAgentCount === 1 ? 'agent' : 'agents'}
+              </button>
+            )}
+            {showAllAgents && agentsWithoutMemory.length > 0 && (
+              <button
+                type="button"
+                className="panel-agent-more"
+                onClick={() => setShowAllAgents(false)}
+              >
+                Hide agents without memory
+              </button>
+            )}
             <div className="panel-tip">
               <CheckIcon size={12} />
               <span>dachshund reads these files in place. Toggle one off to pause it.</span>

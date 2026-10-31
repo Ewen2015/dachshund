@@ -1,5 +1,10 @@
 import { useMemo, useState } from 'react'
 import type { AgentSummary, MemorySummary } from '../../../shared/types'
+import {
+  MEMORY_CATEGORIES,
+  categoryForKind,
+  type MemoryCategoryId
+} from '../../../shared/memory-taxonomy'
 import { accentFor, uniqueSources } from '../lib/format'
 import { AgentLogo } from './AgentLogo'
 
@@ -31,10 +36,12 @@ function medianAge(memories: MemorySummary[]): string {
 
 export function PanelPulse({
   memories,
-  agents
+  agents,
+  onOpenCategory
 }: {
   memories: MemorySummary[]
   agents: AgentSummary[]
+  onOpenCategory: (category: MemoryCategoryId) => void
 }) {
   const [range, setRange] = useState<PanelRange>('30d')
 
@@ -92,6 +99,10 @@ export function PanelPulse({
 
   const maximum = niceMaximum(Math.max(1, ...buckets.map((bucket) => bucket.total)))
   const echoes = visible.filter((memory) => memory.echoCount > 1).length
+  const categoryCounts = MEMORY_CATEGORIES.map((category) => ({
+    ...category,
+    count: visible.filter((memory) => categoryForKind(memory.kind) === category.id).length
+  }))
   const activeAgentIds = new Set(
     visible.flatMap((memory) => uniqueSources(memory.sources).map((source) => source.agentId))
   )
@@ -152,6 +163,50 @@ export function PanelPulse({
           <strong>{medianAge(visible)}</strong>
         </div>
       </div>
+
+      <section className="panel-pulse-card panel-pulse-categories">
+        <div className="panel-pulse-card-head">
+          <strong>Category mix</strong>
+          <span>Click to filter</span>
+        </div>
+        {visible.length ? (
+          <>
+            <div
+              className="panel-pulse-category-bar"
+              role="img"
+              aria-label="Memory distribution across the five categories"
+            >
+              {categoryCounts
+                .filter((category) => category.count > 0)
+                .map((category) => (
+                  <span
+                    key={category.id}
+                    title={`${category.label}: ${category.count}`}
+                    style={{
+                      width: `${(category.count / visible.length) * 100}%`,
+                      background: category.color
+                    }}
+                  />
+                ))}
+            </div>
+            <div className="panel-pulse-category-list">
+              {categoryCounts.map((category) => (
+                <button
+                  type="button"
+                  key={category.id}
+                  onClick={() => onOpenCategory(category.id)}
+                >
+                  <i style={{ background: category.color }} />
+                  <span>{category.shortLabel}</span>
+                  <strong>{category.count}</strong>
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="panel-pulse-empty">No memories in this range.</p>
+        )}
+      </section>
 
       <section className="panel-pulse-card">
         <div className="panel-pulse-card-head">

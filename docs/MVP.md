@@ -71,14 +71,14 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development settings screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.5-arm64.dmg` was produced on 2026-10-31.
+- `release/dachshund-0.1.6-arm64.dmg` was produced on 2026-10-31.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.5`.
+  healthy loopback service at version `0.1.6`.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.5` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.6` passed the same
   five-tool MCP smoke test.
 - The packaged app is ad-hoc signed only; Gatekeeper assessment fails because it
   has no Developer ID signature or notarization.
@@ -86,7 +86,7 @@ Verified in this repository:
 The DMG SHA-256 from this build is:
 
 ```text
-647ca0000d03ba3ad6ad91bb3b1ee11af55a7ecdb9c7a336cf9cdd8490627fc9
+8364c8e167fe2208ec4dddd877eace4b7d6e85ebecc30a6718acb41aa3dcd0cd
 ```
 
 ## Known Limitations
@@ -149,9 +149,16 @@ token are not a defense against a compromised account.
 - agents with memory prioritized and zero-memory agents collapsed by default;
 - Pulse category mix, category growth, and click-through back to filtered memory.
 
+#### 0.1.6: Compact Panel Parity
+
+- five-category filtering in the menu bar panel;
+- category and kind labels on every compact memory row;
+- category mix in compact Pulse with click-through to the filtered memory list;
+- agents with memory prioritized in the compact panel, with the rest collapsed.
+
 ### Next
 
-#### 0.1.6: Trustworthy Incremental Import
+#### 0.1.7: Trustworthy Incremental Import
 
 - persist per-source mtime, size, and hash;
 - update an existing memory when its source changes;
@@ -159,7 +166,7 @@ token are not a defense against a compromised account.
 - expose source status in the detail view;
 - add importer fixtures and regression tests.
 
-#### 0.1.7: Reviewable Consolidation
+#### 0.1.8: Reviewable Consolidation
 
 - near-duplicate suggestions;
 - merge and split flows;
@@ -167,7 +174,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.8: Recall Quality
+#### 0.1.9: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -175,7 +182,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-### 0.1.8: Distribution
+### 0.1.10: Distribution
 
 - signed and notarized universal build;
 - update channel;
