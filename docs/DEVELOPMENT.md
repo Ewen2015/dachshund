@@ -136,6 +136,14 @@ npm run dist:mac
 
 Output directory: `release/`
 
+Before tagging a release:
+
+- update `package.json`, `package-lock.json`, README download links, and both
+  `site/index.html` and `site/zh/index.html`;
+- update both the website hero version and the download-card version;
+- after GitHub Pages deploys, verify the live English and Chinese pages no
+  longer show the previous release version.
+
 The builder targets `dmg` for `arm64`. The app is unsigned and not notarized.
 That limitation must remain explicit in user-facing documentation.
 
