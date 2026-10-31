@@ -13,15 +13,15 @@ fs.writeFileSync(
   updateManifest,
   JSON.stringify(
     {
-      tag_name: 'v0.1.9',
-      name: 'dachshund v0.1.9',
-      body: 'Fullscreen windows now close cleanly without leaving a blank Space.',
-      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.9',
+      tag_name: 'v0.1.10',
+      name: 'dachshund v0.1.10',
+      body: 'Larger, calmer typography across the app and menu bar.',
+      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.10',
       assets: [
         {
-          name: 'dachshund-0.1.9-arm64.dmg',
+          name: 'dachshund-0.1.10-arm64.dmg',
           browser_download_url:
-            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.9/dachshund-0.1.9-arm64.dmg'
+            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.10/dachshund-0.1.10-arm64.dmg'
         }
       ]
     },
