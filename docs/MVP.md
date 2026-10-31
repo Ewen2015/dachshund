@@ -72,15 +72,17 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development settings screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.8-arm64.dmg` was produced on 2026-10-31.
+- `release/dachshund-0.1.9-arm64.dmg` was produced on 2026-10-31.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.8`.
+  healthy loopback service at version `0.1.9`.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.8` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.9` passed the same
   five-tool MCP smoke test.
+- Closing or minimizing a fullscreen main window exits the macOS fullscreen
+  Space before hiding, with no blank fullscreen surface left behind.
 - A packaged Doubao setup session accepted a real
   `Doubao MCP Client` `2.33.5` stdio handshake and updated the UI to the
   verified connected state.
@@ -90,7 +92,7 @@ Verified in this repository:
 The DMG SHA-256 from this build is:
 
 ```text
-18932743a7b04cbaa554455c458948985eeda2d69c1a79c35fd51a0547604285
+2f2e5dfcc702107c8c851294e07f299c76f9cda7c07f6ad848de057b7a0d7c90
 ```
 
 ## Known Limitations
@@ -179,9 +181,15 @@ token are not a defense against a compromised account.
 - Doubao is marked connected only after a real matching handshake;
 - Agent controls use a fixed two-column grid for consistent row alignment.
 
+#### 0.1.9: Fullscreen Close Fix
+
+- closing the main window now leaves the macOS fullscreen Space before hiding;
+- minimizing to the menu bar uses the same safe fullscreen exit path;
+- the compact panel opens only after the main window has left fullscreen.
+
 ### Next
 
-#### 0.1.9: Trustworthy Incremental Import
+#### 0.1.10: Trustworthy Incremental Import
 
 - persist per-source mtime, size, and hash;
 - update an existing memory when its source changes;
@@ -189,7 +197,7 @@ token are not a defense against a compromised account.
 - expose source status in the detail view;
 - add importer fixtures and regression tests.
 
-#### 0.1.10: Reviewable Consolidation
+#### 0.1.11: Reviewable Consolidation
 
 - near-duplicate suggestions;
 - merge and split flows;
@@ -197,7 +205,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.10: Recall Quality
+#### 0.1.12: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -205,7 +213,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-### 0.1.11: Distribution
+### 0.1.13: Distribution
 
 - signed and notarized universal build;
 - update channel;

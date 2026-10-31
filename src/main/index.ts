@@ -49,6 +49,7 @@ let latestUpdateState: UpdateState | null = null
 let closeServer: (() => void) | null = null
 let quitting = false
 let installScheduled = false
+let hidingMainWindow = false
 
 function bridgePath(): string {
   if (process.env.DACHSHUND_MCP_BRIDGE) return process.env.DACHSHUND_MCP_BRIDGE
@@ -59,6 +60,47 @@ function bridgePath(): string {
 function iconPath(name: string): string {
   if (app.isPackaged) return path.join(process.resourcesPath, 'assets', name)
   return path.join(app.getAppPath(), 'resources', name)
+}
+
+function hideMainWindow(afterHide?: () => void): void {
+  const win = mainWindow
+  if (!win || hidingMainWindow) return
+
+  if (!win.isFullScreen() && !win.isSimpleFullScreen()) {
+    win.hide()
+    afterHide?.()
+    return
+  }
+
+  hidingMainWindow = true
+  let finished = false
+  let safetyTimer: ReturnType<typeof setTimeout> | null = null
+  const finish = (): void => {
+    if (finished) return
+    finished = true
+    hidingMainWindow = false
+    if (safetyTimer) clearTimeout(safetyTimer)
+    win.removeListener('leave-full-screen', finish)
+    win.hide()
+    afterHide?.()
+  }
+
+  if (win.isSimpleFullScreen()) {
+    win.setSimpleFullScreen(false)
+    setTimeout(finish, 80)
+    return
+  }
+
+  win.once('leave-full-screen', finish)
+  win.setFullScreen(false)
+  safetyTimer = setTimeout(() => {
+    if (win.isFullScreen()) {
+      win.setFullScreen(false)
+      safetyTimer = setTimeout(finish, 400)
+      return
+    }
+    finish()
+  }, 700)
 }
 
 function createWindow(): void {
@@ -87,7 +129,7 @@ function createWindow(): void {
   mainWindow.on('close', (event) => {
     if (!quitting) {
       event.preventDefault()
-      mainWindow?.hide()
+      hideMainWindow()
     }
   })
 
@@ -323,8 +365,7 @@ function buildMenu(): void {
             label: 'Minimize to Menu Bar',
             accelerator: 'CmdOrCtrl+Shift+M',
             click: () => {
-              mainWindow?.hide()
-              showPanel()
+              hideMainWindow(showPanel)
             }
           },
           { type: 'separator' },
@@ -446,8 +487,7 @@ function registerIpc(): void {
     return true
   })
   ipcMain.handle('app:minimize-to-tray', () => {
-    mainWindow?.hide()
-    showPanel()
+    hideMainWindow(showPanel)
     return true
   })
   ipcMain.handle('app:hide-panel', () => {
@@ -546,8 +586,7 @@ if (!gotLock) {
     updateService.start()
     globalShortcut.register('CommandOrControl+Shift+D', togglePanel)
     globalShortcut.register('CommandOrControl+Shift+M', () => {
-      mainWindow?.hide()
-      showPanel()
+      hideMainWindow(showPanel)
     })
 
     try {
