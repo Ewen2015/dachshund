@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { zstdDecompressSync } from 'node:zlib'
 import matter from 'gray-matter'
 import { DatabaseSync } from 'node:sqlite'
 import type { ImportedMemory } from '../../shared/types'
@@ -618,6 +619,397 @@ function importGeneric(agent: AgentDefinition, roots: string[]): ImportedMemory[
     .filter((item): item is ImportedMemory => Boolean(item))
 }
 
+function memoryTitle(text: string, fallback: string): string {
+  const firstLine =
+    text
+      .split('\n')
+      .map((line) => line.replace(/^#{1,6}\s+/, '').replace(/^[-*]\s+/, '').trim())
+      .find(Boolean) ?? fallback
+  return firstLine.length > 110 ? `${firstLine.slice(0, 107).trimEnd()}…` : firstLine
+}
+
+function durableMemoryText(input: string): boolean {
+  const text = input.trim()
+  if (text.length < 24 || text.length > 4000) return false
+  if (/<(system-reminder|available_skills)>/i.test(text)) return false
+  if (/^Current runtime context\./i.test(text)) return false
+  if (
+    /^(你是一个|你是|请执行|任务是|任务[:：])/i.test(text) &&
+    /(输出|提取|分析|生成|撰写|整理|完成|任务|output|extract|analy[sz]e|generate|write)/i.test(
+      text
+    )
+  ) {
+    return false
+  }
+  return /(请记住|记住|记得|以后(都|所有|默认|请|不|要)|从今以后|我的偏好|偏好是|我喜欢|我不喜欢|不要再|请始终|始终使用|默认使用|不要使用|我的名字|我叫|remember (that|to)|from now on|my preference|always use|never use|do not use|don't use)/i.test(
+    text
+  )
+}
+
+function memoryKind(input: string, fallback: string): string {
+  if (/(prefer|preference|always|never|以后|记住|偏好|喜欢|不要|不用|总是|默认|始终)/i.test(input)) {
+    return 'preference'
+  }
+  return fallback
+}
+
+function textContent(value: unknown): string {
+  if (typeof value === 'string') return value.trim()
+  if (!Array.isArray(value)) return ''
+  return value
+    .map((block) => {
+      if (!block || typeof block !== 'object' || Array.isArray(block)) return ''
+      const item = block as Record<string, unknown>
+      return item.type === 'text' && typeof item.text === 'string' ? item.text.trim() : ''
+    })
+    .filter(Boolean)
+    .join('\n\n')
+    .trim()
+}
+
+function importHermes(agent: AgentDefinition): ImportedMemory[] {
+  const out: ImportedMemory[] = []
+  const sources = [
+    {
+      file: path.join(agent.home, 'memories', 'MEMORY.md'),
+      kind: 'fact',
+      tags: ['hermes', 'memory']
+    },
+    {
+      file: path.join(agent.home, 'memories', 'USER.md'),
+      kind: 'profile',
+      tags: ['hermes', 'user-profile']
+    }
+  ]
+
+  for (const source of sources) {
+    const raw = readText(source.file)
+    if (!raw) continue
+    const { created, updated } = times(source.file)
+    const entries = raw.split('\n§\n')
+    entries.forEach((entry, index) => {
+      const content = entry.trim()
+      if (!content || content.length <= 20) return
+      if (/^\*Learn about the person you're helping\. Update this as you go\.\*$/i.test(content)) {
+        return
+      }
+      out.push({
+        title: memoryTitle(content, path.basename(source.file, '.md')),
+        content,
+        kind: source.kind,
+        project: null,
+        tags: source.tags,
+        createdAt: created,
+        updatedAt: updated,
+        agentId: agent.id,
+        agentName: agent.name,
+        sourcePath: source.file,
+        sourceRef: `${path.basename(source.file)}:${index + 1}`
+      })
+    })
+  }
+  return out
+}
+
+function importPi(agent: AgentDefinition): ImportedMemory[] {
+  const out: ImportedMemory[] = []
+  const sessionsRoot = path.join(agent.home, 'sessions')
+  const files = walk(sessionsRoot, (file) => file.endsWith('.jsonl'), 600)
+
+  for (const file of files) {
+    const raw = readText(file)
+    if (!raw) continue
+    const fileTimes = times(file)
+    let project: string | null = null
+    let sessionName = ''
+    const entries = raw.split('\n')
+
+    for (let index = 0; index < entries.length; index += 1) {
+      if (!entries[index].trim()) continue
+      let event: Record<string, unknown>
+      try {
+        const parsed = JSON.parse(entries[index]) as unknown
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) continue
+        event = parsed as Record<string, unknown>
+      } catch {
+        continue
+      }
+
+      if (event.type === 'session' && typeof event.cwd === 'string') {
+        project = path.basename(event.cwd) || null
+      }
+      if (event.type === 'session_info' && typeof event.name === 'string') {
+        sessionName = event.name.trim()
+      }
+
+      const timestamp = toTime(event.timestamp, fileTimes.updated)
+      const fallbackTitle = sessionName || `Pi session ${path.basename(file, '.jsonl').slice(-8)}`
+      if (
+        (event.type === 'compaction' || event.type === 'branch_summary') &&
+        typeof event.summary === 'string'
+      ) {
+        const content = event.summary.trim()
+        if (content.length <= 20) continue
+        out.push({
+          title: memoryTitle(content, fallbackTitle),
+          content,
+          kind: event.type === 'branch_summary' ? 'lesson' : 'project',
+          project,
+          tags: ['pi', event.type === 'branch_summary' ? 'branch-summary' : 'compaction'],
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          agentId: agent.id,
+          agentName: agent.name,
+          sourcePath: file,
+          sourceRef:
+            typeof event.id === 'string' ? event.id : `${path.basename(file)}:${index + 1}`
+        })
+        continue
+      }
+
+      if (event.type !== 'message' || !event.message || typeof event.message !== 'object') {
+        continue
+      }
+      const message = event.message as Record<string, unknown>
+      if (message.role !== 'user') continue
+      const content = textContent(message.content)
+      if (!durableMemoryText(content)) continue
+      out.push({
+        title: memoryTitle(content, fallbackTitle),
+        content,
+        kind: memoryKind(content, 'preference'),
+        project,
+        tags: ['pi', 'durable-user-context'],
+        createdAt: toTime(message.timestamp, timestamp),
+        updatedAt: toTime(message.timestamp, timestamp),
+        agentId: agent.id,
+        agentName: agent.name,
+        sourcePath: file,
+        sourceRef:
+          typeof event.id === 'string' ? event.id : `${path.basename(file)}:${index + 1}`
+      })
+    }
+  }
+  return out
+}
+
+function importZCode(agent: AgentDefinition): ImportedMemory[] {
+  const file = path.join(agent.home, 'cli', 'db', 'db.sqlite')
+  if (!fs.existsSync(file)) return []
+  const out: ImportedMemory[] = []
+  const seenText = new Set<string>()
+  let db: DatabaseSync | null = null
+
+  try {
+    db = new DatabaseSync(file, { readOnly: true })
+    const rows = db
+      .prepare(
+        `SELECT s.id AS session_id, s.title, s.directory, s.time_updated,
+                m.id AS message_id, m.time_created, m.data AS message_data,
+                p.data AS part_data
+           FROM session s
+           JOIN message m ON m.session_id = s.id
+           JOIN part p ON p.message_id = m.id
+          WHERE m.data LIKE '%"role":"user"%'
+            AND p.data LIKE '%"type":"text"%'
+          ORDER BY s.time_updated DESC, m.time_created ASC
+          LIMIT 5000`
+      )
+      .all() as Array<Record<string, unknown>>
+
+    for (const row of rows) {
+      let message: Record<string, unknown>
+      let part: Record<string, unknown>
+      try {
+        message = JSON.parse(String(row.message_data)) as Record<string, unknown>
+        part = JSON.parse(String(row.part_data)) as Record<string, unknown>
+      } catch {
+        continue
+      }
+      if (message.role !== 'user' || part.type !== 'text' || typeof part.text !== 'string') {
+        continue
+      }
+      const content = part.text.trim()
+      if (!durableMemoryText(content)) continue
+      const key = content.replace(/\s+/g, ' ')
+      if (seenText.has(key)) continue
+      seenText.add(key)
+      const timestamp = toTime(
+        row.time_created,
+        toTime(row.time_updated, times(file).updated)
+      )
+      const directory = typeof row.directory === 'string' ? row.directory : ''
+      out.push({
+        title: memoryTitle(content, typeof row.title === 'string' ? row.title : 'ZCode memory'),
+        content,
+        kind: memoryKind(content, 'project'),
+        project: directory ? path.basename(directory) : null,
+        tags: ['zcode', 'durable-user-context'],
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        agentId: agent.id,
+        agentName: agent.name,
+        sourcePath: file,
+        sourceRef: String(row.message_id ?? row.session_id ?? '')
+      })
+      if (out.length >= 400) break
+    }
+  } catch {
+    // ZCode may be migrating or holding the database.
+  } finally {
+    try {
+      db?.close()
+    } catch {
+      // ignore
+    }
+  }
+  return out
+}
+
+interface ZstdFrame {
+  start: number
+  end: number
+}
+
+function scanZstdFrames(buffer: Buffer): ZstdFrame[] {
+  const frames: ZstdFrame[] = []
+  let offset = 0
+  while (offset < buffer.length) {
+    const start = offset
+    if (buffer.length - offset < 5 || buffer.readUInt32LE(offset) !== 0xfd2fb528) break
+    offset += 4
+    const descriptor = buffer.readUInt8(offset)
+    offset += 1
+    if ((descriptor & 0x18) !== 0) break
+    const contentSizeFlag = descriptor >>> 6
+    const singleSegment = (descriptor & 0x20) !== 0
+    const checksum = (descriptor & 0x04) !== 0
+    const dictionaryFlag = descriptor & 0x03
+    const dictionaryBytes = dictionaryFlag === 3 ? 4 : dictionaryFlag
+    const contentSizeBytes =
+      contentSizeFlag === 0 ? (singleSegment ? 1 : 0) : 1 << contentSizeFlag
+    const remainingHeaderBytes =
+      (singleSegment ? 0 : 1) + dictionaryBytes + contentSizeBytes
+    if (buffer.length - offset < remainingHeaderBytes) break
+    offset += remainingHeaderBytes
+
+    let complete = false
+    while (offset + 3 <= buffer.length) {
+      const blockHeader = buffer.readUIntLE(offset, 3)
+      offset += 3
+      const lastBlock = (blockHeader & 1) !== 0
+      const blockType = (blockHeader >>> 1) & 0x03
+      const blockSize = blockHeader >>> 3
+      if (blockType === 0x03) break
+      const payloadBytes = blockType === 0x01 ? 1 : blockSize
+      if (buffer.length - offset < payloadBytes) break
+      offset += payloadBytes
+      if (lastBlock) {
+        complete = true
+        break
+      }
+    }
+    if (!complete) break
+    if (checksum) {
+      if (buffer.length - offset < 4) break
+      offset += 4
+    }
+    frames.push({ start, end: offset })
+  }
+  return frames
+}
+
+function deepSeekSessionText(file: string): string | null {
+  try {
+    const stat = fs.statSync(file)
+    if (!stat.isFile() || stat.size === 0 || stat.size > 32_000_000) return null
+    if (file.endsWith('.jsonl')) return fs.readFileSync(file, 'utf8')
+    const raw = fs.readFileSync(file)
+    const frames = scanZstdFrames(raw)
+    if (!frames.length) return null
+    const chunks: Buffer[] = []
+    let total = 0
+    for (const frame of frames) {
+      const decoded = zstdDecompressSync(raw.subarray(frame.start, frame.end))
+      total += decoded.length
+      if (total > MAX_FILE_BYTES) break
+      chunks.push(decoded)
+    }
+    return Buffer.concat(chunks).toString('utf8')
+  } catch {
+    return null
+  }
+}
+
+function importDeepSeekHarness(agent: AgentDefinition): ImportedMemory[] {
+  const out: ImportedMemory[] = []
+  const sessionsRoot = path.join(agent.home, 'sessions')
+  const files = walk(
+    sessionsRoot,
+    (file) => file.endsWith('.jsonl.zstd') || file.endsWith('.jsonl'),
+    800
+  )
+  const seenText = new Set<string>()
+
+  for (const file of files) {
+    const raw = deepSeekSessionText(file)
+    if (!raw) continue
+    const lines = raw.split('\n')
+    let project: string | null = null
+    let createdAt = times(file).created
+    let sessionId = path.basename(path.dirname(file))
+
+    for (let index = 0; index < lines.length; index += 1) {
+      if (!lines[index].trim()) continue
+      let event: Record<string, unknown>
+      try {
+        const parsed = JSON.parse(lines[index]) as unknown
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) continue
+        event = parsed as Record<string, unknown>
+      } catch {
+        continue
+      }
+      if (event.type === 'session') {
+        if (typeof event.cwd === 'string') project = path.basename(event.cwd) || null
+        if (typeof event.id === 'string') sessionId = event.id
+        createdAt = toTime(event.createdAt, createdAt)
+        continue
+      }
+      if (event.type !== 'user/message' || !event.data || typeof event.data !== 'object') {
+        continue
+      }
+      const data = event.data as Record<string, unknown>
+      const source =
+        data.source && typeof data.source === 'object'
+          ? (data.source as Record<string, unknown>)
+          : {}
+      if (data.role !== 'user' || source.kind !== 'user') continue
+      const content = textContent(data.content)
+      if (!durableMemoryText(content)) continue
+      const key = content.replace(/\s+/g, ' ')
+      if (seenText.has(key)) continue
+      seenText.add(key)
+      const timestamp = toTime(event.time, createdAt)
+      out.push({
+        title: memoryTitle(content, `DeepSeek Harness session ${sessionId.slice(-6)}`),
+        content,
+        kind: memoryKind(content, 'preference'),
+        project,
+        tags: ['deepseek-harness', 'durable-user-context'],
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        agentId: agent.id,
+        agentName: agent.name,
+        sourcePath: file,
+        sourceRef:
+          typeof data.id === 'string' ? data.id : `${sessionId}:${index + 1}`
+      })
+      if (out.length >= 400) return out
+    }
+  }
+  return out
+}
+
 export function importAgentMemories(agent: AgentDefinition): ImportedMemory[] {
   let memories: ImportedMemory[] = []
   switch (agent.id) {
@@ -656,6 +1048,18 @@ export function importAgentMemories(agent: AgentDefinition): ImportedMemory[] {
       break
     case 'trae':
       memories = importTrae(agent)
+      break
+    case 'hermes':
+      memories = importHermes(agent)
+      break
+    case 'pi':
+      memories = importPi(agent)
+      break
+    case 'zcode':
+      memories = importZCode(agent)
+      break
+    case 'deepseek-harness':
+      memories = importDeepSeekHarness(agent)
       break
     default:
       memories = []

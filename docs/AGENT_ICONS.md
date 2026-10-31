@@ -14,9 +14,11 @@ Icons come from the open-source
 - upstream commit: `aea0ecb0fe1439467219197c52ffaeb579dfe33f`
 - license: MIT, Copyright (c) 2023 LobeHub
 
-The upstream project is a catalogue of AI product marks. Product names and
-logos remain trademarks of their respective owners. dachshund uses them only to
-identify the local agent a memory came from.
+The ZCode entry uses the official Z.ai brand SVG published at
+`https://z-cdn.chatglm.cn/z-ai/static/logo.svg`. Z.ai has no corresponding
+ZCode entry in the pinned LobeHub package. Product names and logos remain
+trademarks of their respective owners. dachshund uses them only to identify the
+local agent a memory came from.
 
 ## Local Asset Pipeline
 
@@ -24,7 +26,8 @@ identify the local agent a memory came from.
 npm run icons:agents
 ```
 
-`scripts/fetch-agent-icons.mjs` downloads the pinned SVGs into
+`scripts/fetch-agent-icons.mjs` downloads the pinned LobeHub SVGs and the
+official Z.ai SVG into
 `src/renderer/src/assets/agent-icons/`. Vite bundles those files into the
 renderer. The app never requests an icon from the network at runtime.
 
@@ -53,6 +56,10 @@ npm run icons:agents -- --force
 | WorkBuddy | `workbuddy-color.svg` |
 | Doubao | `doubao-color.svg` |
 | Trae | `trae-color.svg` |
+| Hermes | `hermesagent.svg` |
+| Pi | `pi.svg` |
+| ZCode | `zai.svg` (official Z.ai asset) |
+| DeepSeek Harness | `deepseek-color.svg` |
 
 Unknown future agents fall back to a text monogram. dachshund itself uses the
 local dachshund mark.

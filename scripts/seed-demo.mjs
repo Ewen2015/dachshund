@@ -24,7 +24,7 @@ const memories = [
     project: 'Field Notes',
     tags: ['design', 'product', 'tone'],
     days: 0,
-    agents: ['claude-code', 'codex', 'cursor', 'workbuddy'],
+    agents: ['claude-code', 'codex', 'cursor', 'workbuddy', 'hermes', 'pi'],
     content:
       'Field Notes should feel like a paper field journal, not a productivity dashboard. Cream paper, ink, hairline rules, and one warm accent. When a screen starts to feel like software, remove a panel before adding a color.'
   },
@@ -35,7 +35,7 @@ const memories = [
     project: 'Field Notes',
     tags: ['roadmap', 'scope'],
     days: 0,
-    agents: ['codex', 'claude-code', 'doubao'],
+    agents: ['codex', 'claude-code', 'doubao', 'zcode', 'deepseek-harness'],
     content:
       'The first release ships the reading experience only. Editing, collaboration, and publishing stay behind the next milestone. The reader has to feel finished on its own before we add authoring.'
   },
@@ -46,7 +46,7 @@ const memories = [
     project: 'Field Notes',
     tags: ['typography', 'accessibility'],
     days: 1,
-    agents: ['cursor'],
+    agents: ['cursor', 'hermes'],
     content:
       'Body copy never goes below 15px. The default scale is 15 / 17 / 22 / 34. Larger type is allowed for editorial moments, but shrinking type to fit more content is not.'
   },
@@ -158,7 +158,11 @@ const agentNames = {
   cursor: 'Cursor',
   workbuddy: 'WorkBuddy',
   doubao: 'Doubao',
-  trae: 'Trae'
+  trae: 'Trae',
+  hermes: 'Hermes',
+  pi: 'Pi',
+  zcode: 'ZCode',
+  'deepseek-harness': 'DeepSeek Harness'
 }
 
 const sourcePaths = {
@@ -168,7 +172,11 @@ const sourcePaths = {
   cursor: '~/.cursor/rules/',
   workbuddy: '~/.workbuddy/memory/',
   doubao: '~/Library/Application Support/Doubao/Default/.doubao/agent_mode/workspace/.sessions/',
-  trae: '~/.trae-cn/memory/projects/'
+  trae: '~/.trae-cn/memory/projects/',
+  hermes: '~/.hermes/memories/MEMORY.md',
+  pi: '~/.pi/agent/sessions/',
+  zcode: '~/.zcode/cli/db/db.sqlite',
+  'deepseek-harness': '~/.dsh/sessions/'
 }
 
 for (const memory of memories) {

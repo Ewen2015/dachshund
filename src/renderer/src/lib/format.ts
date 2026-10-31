@@ -12,6 +12,10 @@ export const AGENT_ACCENTS: Record<string, string> = {
   workbuddy: '#01C886',
   doubao: '#1E37FC',
   trae: '#32F08C',
+  hermes: '#D45B90',
+  pi: '#1C1C1C',
+  zcode: '#2D2D2D',
+  'deepseek-harness': '#4D6BFE',
   dachshund: '#B5542F'
 }
 
@@ -30,6 +34,10 @@ export function initials(name: string, id = ''): string {
   if (id === 'workbuddy') return 'WB'
   if (id === 'doubao') return 'DB'
   if (id === 'trae') return 'TR'
+  if (id === 'hermes') return 'HE'
+  if (id === 'pi') return 'PI'
+  if (id === 'zcode') return 'ZC'
+  if (id === 'deepseek-harness') return 'DS'
   const words = name.replace(/[^a-zA-Z0-9 ]/g, ' ').trim().split(/\s+/)
   return words.length > 1 ? (words[0][0] + words[1][0]).toUpperCase() : name.slice(0, 2).toUpperCase()
 }

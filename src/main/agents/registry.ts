@@ -2,7 +2,14 @@ import path from 'node:path'
 import os from 'node:os'
 import type { AgentKind } from '../../shared/types'
 
-export type McpTargetType = 'json-mcpServers' | 'codex-toml' | 'opencode-json'
+export type McpTargetType =
+  | 'json-mcpServers'
+  | 'codex-toml'
+  | 'opencode-json'
+  | 'hermes-yaml'
+  | 'pi-json'
+  | 'zcode-json'
+  | 'deepseek-cordis'
 
 export interface McpTarget {
   type: McpTargetType
@@ -137,6 +144,49 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     },
     appPath: '/Applications/Trae CN.app',
     appPaths: ['/Applications/Trae.app']
+  },
+  {
+    id: 'hermes',
+    name: 'Hermes',
+    kind: 'desktop',
+    home: path.join(home, '.hermes'),
+    description: 'Native memory files and local sessions',
+    accent: '#D45B90',
+    mcp: { type: 'hermes-yaml', path: path.join(home, '.hermes', 'config.yaml') },
+    appPath: '/Applications/Hermes Agent.app',
+    appPaths: ['/Applications/Hermes.app']
+  },
+  {
+    id: 'pi',
+    name: 'Pi',
+    kind: 'cli',
+    home: path.join(home, '.pi', 'agent'),
+    description: 'Session summaries and durable instructions',
+    accent: '#1C1C1C',
+    mcp: { type: 'pi-json', path: path.join(home, '.pi', 'agent', 'mcp.json') }
+  },
+  {
+    id: 'zcode',
+    name: 'ZCode',
+    kind: 'editor',
+    home: path.join(home, '.zcode'),
+    description: 'Session history and durable user context',
+    accent: '#2D2D2D',
+    mcp: { type: 'zcode-json', path: path.join(home, '.zcode', 'cli', 'config.json') },
+    appPath: '/Applications/ZCode.app'
+  },
+  {
+    id: 'deepseek-harness',
+    name: 'DeepSeek Harness',
+    kind: 'desktop',
+    home: path.join(home, '.dsh'),
+    description: 'Session logs and durable user context',
+    accent: '#4D6BFE',
+    mcp: {
+      type: 'deepseek-cordis',
+      path: path.join(home, '.dsh', 'profiles', 'desktop', 'cordis.patch.yml')
+    },
+    appPath: '/Applications/DeepSeek Harness.app'
   }
 ]
 
@@ -147,5 +197,9 @@ export const DEMO_AGENT_IDS = [
   'cursor',
   'workbuddy',
   'doubao',
-  'trae'
+  'trae',
+  'hermes',
+  'pi',
+  'zcode',
+  'deepseek-harness'
 ]

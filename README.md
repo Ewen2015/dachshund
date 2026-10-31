@@ -11,7 +11,7 @@ dachshund finds the memory files your agents already keep, brings them into one
 Markdown library, and serves that library back through MCP. No account, no cloud,
 no model requirement.
 
-[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.3/dachshund-0.1.3-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
+[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.4/dachshund-0.1.4-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -52,7 +52,7 @@ already remembers everything you need, you probably do not need dachshund.
 
 | Platform | Architecture | Package | Size | Download |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.3](https://github.com/Ewen2015/dachshund/releases/download/v0.1.3/dachshund-0.1.3-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.4](https://github.com/Ewen2015/dachshund/releases/download/v0.1.4/dachshund-0.1.4-arm64.dmg)** |
 
 **System requirement:** macOS on Apple Silicon
 
@@ -61,7 +61,7 @@ already remembers everything you need, you probably do not need dachshund.
 > **Open** on first launch.
 
 [All releases](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.3/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.4/SHA256SUMS)
 
 **Install**
 
@@ -82,7 +82,7 @@ into the app.
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.3/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.4/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -124,12 +124,12 @@ and creates a backup before changing an existing config.
 <table>
 <tr><td>
 
-Claude Code · Codex · Cursor · Gemini CLI · GitHub Copilot · OpenCode · Windsurf · Claude Desktop · WorkBuddy · Doubao · Trae
+Claude Code · Codex · Cursor · Gemini CLI · GitHub Copilot · OpenCode · Windsurf · Claude Desktop · WorkBuddy · Doubao · Trae · Hermes · Pi · ZCode · DeepSeek Harness
 
 </td></tr>
 </table>
 
-dachshund shows only the agents found on your machine. Ten of the eleven
+dachshund shows only the agents found on your machine. Fourteen of the fifteen
 integrations currently have read-only importers. Claude Desktop is supported as
 an MCP target. Doubao is import-only until a stable global MCP configuration path
 is available.
@@ -166,7 +166,8 @@ security boundary and failure modes.
 
 Useful memory appears before you write anything. dachshund reads the formats
 agents already produce, including Markdown, WorkBuddy notes, Trae session JSONL,
-Codex memory files and readable Codex SQLite rows.
+Hermes native memory entries, Pi summaries, ZCode SQLite rows, DeepSeek Harness
+Zstandard logs, Codex memory files and readable Codex SQLite rows.
 
 ### One memory, visible echoes
 
@@ -259,6 +260,7 @@ dachshund is local by architecture, not by configuration.
 
 ```sh
 npm run typecheck
+npm run test:agents
 npm run build
 npm run test:mcp
 npm run demo:seed

@@ -194,11 +194,14 @@ Tools:
 Connecting an agent modifies only its MCP configuration and creates a
 `.dachshund.bak` backup when the file already exists.
 
-Three configuration formats are supported:
+Six configuration formats are supported:
 
 - JSON `mcpServers` for most clients;
 - Codex TOML under `[mcp_servers.dachshund]`;
 - OpenCode's `mcp.dachshund` JSON object.
+- Hermes YAML under `mcp_servers.dachshund`;
+- ZCode's strict `mcp.servers.dachshund` JSON object;
+- DeepSeek Harness's managed Cordis patch row.
 
 The installed entry runs Node against the dachshund bridge and sets
 `DACHSHUND_HOME` to the active data directory.

@@ -19,14 +19,15 @@ discover existing agent memory
 - Native macOS tray icon and 420 x 620 compact popover.
 - Full desktop library view, agent view, settings, detail inspector, and
   composer.
-- Local discovery for eleven agent families.
-- Agent-specific read-only importers for ten of them.
+- Local discovery for fifteen agent families.
+- Agent-specific read-only importers for fourteen of them.
 - Markdown library with YAML frontmatter.
 - SQLite index with FTS5 and BM25 search.
 - Exact content deduplication with multiple source echoes.
 - Loopback-only HTTP service with a random bearer token.
 - MCP bridge with five tools.
-- MCP config installation for JSON, Codex TOML, and OpenCode.
+- MCP config installation for JSON, Codex TOML, OpenCode, Hermes YAML, and
+  DeepSeek Harness Cordis patches.
 - macOS app icon, tray template icon, and brand mark.
 - In-app update download, digest verification, in-place replacement, rollback,
   and automatic relaunch.
@@ -37,15 +38,16 @@ discover existing agent memory
 The MVP is considered healthy when:
 
 1. `npm run typecheck` passes.
-2. `npm run build` completes.
-3. `npm run test:mcp` passes in an isolated temporary home.
-4. Search finds a memory created through `memory_remember`.
-5. `memory_context` returns a labeled prompt block.
-6. `memory_forget` archives the memory and removes it from default search.
-7. The compact panel remains usable at 420 x 620 logical pixels.
-8. The settings screen reports the correct MCP bridge path.
-9. `npm run dist:mac` produces a DMG.
-10. A packaged previous version can download a newer release, replace itself
+2. `npm run test:agents` passes fixture and config-writer checks.
+3. `npm run build` completes.
+4. `npm run test:mcp` passes in an isolated temporary home.
+5. Search finds a memory created through `memory_remember`.
+6. `memory_context` returns a labeled prompt block.
+7. `memory_forget` archives the memory and removes it from default search.
+8. The compact panel remains usable at 420 x 620 logical pixels.
+9. The settings screen reports the correct MCP bridge path.
+10. `npm run dist:mac` produces a DMG.
+11. A packaged previous version can download a newer release, replace itself
     in place, pass code-signature verification, and reopen.
 
 ## Current Verification
@@ -53,34 +55,38 @@ The MVP is considered healthy when:
 Verified in this repository:
 
 - TypeScript checks pass.
+- `npm run test:agents` passes fixture and config-writer checks for Hermes, Pi,
+  ZCode, and DeepSeek Harness.
 - Production build passes.
 - Isolated MCP integration passes for search, context, remember, forget, and
   stats.
 - Screenshot capture passes for all main views and the compact panel.
 - The packaged 22 px and 44 px menu bar templates keep transparent margins and
   are rejected by the build if the mark is clipped.
-- An isolated real scan identified 61 importable memories across 10 installed
-  agents, including 6 Trae entries from the China and international homes.
+- An isolated real scan identified 80 importable memories across 14 installed
+  agents. Hermes contributed 17 native entries. Pi, ZCode, and DeepSeek
+  Harness were detected and parsed; their transcript adapters correctly skipped
+  ordinary task prompts with no durable-memory signal.
 - An end-to-end MCP query against that imported library found a Trae-authored
   memory through `memory_search` and returned it through `memory_context`.
 - The development settings screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.3-arm64.dmg` was produced on 2026-10-31.
+- `release/dachshund-0.1.4-arm64.dmg` was produced on 2026-10-31.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.3`.
+  healthy loopback service at version `0.1.4`.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` passed the same five-tool MCP
-  smoke test.
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.4` passed the same
+  five-tool MCP smoke test.
 - The packaged app is ad-hoc signed only; Gatekeeper assessment fails because it
   has no Developer ID signature or notarization.
 
 The DMG SHA-256 from this build is:
 
 ```text
-6375529f5868864d9f9e4729ad772edb828bcc0a215b5ce75d7a7e14ba8f0cc1
+89610294429af30fff328c67f914737e552425e6652aa3118e6a01330606ac50
 ```
 
 ## Known Limitations
@@ -126,7 +132,14 @@ token are not a defense against a compromised account.
 
 ## Next Milestones
 
-### 0.1.4: Trustworthy Incremental Import
+### 0.1.4: More Agent Families
+
+- Hermes native memory entries;
+- Pi compaction and branch summaries;
+- ZCode read-only SQLite context;
+- DeepSeek Harness Zstandard session context.
+
+### 0.1.5: Trustworthy Incremental Import
 
 - persist per-source mtime, size, and hash;
 - update an existing memory when its source changes;
@@ -134,7 +147,7 @@ token are not a defense against a compromised account.
 - expose source status in the detail view;
 - add importer fixtures and regression tests.
 
-### 0.1.5: Reviewable Consolidation
+### 0.1.6: Reviewable Consolidation
 
 - near-duplicate suggestions;
 - merge and split flows;
@@ -142,7 +155,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-### 0.1.6: Recall Quality
+### 0.1.7: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -150,7 +163,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-### 0.1.7: Distribution
+### 0.1.8: Distribution
 
 - signed and notarized universal build;
 - update channel;

@@ -559,6 +559,10 @@ export function monogramForId(name: string, id: string): string {
     workbuddy: 'WB',
     doubao: 'DB',
     trae: 'TR',
+    hermes: 'HE',
+    pi: 'PI',
+    zcode: 'ZC',
+    'deepseek-harness': 'DS',
     dachshund: 'DD'
   }
   return known[id] ?? monogramFor(name)
@@ -577,6 +581,10 @@ export function accentFor(id: string): string {
     workbuddy: '#01C886',
     doubao: '#1E37FC',
     trae: '#32F08C',
+    hermes: '#D45B90',
+    pi: '#1C1C1C',
+    zcode: '#2D2D2D',
+    'deepseek-harness': '#4D6BFE',
     dachshund: '#B5542F'
   }
   return colors[id] ?? '#7A7064'

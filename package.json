@@ -1,6 +1,6 @@
 {
   "name": "dachshund",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "One memory across all your agents.",
   "main": "./out/main/index.js",
   "author": "Ewen Wang",
@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "dist:mac": "npm run build && electron-builder --mac dmg --arm64",
     "mcp": "node out/mcp/index.cjs",
+    "test:agents": "node scripts/test-agents.mjs",
     "test:mcp": "node scripts/test-integration.mjs",
     "demo:seed": "node scripts/seed-demo.mjs",
     "screenshot": "node scripts/screenshot.mjs"
@@ -26,6 +27,7 @@
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
+    "yaml": "^2.9.1",
     "zod": "^4.1.12"
   },
   "devDependencies": {

@@ -25,6 +25,7 @@ npm install
 | `npm run build` | Build icons, main, preload, renderer, and MCP bridge |
 | `npm start` | Preview the production Electron build |
 | `npm run typecheck` | Type-check main and renderer projects |
+| `npm run test:agents` | Validate the Hermes, Pi, ZCode and DeepSeek Harness importers and MCP writers |
 | `npm run test:mcp` | Run isolated HTTP and MCP integration tests |
 | `npm run demo:seed` | Seed twelve demo memories |
 | `npm run screenshot` | Capture the documented app screenshots |
@@ -60,6 +61,11 @@ Additional switches:
 
 `npm run test:mcp` creates its own temporary workspace and cleans it up after a
 successful run.
+
+`npm run test:agents` creates temporary homes for all four transcript-based
+integrations, including concatenated Zstandard frames and a read-only SQLite
+fixture. It also verifies each new MCP writer against a copied configuration and
+never touches a real agent home.
 
 ## Build Sequence
 
@@ -140,9 +146,9 @@ and notarized.
 
 Verified build:
 
-- output: `release/dachshund-0.1.3-arm64.dmg`
+- output: `release/dachshund-0.1.4-arm64.dmg`
 - SHA-256:
-  `6375529f5868864d9f9e4729ad772edb828bcc0a215b5ce75d7a7e14ba8f0cc1`
+  `89610294429af30fff328c67f914737e552425e6652aa3118e6a01330606ac50`
 - packaged app launch and packaged MCP bridge smoke test pass
 - automatic in-place update, signature verification and relaunch pass
 - code signing: ad-hoc only

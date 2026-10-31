@@ -14,7 +14,7 @@ const PACKAGE_VERSION = '1.101.0'
 const REPO_COMMIT = 'aea0ecb0fe1439467219197c52ffaeb579dfe33f'
 const SOURCE_BASE = `https://unpkg.com/${PACKAGE_NAME}@${PACKAGE_VERSION}/icons`
 
-const ICONS = [
+const LOBE_ICONS = [
   { agentId: 'claude-code', file: 'claudecode-color.svg', source: 'claudecode-color.svg' },
   { agentId: 'claude-desktop', file: 'claude-color.svg', source: 'claude-color.svg' },
   { agentId: 'codex', file: 'codex-color.svg', source: 'codex-color.svg' },
@@ -25,7 +25,28 @@ const ICONS = [
   { agentId: 'windsurf', file: 'windsurf.svg', source: 'windsurf.svg' },
   { agentId: 'workbuddy', file: 'workbuddy-color.svg', source: 'workbuddy-color.svg' },
   { agentId: 'doubao', file: 'doubao-color.svg', source: 'doubao-color.svg' },
-  { agentId: 'trae', file: 'trae-color.svg', source: 'trae-color.svg' }
+  { agentId: 'trae', file: 'trae-color.svg', source: 'trae-color.svg' },
+  { agentId: 'hermes', file: 'hermesagent.svg', source: 'hermesagent.svg' },
+  { agentId: 'pi', file: 'pi.svg', source: 'pi.svg' },
+  { agentId: 'deepseek-harness', file: 'deepseek-color.svg', source: 'deepseek-color.svg' }
+]
+
+const EXTERNAL_ICONS = [
+  {
+    agentId: 'zcode',
+    file: 'zai.svg',
+    source: 'https://z-cdn.chatglm.cn/z-ai/static/logo.svg',
+    collection: 'Z.ai official brand asset'
+  }
+]
+
+const ICONS = [
+  ...LOBE_ICONS.map((icon) => ({
+    ...icon,
+    source: `${SOURCE_BASE}/${icon.source}`,
+    collection: 'lobe-icons'
+  })),
+  ...EXTERNAL_ICONS
 ]
 
 function digest(value) {
@@ -43,7 +64,7 @@ async function readCached(icon) {
 }
 
 async function download(icon) {
-  const url = `${SOURCE_BASE}/${icon.source}`
+  const url = icon.source
   const response = await fetch(url, {
     headers: { 'user-agent': 'dachshund-agent-icon-fetcher/1.0' }
   })
@@ -73,7 +94,8 @@ async function main() {
     entries.push({
       agentId: icon.agentId,
       file: icon.file,
-      source: `${SOURCE_BASE}/${icon.source}`,
+      source: icon.source,
+      collection: icon.collection,
       sha256: digest(value)
     })
   }
@@ -91,8 +113,8 @@ async function main() {
   await writeFile(MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
   console.log(
     downloaded
-      ? `Cached ${downloaded} agent icons from ${PACKAGE_NAME}@${PACKAGE_VERSION}`
-      : `Agent icons are up to date (${PACKAGE_NAME}@${PACKAGE_VERSION})`
+      ? `Cached ${downloaded} agent icons from LobeHub and external brand assets`
+      : 'Agent icons are up to date'
   )
 }
 

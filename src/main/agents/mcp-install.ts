@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { parseDocument } from 'yaml'
 import type { McpInstallResult } from '../../shared/types'
 import { DATA_DIR } from '../paths'
 import { findDefinition } from './discovery'
@@ -41,7 +42,7 @@ export function upsertJsonMcp(
   file: string,
   bridgePath: string,
   dryRun = false,
-  mode: 'mcpServers' | 'opencode' = 'mcpServers'
+  mode: 'mcpServers' | 'opencode' | 'zcode' = 'mcpServers'
 ): McpInstallResult {
   const config = readJson(file)
   if (mode === 'opencode') {
@@ -52,6 +53,22 @@ export function upsertJsonMcp(
       enabled: true,
       environment: { DACHSHUND_HOME: DATA_DIR }
     }
+    config.mcp = mcp
+  } else if (mode === 'zcode') {
+    const mcp = (
+      config.mcp && typeof config.mcp === 'object' ? config.mcp : {}
+    ) as Record<string, unknown>
+    const servers = (
+      mcp.servers && typeof mcp.servers === 'object' ? mcp.servers : {}
+    ) as Record<string, unknown>
+    servers.dachshund = {
+      type: 'stdio',
+      command: '/usr/bin/env',
+      args: ['node', bridgePath],
+      env: { DACHSHUND_HOME: DATA_DIR },
+      enabled: true
+    }
+    mcp.servers = servers
     config.mcp = mcp
   } else {
     const servers = (
@@ -70,6 +87,34 @@ export function upsertJsonMcp(
     agentId: '',
     configPath: file,
     message: dryRun ? 'Configuration is valid (dry run)' : 'Connected to dachshund',
+    dryRun
+  }
+}
+
+export function upsertHermesYaml(
+  file: string,
+  bridgePath: string,
+  dryRun = false
+): McpInstallResult {
+  const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : ''
+  const document = parseDocument(existing.trim() ? existing : '{}\n')
+  if (document.errors.length) {
+    throw new Error(`Hermes config is not valid YAML: ${document.errors[0].message}`)
+  }
+  document.setIn(['mcp_servers', 'dachshund'], {
+    ...mcpEntry(bridgePath),
+    enabled: true
+  })
+  if (!dryRun) {
+    fs.mkdirSync(path.dirname(file), { recursive: true })
+    backup(file)
+    fs.writeFileSync(file, document.toString({ lineWidth: 0 }), 'utf8')
+  }
+  return {
+    ok: true,
+    agentId: 'hermes',
+    configPath: file,
+    message: dryRun ? 'Hermes config is valid (dry run)' : 'Connected to dachshund',
     dryRun
   }
 }
@@ -120,6 +165,53 @@ export function upsertCodexToml(file: string, bridgePath: string, dryRun = false
   }
 }
 
+function deepSeekCordisBlock(bridgePath: string): string {
+  return [
+    '# >>> dachshund (managed by dachshund)',
+    '- insert:',
+    '    - id: dachshund-mcp',
+    "      name: '@deepseek-ai/dsh-mcp-client'",
+    '      config:',
+    '        serverName: dachshund',
+    '        transport: stdio',
+    '        command: "/usr/bin/env"',
+    `        args: [node, ${JSON.stringify(bridgePath)}]`,
+    `        cwd: ${JSON.stringify(path.dirname(bridgePath))}`,
+    '        env:',
+    `          DACHSHUND_HOME: ${JSON.stringify(DATA_DIR)}`,
+    '# <<< dachshund',
+    ''
+  ].join('\n')
+}
+
+export function upsertDeepSeekCordis(
+  file: string,
+  bridgePath: string,
+  dryRun = false
+): McpInstallResult {
+  const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : ''
+  const block = deepSeekCordisBlock(bridgePath)
+  const marker = existing.match(/# >>> dachshund[\s\S]*?# <<< dachshund\n?/)
+  const next = marker
+    ? existing.replace(marker[0], block)
+    : `${existing.trimEnd()}${existing.trim() ? '\n\n' : ''}${block}`
+
+  if (!dryRun) {
+    fs.mkdirSync(path.dirname(file), { recursive: true })
+    backup(file)
+    fs.writeFileSync(file, next, 'utf8')
+  }
+  return {
+    ok: true,
+    agentId: 'deepseek-harness',
+    configPath: file,
+    message: dryRun
+      ? 'DeepSeek Harness Cordis config is valid (dry run)'
+      : 'Connected to dachshund',
+    dryRun
+  }
+}
+
 export function installMcp(agentId: string, options: InstallOptions): McpInstallResult {
   const definition = findDefinition(agentId)
   if (!definition?.mcp) {
@@ -131,15 +223,38 @@ export function installMcp(agentId: string, options: InstallOptions): McpInstall
     }
   }
   try {
-    const result =
-      definition.mcp.type === 'codex-toml'
-        ? upsertCodexToml(definition.mcp.path, options.bridgePath, options.dryRun)
-        : upsertJsonMcp(
-            definition.mcp.path,
-            options.bridgePath,
-            options.dryRun,
-            definition.mcp.type === 'opencode-json' ? 'opencode' : 'mcpServers'
-          )
+    let result: McpInstallResult
+    switch (definition.mcp.type) {
+      case 'codex-toml':
+        result = upsertCodexToml(definition.mcp.path, options.bridgePath, options.dryRun)
+        break
+      case 'hermes-yaml':
+        result = upsertHermesYaml(definition.mcp.path, options.bridgePath, options.dryRun)
+        break
+      case 'zcode-json':
+        result = upsertJsonMcp(definition.mcp.path, options.bridgePath, options.dryRun, 'zcode')
+        break
+      case 'deepseek-cordis':
+        result = upsertDeepSeekCordis(definition.mcp.path, options.bridgePath, options.dryRun)
+        break
+      case 'opencode-json':
+        result = upsertJsonMcp(
+          definition.mcp.path,
+          options.bridgePath,
+          options.dryRun,
+          'opencode'
+        )
+        break
+      case 'pi-json':
+      case 'json-mcpServers':
+        result = upsertJsonMcp(
+          definition.mcp.path,
+          options.bridgePath,
+          options.dryRun,
+          'mcpServers'
+        )
+        break
+    }
     return { ...result, agentId }
   } catch (error) {
     return {

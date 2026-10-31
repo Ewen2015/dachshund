@@ -9,6 +9,10 @@ import windsurfIcon from '../assets/agent-icons/windsurf.svg'
 import workBuddyIcon from '../assets/agent-icons/workbuddy-color.svg'
 import doubaoIcon from '../assets/agent-icons/doubao-color.svg'
 import traeIcon from '../assets/agent-icons/trae-color.svg'
+import hermesIcon from '../assets/agent-icons/hermesagent.svg'
+import piIcon from '../assets/agent-icons/pi.svg'
+import zcodeIcon from '../assets/agent-icons/zai.svg'
+import deepSeekHarnessIcon from '../assets/agent-icons/deepseek-color.svg'
 import { accentFor, initials } from '../lib/format'
 import { Mark } from './Mark'
 
@@ -23,7 +27,11 @@ const AGENT_ICONS: Record<string, string> = {
   windsurf: windsurfIcon,
   workbuddy: workBuddyIcon,
   doubao: doubaoIcon,
-  trae: traeIcon
+  trae: traeIcon,
+  hermes: hermesIcon,
+  pi: piIcon,
+  zcode: zcodeIcon,
+  'deepseek-harness': deepSeekHarnessIcon
 }
 
 export function AgentLogo({

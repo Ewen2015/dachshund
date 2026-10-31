@@ -210,6 +210,11 @@ export function agentNameFor(id: string): string {
     windsurf: 'Windsurf',
     workbuddy: 'WorkBuddy',
     doubao: 'Doubao',
+    trae: 'Trae',
+    hermes: 'Hermes',
+    pi: 'Pi',
+    zcode: 'ZCode',
+    'deepseek-harness': 'DeepSeek Harness',
     dachshund: 'dachshund'
   }
   return names[id] ?? id
