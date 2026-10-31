@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ewen2015.github.io/dachshund/sitemap.xml
