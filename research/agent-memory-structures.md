@@ -2,7 +2,9 @@
 
 研究日期：2026-10-31
 
-本文回答“每个 agent 到底把什么称为 memory，以及它怎样持久化”。分类建议放在
+本文回答“每个 agent 到底把什么称为 memory，以及它怎样持久化”。当前分类、
+归一化规则和 agent mapping 以 [docs/MEMORY.md](../docs/MEMORY.md) 为准；
+研究背景和尚未实现的替代模型见
 [dachshund-memory-taxonomy.md](dachshund-memory-taxonomy.md)。
 
 ## 快速矩阵
@@ -285,9 +287,21 @@ Agent Mode 相关本地 memory 文件，范围小于“豆包记住了什么”�
 
 ## 对 dachshund 的产品含义
 
-1. 不能用一个 `kind` 字段同时表达“谁写的、有多强、作用在哪、是什么用途”。
-2. 不能把 session/episode 直接当 durable memory。
-3. 不能把 service-side memory 说成本地可导入；应明确 unavailable。
-4. 需要把 agent 从分类主轴降为 provenance。
-5. 需要为旧 kind 建立迁移表，而不是继续增加新名字。
-6. 跨 agent 合并应限制在同一个 authority + kind 内，避免规则和软记忆互相覆盖。
+### 当前实现
+
+1. 使用五分类、十一 kind 表达信息用途，同时保留原生 kind、来源 agent 和路径。
+2. `project` 是独立字段；它不等同于 `projects` 分类，也不冒充通用 scope。
+3. session、topic、rollout 和 compaction 进入 History，不自动升级为长期事实。
+4. 账号侧不可观察的 memory 会明确标为不可导入，不假装是本地文件。
+5. agent 是 provenance、过滤器和详情页入口，不是一级分类。
+6. 常见旧 kind 通过确定性 alias 归一化；未知 kind 保留内容并回退到 `fact`。
+
+### 仍待研究
+
+1. 单独的 `authority` 能否改善强指令与自动总结之间的冲突处理。
+2. 通用 `scope`、`path` 和 `session` 字段是否值得进入实际 frontmatter。
+3. 语义近重复和跨 agent 冲突应该怎样展示，而不是自动合并。
+4. 一条 History episode 应该怎样经过用户确认，显式提升为 lesson、decision 或 fact。
+
+这些是设计问题，不是当前存储 schema。当前实现以
+[`src/shared/memory-taxonomy.ts`](../src/shared/memory-taxonomy.ts) 为准。

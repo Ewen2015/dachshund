@@ -257,6 +257,8 @@ dachshund is local by architecture, not by configuration.
 | **[Development](docs/DEVELOPMENT.md)** | Data isolation, tests, screenshots and packaging |
 | **[Updates](docs/UPDATES.md)** | Release contract, download verification and in-place installation |
 | **[Research](research/cross-agent-memory-products.md)** | Local-first cross-agent memory landscape, with dated evidence and product implications |
+| **[Memory taxonomy research](research/dachshund-memory-taxonomy.md)** | Implemented classification model, native mappings, and clearly separated future proposals |
+| **[Agent memory structures](research/agent-memory-structures.md)** | Per-agent storage models, persistent files, and dated evidence |
 
 ## Development
 

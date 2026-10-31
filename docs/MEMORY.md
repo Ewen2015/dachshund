@@ -100,6 +100,11 @@ discarded.
 The implementation lives in
 [`src/shared/memory-taxonomy.ts`](../src/shared/memory-taxonomy.ts).
 
+Research notes are separate from this contract. The implemented model is
+documented here; [dachshund-memory-taxonomy.md](../research/dachshund-memory-taxonomy.md)
+records the alternatives that were evaluated, including `authority`, generic
+`scope`, and `confidence`. Those fields are not part of the current schema.
+
 ## Agent mapping
 
 The detail page for an installed agent shows its native structure, the path

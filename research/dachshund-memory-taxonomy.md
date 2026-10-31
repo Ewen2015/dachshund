@@ -2,79 +2,127 @@
 
 研究日期：2026-10-31
 
-本文是基于 [agent-memory-structures.md](agent-memory-structures.md) 的产品建议，
-不是现有实现说明。
+本文分成两部分：
 
-## 问题
+1. **当前已实现**：dachshund 0.1.x 正在使用的五分类、十一 kind 模型；
+2. **研究中的替代模型**：评估过但尚未进入实现的 authority / scope 等维度。
 
-当前 dachshund 主要按：
+产品事实以 [docs/MEMORY.md](../docs/MEMORY.md) 和
+[`src/shared/memory-taxonomy.ts`](../src/shared/memory-taxonomy.ts) 为准。本文中的
+“研究提案”不能被理解为已经发布的存储字段或界面行为。
 
-- 时间；
-- 所属 agent；
-- 简单的 `kind`；
-- 项目字段；
+## 当前已实现
 
-组织 memory。这个模型适合导入和快速搜索，但不足以回答用户真正会问的问题：
+### 五个一级分类
 
-- “我在所有 agent 里表达过哪些稳定偏好？”
-- “这个项目的规则、决策和外部资料分别是什么？”
-- “两个 agent 对同一件事的说法一致吗？”
-- “哪些是用户定的规则，哪些只是 agent 自己总结的？”
-- “最近一次任务得出的结论，什么时候应该变成长期记忆？”
-
-## 建议：三层模型
-
-### 第一层：Authority
-
-决定这条记录在系统里的权威级别。
-
-| Authority | 含义 | 例子 | 默认行为 |
+| 分类 | UI 名称 | 包含的 kind | 回答的问题 |
 | --- | --- | --- | --- |
-| `instruction` | 用户或团队手写的规则 | `AGENTS.md`、`CLAUDE.md`、Cursor Rule | 可显示为规则；冲突时不能静默合并 |
-| `memory` | 长期上下文或 agent 学到的内容 | `MEMORY.md`、`USER.md`、auto memory | 软回忆；可被纠正、过期和归档 |
-| `episode` | 某次任务或会话的轨迹和摘要 | session summary、rollout、compaction | 作为证据；默认不直接注入 |
+| `about` | About me / Identity | `profile`, `preference` | 我是谁，我希望 agent 怎样和我合作？ |
+| `working` | Ways of working / Working | `rule`, `feedback`, `lesson`, `workflow` | 哪些规则、纠正、经验和流程会影响下一次工作？ |
+| `projects` | Projects | `project`, `decision` | 当前项目有哪些目标、约束和已做的决定？ |
+| `knowledge` | Facts & references / Facts | `fact`, `reference` | 哪些长期事实和外部资料值得再次找到？ |
+| `episodes` | History | `episode` | 过去发生过什么，哪些会话或任务可以作为证据？ |
 
-Reference 和 Artifact 不单列为 authority。一个 reference 可以是 memory，也可以是
-episode 里的引用；关键看它是被长期保存，还是只存在于一次会话。
+这十一 kind 是：
 
-### 第二层：Kind
+```text
+profile  preference
+rule     feedback  lesson  workflow
+project  decision
+fact     reference
+episode
+```
 
-只保留四种长期记忆语义：
+一级分类用于跨 agent 浏览，kind 用于保留更具体的知识类型。页面中的分类
+legend 只过滤当前时间线，不改变 memory 的原始分类。
 
-| Kind | 回答的问题 | 典型内容 |
+### 与各 agent 原生类型的关系
+
+dachshund 在分类时区分两层语义：
+
+1. **Native model**：原 agent 把这个条目叫什么、放在哪里、为什么保存；
+2. **dachshund category + kind**：用于跨 agent 组织的统一分类。
+
+导入后的条目保存统一 kind、来源 agent 和原始路径；每个 agent 的原生结构则在
+agent 详情页中解释。dachshund 不会把原生 kind 名称直接当作一级分类。
+
+常见原生类型按以下方式进入当前模型：
+
+| 原生信号 | dachshund 结果 |
+| --- | --- |
+| `user`, `identity`, `personal` | `profile` → About me |
+| `preference`, `preferences` | `preference` → About me |
+| `feedback`, `correction` | `feedback` → Ways of working |
+| `instruction`, `rule`, `guideline`, `policy` | `rule` → Ways of working |
+| `lesson` | `lesson` → Ways of working |
+| `workflow` | `workflow` → Ways of working |
+| `project`, `task-group`, `project_memory` | `project` → Projects |
+| `decision` | `decision` → Projects |
+| `fact` | `fact` → Facts & references |
+| `reference`, `link`, `doc` | `reference` → Facts & references |
+| `session`, `session_memory`, `topic`, `rollout`, `compaction` | `episode` → History |
+
+Claude Code、WorkBuddy 和 ZCode 常用的四类原生 schema
+`user / feedback / project / reference` 会按其语义归一化，但不会直接变成
+dachshund 的四个一级分类。原因是这四个原生类型混用了身份、行为纠正、项目上下文
+和外部资料，同时没有单独表达 `decision`、`workflow`、`lesson` 和 `episode`。
+
+### 分类原则
+
+- **确定性**：分类只依赖原生 kind、文件角色和显式 section，不调用 LLM、不生成
+  embedding，也不为了分类上传 memory。
+- **保守映射**：未知或空 kind 回退到 `fact`，不丢内容，也不擅自提高权威级别。
+- **agent 是来源，不是一级分类**：agent 用于 provenance、过滤和来源徽标；同一个
+  memory 可以来自多个 agent。
+- **project 是独立字段**：`project` 字段记录作用项目，不等同于 `projects` 分类。
+- **History 不是长期事实**：session、topic、compaction 和 rollout 先作为证据保存；
+  只有显式写入才会变成 `lesson`、`decision` 或 `fact`。
+
+## 研究中的替代模型
+
+以下模型来自早期调研，用来说明为什么当前实现选择五分类，而不是要求立即迁移。
+
+### Authority
+
+用来源强度区分：
+
+| Authority | 含义 | 例子 |
 | --- | --- | --- |
-| `user` | 我是谁、我怎样工作 | 角色、语言、专业背景、稳定偏好 |
-| `feedback` | 以后应该怎样做，或不要再怎样做 | 纠正、确认的方法、经验教训 |
-| `project` | 这个项目现在是什么状态 | 目标、范围、决策、约束、截止日期 |
-| `reference` | 如果需要更多信息，去哪里找 | URL、文件、issue tracker、dashboard、外部系统 |
+| `instruction` | 用户或团队手写的强约束 | `AGENTS.md`、`CLAUDE.md`、Cursor Rule |
+| `memory` | 长期上下文或 agent 总结 | `MEMORY.md`、`USER.md`、auto memory |
+| `episode` | 一次任务或会话的轨迹 | session summary、rollout、compaction |
 
-选择这四类的原因：
+这项研究的价值是提醒 dachshund 不要把强指令和自动总结静默合并。当前实现通过
+`rule` / `feedback` 等 kind、来源路径和 native mapping 保留差异，但**没有单独的
+`authority` 字段**。
 
-1. Claude Code、WorkBuddy、ZCode 已经使用相同或几乎相同的类型；
-2. 能覆盖现有 `profile`、`preference`、`project`、`lesson`、`fact`；
-3. 数量足够少，用户不需要学习复杂的第二大脑方法；
-4. 适合在 UI 中做稳定的一级分类；
-5. 仍然可以通过 tags 承载 `design`、`typescript`、`release` 等主题。
+### Scope
 
-### 第三层：Scope
+用作用域区分：
 
 | Scope | 含义 |
 | --- | --- |
 | `global` | 跨项目、跨 agent 的个人资料或偏好 |
-| `project` | 绑定到一个 git repo 或明确项目 |
-| `path` | 只对目录/文件类型生效，常见于 Rules |
-| `session` | 只对某次会话、任务或分支有效 |
+| `project` | 绑定到一个仓库或明确项目 |
+| `path` | 只对目录、文件类型或路径生效 |
+| `session` | 只对一次会话、任务或分支有效 |
 
-`scope` 必须独立于 `kind`。例如：
+当前数据模型已有 `project` 字段，但没有通用的 `scope`、`path` 或 `session` 字段。
+从来源路径推断作用域是有用的研究方向，但不能把推断结果说成用户明确声明。
 
-- “用中文回复”是 `user + global`；
-- “这个 repo 使用 pnpm”是 `project + project`；
-- “所有 migration 先写测试”是 `feedback + project` 或 `instruction + project`；
-- “这个 bug 的排查过程”是 `episode + session`。
+### Confidence
 
-## 建议的数据结构
+早期提案还考虑过 `confidence`：
 
-在不破坏现有 Markdown 的前提下，逐步增加字段：
+- `declared`：用户或 agent 明确写入；
+- `inferred`：dachshund 根据标题、路径或内容推断；
+- `imported`：原样导入但尚未分类。
+
+当前实现没有这个字段。未知 kind 会保留内容并回退到 `fact`，不会伪造推断置信度。
+
+### 研究草图，不是现有格式
+
+下面的 frontmatter 只是候选设计：
 
 ```yaml
 id: mem_example
@@ -90,164 +138,29 @@ confidence: declared
 sources:
   - agent: claude-code
     path: ~/.claude/projects/.../memory/feedback_decisions.md
-    ref: feedback_decisions
-  - agent: codex
-    path: ~/.codex/memories/MEMORY.md
-    ref: task-group/product
 created: 2026-10-31T10:00:00.000Z
 updated: 2026-10-31T10:00:00.000Z
-status: active
 ```
 
-字段含义：
+在采用这些字段前，需要先证明它们能改善真实浏览、冲突处理或 agent 调用体验，
+而不是只让 schema 看起来更完整。
 
-- `authority`：instruction / memory / episode；
-- `kind`：user / feedback / project / reference；
-- `scope`：global / project / path / session；
-- `confidence`：declared / inferred / imported；
-- `sources`：保留 agent、原路径和 section/ref；
-- `status`：active / archived / superseded。
+## 仍待验证的问题
 
-`confidence` 不是模型置信度。它表示证据来源：
+1. **冲突展示**：不同 agent 对同一条规则给出不同说法时，怎样并列展示来源和差异。
+2. **近重复聚类**：相同主题但措辞不同的 memory 是否值得在 UI 中成组展示。
+3. **候选提升**：怎样让用户明确把 `episode` 提升为 `lesson`、`decision` 或 `fact`。
+4. **authority / scope**：只有在实际查询和冲突处理需要时，才评估是否增加字段。
+5. **合并边界**：当前只做完全重复的 echo 合并；语义合并和冲突自动裁决都不应默认发生。
 
-- `declared`：用户或 agent 明确写入；
-- `inferred`：dachshund 根据标题、路径或内容推断；
-- `imported`：原样导入但尚未分类。
+## 文档关系
 
-## 现有 kind 的迁移
+- [docs/MEMORY.md](../docs/MEMORY.md)：当前分类、归一化规则和 agent mapping 的
+  产品说明。
+- [agent-memory-structures.md](agent-memory-structures.md)：各 agent 的原生存储结构、
+  来源和观察证据。
+- [cross-agent-memory-products.md](cross-agent-memory-products.md)：本地优先产品对比
+  与 dachshund 的产品边界。
 
-| 当前 kind | 建议映射 | 备注 |
-| --- | --- | --- |
-| `profile` | `kind=user`, `authority=memory` | 用户或 agent 身份资料 |
-| `preference` | 通常 `kind=user` | 如果是纠错或禁止项，改为 `feedback` |
-| `project` | `kind=project`, `authority=memory` | 保留 project 字段 |
-| `lesson` | `kind=feedback`, `authority=memory` | 经验教训优先作为可复用行为 |
-| `fact` | `kind=reference` 或按内容重新分类 | 不要继续扩充无类型事实 |
-| `rule` | `authority=instruction` | `kind` 按作用域选 user/project |
-
-迁移原则：
-
-1. 先保存原 kind 到 `legacy_kind`，避免信息丢失；
-2. 新 importer 只输出新模型；
-3. 旧文件在下次编辑或显式迁移时转换；
-4. 不根据关键词做大规模自动重写，先做可见的候选分类。
-
-## 产品界面建议
-
-### 主分类
-
-默认导航不应只有 agent 和时间。建议出现以下稳定分类：
-
-1. **How I work**：user + feedback；
-2. **Projects**：project；
-3. **Rules**：instruction；
-4. **References**：reference；
-5. **Recent episodes**：session/episode。
-
-其中 “How I work” 是最有差异化的跨 agent 视图：它把 Claude 的用户偏好、
-Codex 的工作流总结、Hermes 的 USER.md、Trae 的 user profile 放在同一个语义空间里。
-
-### Agent 的位置
-
-agent 不再是一级分类，而是：
-
-- 卡片上的来源叠加图标；
-- 详情里的 provenance；
-- 顶部的可选过滤器；
-- 冲突时的来源证据。
-
-时间仍然重要，但用于：
-
-- “最近变化”；
-- “最近新增的反馈”；
-- “过期的项目决策”；
-- episode timeline。
-
-时间不应作为唯一主组织方式。
-
-### 跨 agent 合并规则
-
-推荐分阶段：
-
-1. **Exact duplicates**：相同 authority + kind + scope 下继续现有 hash 合并；
-2. **Near duplicates**：先聚类并展示“可能重复”，不自动覆盖；
-3. **Conflicts**：同一条规则有不同文本时并列展示，标记冲突；
-4. **Promotion**：episode 中的候选 feedback/user memory 必须经过用户确认；
-5. **Consolidation**：跨 agent 合并成一个 canonical memory 时，保留全部 sources。
-
-绝不能把：
-
-- instruction 和 auto memory 自动合并；
-- 两个作用域不同的规则自动合并；
-- 两个 agent 的冲突规则静默选一个；
-- 一次性 session 内容自动升级成长期记忆。
-
-## 建议的 UI 分类树
-
-```text
-Memory
-├── How I work
-│   ├── Identity & background
-│   ├── Preferences
-│   └── Feedback & lessons
-├── Projects
-│   ├── Active
-│   ├── Decisions
-│   └── Constraints
-├── Rules
-│   ├── Global
-│   ├── Project
-│   └── Path-specific
-├── References
-│   ├── People & teams
-│   ├── Tools & systems
-│   └── Documents & links
-└── Episodes
-    ├── Recent sessions
-    ├── Outcomes
-    └── Candidate memories
-```
-
-这不是唯一答案，但它能把“不同 agent 的同类记忆放在一起看”，同时保留足够的
-来源和权威信息。
-
-## 分阶段落地
-
-### Phase 1：只做可见分类
-
-- 在 frontmatter 增加 `authority`、`scope`、`confidence`；
-- 统一新导入的 `kind`；
-- UI 增加分类筛选；
-- agent 过滤保留。
-
-### Phase 2：建立候选关系
-
-- 用标题、tag、project 和文本相似度找 near duplicate；
-- 展示 “same topic from N agents”；
-- 不自动重写原记忆。
-
-### Phase 3：可控合并
-
-- 支持把多个来源合并为一个 canonical memory；
-- 显示冲突；
-- 支持 superseded / expiry；
-- 把 episode candidate 提升为长期 memory。
-
-### Phase 4：真正形成 dachshund 分类
-
-- 根据用户确认行为学习分类；
-- 但仍保持本地、确定性、可解释；
-- 不要求 LLM 才能完成基础分类。
-
-## 必须验证的问题
-
-1. 用户是否真的会按四类浏览，还是更常搜索？
-2. “How I work” 是否比按 agent 更有价值？
-3. 用户能否理解 instruction 与 memory 的区别？
-4. 项目身份用 git root、cwd 还是用户命名更稳定？
-5. 冲突规则应该怎样呈现，才不会像系统在替用户做决定？
-6. episode 的保留期限和摘要策略是什么？
-7. 当 agent 更新自己的 memory 文件时，dachshund 如何标记 superseded？
-
-这些问题应在实现前用小规模原型和真实 library 验证，而不是一次性重构所有
-importer。
+每次修改分类、kind、agent mapping 或界面呈现时，必须同时检查 README、`docs/`、
+`research/`、官网中英文页面和截图是否仍然一致。研究提案与已实现行为必须分开标注。

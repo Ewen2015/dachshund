@@ -31,6 +31,25 @@ npm install
 | `npm run screenshot` | Capture the documented app screenshots |
 | `npm run dist:mac` | Build an Apple Silicon DMG |
 
+## Documentation Sync
+
+Every change to code, taxonomy, agent support, interface behavior, or release
+metadata must update every affected document in the same change. Do not leave a
+stale description in a secondary folder.
+
+At minimum, check:
+
+- `README.md` and `README.zh-CN.md`;
+- the relevant files under `docs/`;
+- the relevant evidence and conclusions under `research/`;
+- `site/index.html` and `site/zh/index.html` for user-facing changes;
+- `docs/screenshots/` when the interface changes;
+- download links, version numbers, checksums, and release notes when shipping.
+
+`docs/MEMORY.md` and `src/shared/memory-taxonomy.ts` are the source of truth for
+the memory model. Research documents may contain future proposals, but every
+proposal must be clearly separated from implemented behavior.
+
 ## Data Isolation
 
 Tests and screenshots must not use the real user library.

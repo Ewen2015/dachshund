@@ -231,6 +231,8 @@ dachshund 的本地性来自架构，而不是配置开关
 | **[开发](docs/DEVELOPMENT.md)** | 数据隔离、测试、截图和打包 |
 | **[更新](docs/UPDATES.md)** | 发布约定、下载校验与原位安装流程 |
 | **[跨 Agent Memory 调研](research/cross-agent-memory-products.md)** | 本地优先 Memory 产品、菜单栏形态与 dachshund 的切入点 |
+| **[Memory 分类研究](research/dachshund-memory-taxonomy.md)** | 已实现分类、原生映射，以及明确区分的研究提案 |
+| **[各 Agent Memory 结构](research/agent-memory-structures.md)** | 不同 Agent 的存储模型、持久化文件与带日期的证据 |
 
 ## 本地开发
 

@@ -30,7 +30,7 @@ dachshund 稳定的产品、架构和实现文档；`research/` 用来回答问�
 如果把四层混成一个 `memory` 列表，界面会“全”，但分类会失真。尤其不能把
 `AGENTS.md` 的强规则和 agent 自动总结的偏好在 UI 里显示成同一种对象。
 
-### 2. 自动记忆正在向四种语义类型收敛
+### 2. 多个 agent 的原生记忆正在向四种语义类型收敛
 
 Claude Code、WorkBuddy 和 ZCode 已经明确采用相同的一组核心类型：
 
@@ -41,8 +41,10 @@ Claude Code、WorkBuddy 和 ZCode 已经明确采用相同的一组核心类型�
 | `project` | 项目目标、约束、决策、进行中的工作 | “下周冻结非关键合并” |
 | `reference` | 去哪里找项目外信息 | “Issue 在 Linear”“设计源文件在 Figma” |
 
-这是 dachshund 最值得采用的主分类，因为它已经被多个独立产品验证，而且足够小，
-不会把用户逼进一套复杂知识管理法。
+这组类型是重要的导入证据，但不是 dachshund 的最终一级分类。它们混用了身份、
+行为纠正、项目上下文和外部资料，也没有单独表达决策、经验、流程和历史。
+dachshund 不把四种原生类型直接照搬为一级分类，而是先归一化，再放入自己的
+跨 agent 分类；来源 agent 和路径仍然保留。
 
 ### 3. 各家机制差异很大
 
@@ -56,31 +58,42 @@ Claude Code、WorkBuddy 和 ZCode 已经明确采用相同的一组核心类型�
 - 豆包的普通账号记忆不对 dachshund 暴露；当前本地 importer 只能覆盖可观察到的
   Agent Mode 文件。
 
-### 4. dachshund 当前分类是“够用但不统一”
+### 4. dachshund 当前分类已经落地为五类、十一 kind
 
-当前 importer 会产出 `profile`、`rule`、`project`、`lesson`、`fact`、
-`preference` 等 kind。它们混用了：
+| 分类 | kind |
+| --- | --- |
+| About me / Identity | `profile`, `preference` |
+| Ways of working / Working | `rule`, `feedback`, `lesson`, `workflow` |
+| Projects | `project`, `decision` |
+| Facts & references / Facts | `fact`, `reference` |
+| History | `episode` |
 
-- 来源语义；
-- 权威级别；
-- 作用域；
-- 信息用途。
+这比直接复制四个原生类型多两层价值：
 
-例如 `rule` 表示高权威指令，`lesson` 更像 feedback，`profile` 和部分
-`preference` 又都属于 user。继续让每个 importer 自己起名字，会让后续分类越来越碎。
+- 能区分“用户是谁”和“agent 应该怎样工作”；
+- 能区分项目上下文、已做决定、长期事实和历史证据。
 
-### 5. 推荐方向
+agent 现在是来源、徽标和过滤器，不是一级分类。主页面按时间排列并显示分类 tag，
+点击 legend 可以查看某个分类的全部 memory；agent 详情页再解释原生结构到
+dachshund 分类的映射。
 
-dachshund 不应复制某一个 agent 的目录，而应采用“三层模型”：
+实现定义见
+[`src/shared/memory-taxonomy.ts`](../src/shared/memory-taxonomy.ts)，产品说明见
+[docs/MEMORY.md](../docs/MEMORY.md)。
 
-1. **Authority**：`instruction` / `memory` / `episode`
-2. **Kind**：`user` / `feedback` / `project` / `reference`
-3. **Scope**：`global` / `project` / `path` / `session`
+### 5. 仍处于研究阶段的方向
 
-agent 只是 `source`，不再是主分类。界面上优先展示“我在所有 agent 里关于工作的
-偏好是什么”，再通过 agent 徽标和过滤器回答“这条是谁贡献的”。
+早期提案考虑过单独的 `authority`、`scope` 和 `confidence` 字段。这些概念对冲突
+处理和来源判断有价值，但**尚未进入当前数据模型**。现阶段：
 
-详细的 agent 矩阵见
+- kind 和来源路径共同保留规则、偏好、总结和历史之间的差异；
+- `project` 是独立字段，但没有通用 scope 字段；
+- 完全重复的来源会合并为多来源条目，语义近重复和冲突不自动裁决；
+- 未知 kind 保守回退到 `fact`，不伪造推断置信度。
+
+后续只有在真实查询、审核和冲突处理证明有必要时，才评估增加这些字段。
+
+各 agent 的原生结构与来源见
 [agent-memory-structures.md](agent-memory-structures.md)，分类模型和产品建议见
 [dachshund-memory-taxonomy.md](dachshund-memory-taxonomy.md)，本地跨 agent
 产品对比见
@@ -105,5 +118,9 @@ Harness 等仍在快速变化或文档不完整的产品时，会明确标注 **
 - 每次补充 agent，都先找官方文档，再读 dachshund importer。
 - 官方没有公开格式时，只描述 dachshund 观察到的文件，不推断未经验证的内部数据库。
 - 记忆类型和存储位置必须分开记录；同一个文件可能同时包含指令和记忆。
-- 产品建议写在 taxonomy 文档，具体厂商事实写在 structures 文档。
+- 当前已实现行为必须与 `src/shared/memory-taxonomy.ts` 和 `docs/MEMORY.md` 一致；
+  研究提案必须明确标注“尚未实现”。
+- 具体厂商事实写在 structures 文档，分类结论写在 taxonomy 文档。
+- 每次修改分类或 agent mapping，都同步检查 README、`docs/`、`research/`、官网
+  中英文页面和截图。
 - 更新时修改研究日期，并在 `sources.md` 记录新增来源。
