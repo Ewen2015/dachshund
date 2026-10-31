@@ -4,6 +4,7 @@ import { zstdDecompressSync } from 'node:zlib'
 import matter from 'gray-matter'
 import { DatabaseSync } from 'node:sqlite'
 import type { ImportedMemory } from '../../shared/types'
+import { normalizeMemoryKind } from '../../shared/memory-taxonomy'
 import { expandHome } from '../paths'
 import type { AgentDefinition } from './registry'
 
@@ -127,12 +128,13 @@ function parseMarkdownRaw(
   return {
     title: title.length > 110 ? `${title.slice(0, 107).trimEnd()}…` : title,
     content: body,
-    kind:
+    kind: normalizeMemoryKind(
       (typeof data.kind === 'string' && data.kind) ||
-      (typeof data.type === 'string' && data.type) ||
-      (typeof meta.type === 'string' && meta.type) ||
-      defaults.kind ||
-      'fact',
+        (typeof data.type === 'string' && data.type) ||
+        (typeof meta.type === 'string' && meta.type) ||
+        defaults.kind ||
+        'fact'
+    ),
     project:
       (typeof data.project === 'string' && data.project) ||
       defaults.project ||
@@ -333,7 +335,7 @@ function traeSessionMemory(
   return {
     title: title.length > 110 ? `${title.slice(0, 107).trimEnd()}…` : title,
     content,
-    kind: 'project',
+    kind: 'episode',
     project,
     tags: ['trae', 'session-memory'],
     createdAt: timestamp,
@@ -368,7 +370,7 @@ function importTraeTopics(
     memories.push({
       title: summary.length > 110 ? `${summary.slice(0, 107).trimEnd()}…` : summary,
       content: summary,
-      kind: 'project',
+      kind: 'episode',
       project,
       tags: ['trae', 'topic-summary'],
       createdAt: timestamp,
@@ -594,10 +596,42 @@ function importGemini(agent: AgentDefinition): ImportedMemory[] {
     path.join(agent.home, 'GEMINI.md'),
     ...walk(agent.home, (file) => path.basename(file) === 'GEMINI.md', 40)
   ]
-  return [...new Set(files)]
-    .filter((file) => fs.existsSync(file))
-    .map((file) => parseMarkdownFile(file, agent, { kind: 'profile' }))
-    .filter((item): item is ImportedMemory => Boolean(item))
+  const out: ImportedMemory[] = []
+  for (const file of [...new Set(files)]) {
+    const raw = readText(file)
+    if (!raw) continue
+    const marker = '## Gemini Added Memories'
+    const markerIndex = raw.indexOf(marker)
+    const added = markerIndex >= 0 ? raw.slice(markerIndex + marker.length).trim() : ''
+    const instructions = markerIndex >= 0 ? raw.slice(0, markerIndex).trim() : raw
+    const parsed = instructions
+      ? parseMarkdownRaw(file, agent, instructions, {
+          kind: 'rule',
+          tags: ['gemini', 'instructions']
+        })
+      : null
+    if (parsed) {
+      parsed.sourceRef = `${path.basename(file)}:instructions`
+      out.push(parsed)
+    }
+    if (added.length > 20) {
+      const { created, updated } = times(file)
+      out.push({
+        title: 'Gemini added memories',
+        content: added,
+        kind: 'fact',
+        project: null,
+        tags: ['gemini', 'added-memory'],
+        createdAt: created,
+        updatedAt: updated,
+        agentId: agent.id,
+        agentName: agent.name,
+        sourcePath: file,
+        sourceRef: `${path.basename(file)}:added-memories`
+      })
+    }
+  }
+  return out
 }
 
 function importCursor(agent: AgentDefinition): ImportedMemory[] {
@@ -753,7 +787,7 @@ function importPi(agent: AgentDefinition): ImportedMemory[] {
         out.push({
           title: memoryTitle(content, fallbackTitle),
           content,
-          kind: event.type === 'branch_summary' ? 'lesson' : 'project',
+          kind: 'episode',
           project,
           tags: ['pi', event.type === 'branch_summary' ? 'branch-summary' : 'compaction'],
           createdAt: timestamp,
@@ -1069,6 +1103,7 @@ export function importAgentMemories(agent: AgentDefinition): ImportedMemory[] {
     const key = `${memory.agentId}:${memory.sourcePath}:${memory.sourceRef ?? ''}:${memory.content}`
     if (seen.has(key)) return false
     seen.add(key)
+    memory.kind = normalizeMemoryKind(memory.kind)
     return memory.content.trim().length > 20
   })
 }

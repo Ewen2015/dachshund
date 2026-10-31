@@ -1,6 +1,8 @@
+import type { CSSProperties } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { MemoryDetail as MemoryDetailType } from '../../../shared/types'
+import { categoryDefinition, categoryForKind } from '../../../shared/memory-taxonomy'
 import { formatDate, kindLabel, uniqueSources } from '../lib/format'
 import { AgentLogo } from './AgentLogo'
 import {
@@ -25,6 +27,7 @@ export function MemoryDetail({
   onToast: (message: string) => void
 }) {
   const sources = uniqueSources(memory.sources)
+  const category = categoryDefinition(categoryForKind(memory.kind))
 
   const copy = async () => {
     await navigator.clipboard.writeText(`# ${memory.title}\n\n${memory.content}`)
@@ -35,6 +38,13 @@ export function MemoryDetail({
     <aside className="detail" aria-label="Memory detail">
       <div className="detail-top">
         <div className="detail-kicker">
+          <span
+            className="detail-category"
+            style={{ '--category-color': category.color } as CSSProperties}
+          >
+            {category.label}
+          </span>
+          <span className="kicker-sep" />
           <span className="detail-kind">{kindLabel(memory.kind)}</span>
           <span className="kicker-sep" />
           <span>Updated {formatDate(memory.updatedAt)}</span>

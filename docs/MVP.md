@@ -71,14 +71,14 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development settings screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.4-arm64.dmg` was produced on 2026-10-31.
+- `release/dachshund-0.1.5-arm64.dmg` was produced on 2026-10-31.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.4`.
+  healthy loopback service at version `0.1.5`.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.4` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.5` passed the same
   five-tool MCP smoke test.
 - The packaged app is ad-hoc signed only; Gatekeeper assessment fails because it
   has no Developer ID signature or notarization.
@@ -86,7 +86,7 @@ Verified in this repository:
 The DMG SHA-256 from this build is:
 
 ```text
-89610294429af30fff328c67f914737e552425e6652aa3118e6a01330606ac50
+647ca0000d03ba3ad6ad91bb3b1ee11af55a7ecdb9c7a336cf9cdd8490627fc9
 ```
 
 ## Known Limitations
@@ -132,14 +132,26 @@ token are not a defense against a compromised account.
 
 ## Next Milestones
 
-### 0.1.4: More Agent Families
+### Released
+
+#### 0.1.4: More Agent Families
 
 - Hermes native memory entries;
 - Pi compaction and branch summaries;
 - ZCode read-only SQLite context;
 - DeepSeek Harness Zstandard session context.
 
-### 0.1.5: Trustworthy Incremental Import
+#### 0.1.5: Memory Taxonomy And Compact Library
+
+- five cross-agent categories and eleven concrete memory kinds;
+- native agent model mapping on every agent detail page;
+- compact 920 x 700 default window with a responsive wide layout;
+- agents with memory prioritized and zero-memory agents collapsed by default;
+- Pulse category mix, category growth, and click-through back to filtered memory.
+
+### Next
+
+#### 0.1.6: Trustworthy Incremental Import
 
 - persist per-source mtime, size, and hash;
 - update an existing memory when its source changes;
@@ -147,7 +159,7 @@ token are not a defense against a compromised account.
 - expose source status in the detail view;
 - add importer fixtures and regression tests.
 
-### 0.1.6: Reviewable Consolidation
+#### 0.1.7: Reviewable Consolidation
 
 - near-duplicate suggestions;
 - merge and split flows;
@@ -155,7 +167,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-### 0.1.7: Recall Quality
+#### 0.1.8: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;

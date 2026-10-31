@@ -12,6 +12,11 @@ import {
   upsertJsonMcp
 } from '../src/main/agents/mcp-install'
 import type { AgentDefinition } from '../src/main/agents/registry'
+import {
+  MEMORY_CATEGORIES,
+  categoryForKind,
+  normalizeMemoryKind
+} from '../src/shared/memory-taxonomy'
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dachshund-agents-'))
 
@@ -128,8 +133,87 @@ function testPi(): void {
   const memories = importAgentMemories(agent)
   assert.equal(memories.length, 3)
   assert.ok(memories.some((memory) => memory.tags.includes('compaction')))
+  assert.equal(
+    memories.filter((memory) => memory.kind === 'episode').length,
+    2
+  )
   assert.ok(memories.some((memory) => memory.kind === 'preference'))
   assert.ok(!memories.some((memory) => memory.content.includes('system prompt')))
+}
+
+function testClaudeTaxonomy(): void {
+  const home = path.join(root, 'claude')
+  const agent = definition('claude-code', 'Claude Code', home, path.join(home, 'mcp.json'))
+  const memoryFile = path.join(
+    home,
+    'projects',
+    '-tmp-claude-project',
+    'memory',
+    'preference.md'
+  )
+  write(
+    memoryFile,
+    [
+      '---',
+      'type: user',
+      'title: Concise delivery',
+      '---',
+      '',
+      'Prefer concise Chinese answers with concrete file paths and verification evidence.'
+    ].join('\n')
+  )
+
+  const memories = importAgentMemories(agent)
+  assert.equal(memories.length, 1)
+  assert.equal(memories[0].kind, 'profile')
+  assert.equal(categoryForKind(memories[0].kind), 'about')
+}
+
+function testGeminiTaxonomy(): void {
+  const home = path.join(root, 'gemini')
+  const agent = definition('gemini-cli', 'Gemini CLI', home, path.join(home, 'mcp.json'))
+  write(
+    path.join(home, 'GEMINI.md'),
+    [
+      '# Workspace rules',
+      '',
+      'Always read AGENTS.md before changing files in this repository.',
+      '',
+      '## Gemini Added Memories',
+      '',
+      '- The user timezone is Asia/Shanghai.'
+    ].join('\n')
+  )
+
+  const memories = importAgentMemories(agent)
+  assert.equal(memories.length, 2)
+  assert.ok(memories.some((memory) => memory.kind === 'rule'))
+  assert.ok(memories.some((memory) => memory.kind === 'fact'))
+}
+
+function testKindNormalization(): void {
+  assert.equal(normalizeMemoryKind('user'), 'profile')
+  assert.equal(normalizeMemoryKind('preferences'), 'preference')
+  assert.equal(normalizeMemoryKind('instructions'), 'rule')
+  assert.equal(normalizeMemoryKind('correction'), 'feedback')
+  assert.equal(normalizeMemoryKind('task-group'), 'project')
+  assert.equal(normalizeMemoryKind('link'), 'reference')
+  assert.equal(normalizeMemoryKind('session_memory'), 'episode')
+  assert.equal(categoryForKind('feedback'), 'working')
+  assert.equal(categoryForKind('decision'), 'projects')
+  assert.equal(categoryForKind('reference'), 'knowledge')
+  assert.equal(categoryForKind('episode'), 'timeline')
+  assert.equal(categoryForKind('unrecognized-kind'), 'knowledge')
+
+  const kinds = MEMORY_CATEGORIES.flatMap((category) => category.kinds)
+  assert.equal(kinds.length, 11)
+  assert.equal(new Set(kinds).size, 11)
+  for (const category of MEMORY_CATEGORIES) {
+    for (const kind of category.kinds) {
+      assert.equal(normalizeMemoryKind(kind), kind)
+      assert.equal(categoryForKind(kind), category.id)
+    }
+  }
 }
 
 function testZCode(): void {
@@ -293,8 +377,11 @@ try {
   testPi()
   testZCode()
   testDeepSeekHarness()
+  testClaudeTaxonomy()
+  testGeminiTaxonomy()
+  testKindNormalization()
   testWriters()
-  console.log('Hermes, Pi, ZCode and DeepSeek Harness fixtures passed')
+  console.log('Agent import and memory taxonomy fixtures passed')
 } finally {
   fs.rmSync(root, { recursive: true, force: true })
 }

@@ -201,5 +201,9 @@ export const DEMO_AGENT_IDS = [
   'hermes',
   'pi',
   'zcode',
-  'deepseek-harness'
+  'deepseek-harness',
+  'copilot',
+  'opencode',
+  'windsurf',
+  'claude-desktop'
 ]

@@ -23,6 +23,23 @@ assert.deepEqual(
   tools.tools.map((tool) => tool.name).sort(),
   ['memory_context', 'memory_forget', 'memory_remember', 'memory_search', 'memory_stats']
 )
+const rememberTool = tools.tools.find((tool) => tool.name === 'memory_remember')
+assert.deepEqual(
+  rememberTool?.inputSchema.properties.kind.enum,
+  [
+    'profile',
+    'preference',
+    'rule',
+    'feedback',
+    'lesson',
+    'workflow',
+    'project',
+    'decision',
+    'fact',
+    'reference',
+    'episode'
+  ]
+)
 
 const stats = await client.callTool({ name: 'memory_stats', arguments: {} })
 console.log('stats:', stats.content[0].text.trim())
@@ -48,6 +65,27 @@ console.log('search results:', results.length, results[0]?.title ?? 'none')
 assert.equal(results[0]?.title, 'dachshund integration probe')
 assert.ok(results[0]?.id)
 
+const typed = await client.callTool({
+  name: 'memory_remember',
+  arguments: {
+    title: 'dachshund typed memory probe',
+    content:
+      'dachshund typed memory probe: the mobile release remains behind the desktop release until the reader is finished.',
+    kind: 'decision',
+    tags: ['integration', 'taxonomy']
+  }
+})
+console.log('typed remember:', typed.content[0].text.trim())
+
+const typedSearch = await client.callTool({
+  name: 'memory_search',
+  arguments: { query: 'typed memory probe', limit: 5 }
+})
+const typedResults = JSON.parse(typedSearch.content[0].text)
+assert.equal(typedResults[0]?.title, 'dachshund typed memory probe')
+assert.equal(typedResults[0]?.kind, 'decision')
+assert.ok(typedResults[0]?.id)
+
 const context = await client.callTool({
   name: 'memory_context',
   arguments: { query: 'integration probe', limit: 3 }
@@ -72,5 +110,11 @@ assert.equal(
   remaining.some((memory) => memory.id === results[0].id),
   false
 )
+
+const typedForgotten = await client.callTool({
+  name: 'memory_forget',
+  arguments: { id: typedResults[0].id }
+})
+assert.match(typedForgotten.content[0].text, /^Archived mem_/)
 
 await client.close()

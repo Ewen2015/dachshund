@@ -11,11 +11,11 @@ dachshund finds the memory files your agents already keep, brings them into one
 Markdown library, and serves that library back through MCP. No account, no cloud,
 no model requirement.
 
-[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.4/dachshund-0.1.4-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
+[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.5/dachshund-0.1.5-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
-**[Download](#download)** &nbsp;·&nbsp; **[First run](#first-run)** &nbsp;·&nbsp; **[Supported agents](#supported-agents)** &nbsp;·&nbsp; **[How it works](#how-it-works)** &nbsp;·&nbsp; **[Docs](#documentation)** &nbsp;·&nbsp; **[Competitor research](docs/COMPETITORS.md)**
+**[Download](#download)** &nbsp;·&nbsp; **[First run](#first-run)** &nbsp;·&nbsp; **[Supported agents](#supported-agents)** &nbsp;·&nbsp; **[How it works](#how-it-works)** &nbsp;·&nbsp; **[Docs](#documentation)** &nbsp;·&nbsp; **[Research](research/cross-agent-memory-products.md)**
 
 <br>
 
@@ -52,7 +52,7 @@ already remembers everything you need, you probably do not need dachshund.
 
 | Platform | Architecture | Package | Size | Download |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.4](https://github.com/Ewen2015/dachshund/releases/download/v0.1.4/dachshund-0.1.4-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.5](https://github.com/Ewen2015/dachshund/releases/download/v0.1.5/dachshund-0.1.5-arm64.dmg)** |
 
 **System requirement:** macOS on Apple Silicon
 
@@ -61,7 +61,7 @@ already remembers everything you need, you probably do not need dachshund.
 > **Open** on first launch.
 
 [All releases](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.4/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.5/SHA256SUMS)
 
 **Install**
 
@@ -82,7 +82,7 @@ into the app.
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.4/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.5/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -184,8 +184,8 @@ compact panel.
 ### Pulse: the shape of your memory
 
 Pulse is a memory-specific view, not a vanity usage dashboard. See which agents
-are growing the library, how much knowledge is echoed across agents, what kinds
-of memory you keep, and whether the library is getting stale. The same summary
+are growing the library, how much knowledge is echoed across agents, how memory
+is distributed across the five categories, and whether the library is getting stale. The same summary
 is available from the menu bar panel.
 
 <img src="docs/screenshots/07-pulse.png" width="900" alt="dachshund Pulse tab with memory growth, cross-agent overlap and freshness">
@@ -246,6 +246,7 @@ dachshund is local by architecture, not by configuration.
 | | |
 | :-- | :-- |
 | **[Product](docs/PRODUCT.md)** | Product thesis, users, surfaces and boundaries |
+| **[Memory taxonomy](docs/MEMORY.md)** | Native agent models, shared categories and classification rules |
 | **[Design](docs/DESIGN.md)** | Visual system, layout, motion and accessibility |
 | **[Pulse](docs/PULSE.md)** | Memory visualization, metric definitions and design rationale |
 | **[Architecture](docs/ARCHITECTURE.md)** | Processes, storage, MCP and security |
@@ -254,7 +255,7 @@ dachshund is local by architecture, not by configuration.
 | **[MVP](docs/MVP.md)** | Verification, checksums and known limitations |
 | **[Development](docs/DEVELOPMENT.md)** | Data isolation, tests, screenshots and packaging |
 | **[Updates](docs/UPDATES.md)** | Release contract, download verification and in-place installation |
-| **[Competitor research](docs/COMPETITORS.md)** | Local-first memory landscape and product wedge |
+| **[Research](research/cross-agent-memory-products.md)** | Local-first cross-agent memory landscape, with dated evidence and product implications |
 
 ## Development
 

@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import matter from 'gray-matter'
 import type { MemoryFile, MemorySource } from '../../shared/types'
+import { normalizeMemoryKind } from '../../shared/memory-taxonomy'
 import { MEMORY_DIR } from '../paths'
 import { Db, makeId } from './db'
 
@@ -103,7 +104,7 @@ export class Library {
         id,
         title,
         content: body,
-        kind: typeof data.kind === 'string' ? data.kind : 'fact',
+        kind: normalizeMemoryKind(data.kind),
         project: typeof data.project === 'string' && data.project ? data.project : null,
         tags: asTags(data.tags),
         createdAt: toTime(data.created, stats.birthtimeMs || fallbackTime),
@@ -154,7 +155,7 @@ export class Library {
     const frontmatter: Record<string, unknown> = {
       id: file.id,
       title: file.title,
-      kind: file.kind,
+      kind: normalizeMemoryKind(file.kind),
       tags: file.tags,
       created: new Date(file.createdAt).toISOString(),
       updated: new Date(file.updatedAt).toISOString(),

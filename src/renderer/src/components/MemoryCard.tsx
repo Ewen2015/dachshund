@@ -1,5 +1,6 @@
 import type { MemorySummary } from '../../../shared/types'
 import type { CSSProperties } from 'react'
+import { categoryDefinition, categoryForKind } from '../../../shared/memory-taxonomy'
 import { accentFor, kindLabel, relativeTime, uniqueSources } from '../lib/format'
 import { AgentLogo } from './AgentLogo'
 import { AgentStack } from './AgentStack'
@@ -15,10 +16,16 @@ export function MemoryCard({
 }) {
   const sources = uniqueSources(memory.sources)
   const accent = accentFor(sources[0]?.agentId ?? 'dachshund')
+  const category = categoryDefinition(categoryForKind(memory.kind))
   return (
     <article
       className={`memory-card ${selected ? 'selected' : ''}`}
-      style={{ '--card-accent': accent } as CSSProperties}
+      style={
+        {
+          '--card-accent': accent,
+          '--category-color': category.color
+        } as CSSProperties
+      }
       onClick={onSelect}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -36,6 +43,8 @@ export function MemoryCard({
       <div className="card-main">
         <div className="card-kicker">
           <AgentStack sources={sources} size={19} />
+          <span className="kicker-sep" />
+          <span className="category-tag">{category.label}</span>
           <span className="kicker-sep" />
           <span>{kindLabel(memory.kind)}</span>
           <span className="kicker-sep" />

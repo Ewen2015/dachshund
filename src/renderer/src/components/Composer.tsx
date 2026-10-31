@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CreateMemoryInput } from '../../../shared/types'
+import { MEMORY_CATEGORIES, kindLabel } from '../../../shared/memory-taxonomy'
 import { CloseIcon, SparkIcon } from './Icons'
 
-const kinds = ['fact', 'preference', 'project', 'lesson', 'rule', 'profile']
+const kinds = MEMORY_CATEGORIES.flatMap((category) => category.kinds)
 
 export function Composer({
   onClose,
@@ -99,7 +100,7 @@ export function Composer({
               className={kind === item ? 'active' : ''}
               onClick={() => setKind(item)}
             >
-              {item}
+              {kindLabel(item)}
             </button>
           ))}
         </div>

@@ -69,6 +69,17 @@ The SQLite database is a derived index:
 It can be rebuilt from Markdown. Deleting the database must not delete durable
 memory.
 
+## Memory Taxonomy
+
+Imported memory keeps the source agent's native structure and a normalized
+dachshund category. The native model explains why an agent stored something;
+the category provides one cross-agent browsing layer. The eleven kinds are
+grouped into About me, Working together, Projects, Knowledge, and Timeline.
+
+Classification happens during import and is deterministic: no API key, model
+call, or embedding is required. See [Memory Taxonomy](MEMORY.md) for the full
+kind table, alias rules, and per-agent mapping.
+
 ## Data Directories
 
 | Path | Purpose |
@@ -209,6 +220,8 @@ The installed entry runs Node against the dachshund bridge and sets
 ## Process And Window Model
 
 - Single-instance Electron app.
+- Main window opens at 920 x 700, can shrink to 800 x 600, and remains freely
+  resizable and maximizable for the wide library view.
 - Main window hides instead of closing unless the user quits.
 - Tray click toggles a frameless always-on-top panel.
 - Panel hides on blur.

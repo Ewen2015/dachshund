@@ -9,6 +9,7 @@ import type {
 import { AgentsView } from './components/AgentsView'
 import { Composer } from './components/Composer'
 import { Header } from './components/Header'
+import { AgentMemoryView } from './components/AgentMemoryView'
 import { MemoryDetail } from './components/MemoryDetail'
 import { MemoryFeed } from './components/MemoryFeed'
 import { Onboarding } from './components/Onboarding'
@@ -17,6 +18,7 @@ import { SettingsView } from './components/SettingsView'
 import { Toast } from './components/Toast'
 import { UpdateNotice } from './components/UpdateNotice'
 import { useUpdater } from './lib/useUpdater'
+import type { MemoryCategoryId } from '../../shared/memory-taxonomy'
 
 type View = 'memory' | 'pulse' | 'agents' | 'settings'
 
@@ -25,7 +27,8 @@ export default function App() {
   const [view, setView] = useState<View>('memory')
   const [memories, setMemories] = useState<MemorySummary[]>([])
   const [query, setQuery] = useState('')
-  const [filter, setFilter] = useState<string | null>(null)
+  const [activeAgentId, setActiveAgentId] = useState<string | null>(null)
+  const [memoryCategory, setMemoryCategory] = useState<MemoryCategoryId | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [detail, setDetail] = useState<MemoryDetailType | null>(null)
   const [composerOpen, setComposerOpen] = useState(false)
@@ -50,15 +53,15 @@ export default function App() {
   }, [])
 
   const loadMemories = useCallback(
-    async (nextQuery = query, nextFilter = filter) => {
+    async (nextQuery = query, nextAgentId = activeAgentId) => {
       const list = await window.dachshund.search({
         query: nextQuery,
-        agentId: nextFilter ?? undefined,
+        agentId: nextAgentId ?? undefined,
         limit: 120
       })
       setMemories(list)
     },
-    [filter, query]
+    [activeAgentId, query]
   )
 
   useEffect(() => {
@@ -95,10 +98,10 @@ export default function App() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      void loadMemories(query, filter)
+      void loadMemories(query, activeAgentId)
     }, 160)
     return () => window.clearTimeout(timer)
-  }, [query, filter, loadMemories])
+  }, [query, activeAgentId, loadMemories])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -134,7 +137,7 @@ export default function App() {
     try {
       const next = await window.dachshund.scan()
       setState(next)
-      await loadMemories(query, filter)
+      await loadMemories(query, activeAgentId)
       notify(
         next.counts.memories === 0
           ? 'No memories found yet'
@@ -157,9 +160,11 @@ export default function App() {
     try {
       const created = await window.dachshund.createMemory(input)
       setComposerOpen(false)
+      setActiveAgentId(null)
+      setMemoryCategory(null)
       const next = await refreshState()
       setState(next)
-      await loadMemories('', filter)
+      await loadMemories('', null)
       setQuery('')
       setSelectedId(created.id)
       setDetail(created)
@@ -177,7 +182,7 @@ export default function App() {
       setSelectedId(null)
       const next = await refreshState()
       setState(next)
-      await loadMemories(query, filter)
+      await loadMemories(query, activeAgentId)
       notify('Forgotten here — original agent files are untouched')
     }
   }
@@ -211,6 +216,23 @@ export default function App() {
   }
 
   const showOnboarding = !state.onboarded
+  const activeAgent = activeAgentId
+    ? state.agents.find((agent) => agent.id === activeAgentId) ?? null
+    : null
+  const openAgentMemory = (id: string) => {
+    setActiveAgentId(id)
+    setMemoryCategory(null)
+    setQuery('')
+    setMemories(
+      state.memories.filter((memory) => memory.sources.some((source) => source.agentId === id))
+    )
+  }
+  const closeAgentMemory = () => {
+    setActiveAgentId(null)
+    setMemoryCategory(null)
+    setQuery('')
+    setMemories(state.memories)
+  }
 
   return (
     <div className="app-shell">
@@ -234,22 +256,39 @@ export default function App() {
           />
         )}
         <div className="content-scroll">
-          {view === 'memory' && (
-            <MemoryFeed
-              memories={memories}
-              agents={state.agents}
-              counts={state.counts}
-              filter={filter}
-              onFilter={setFilter}
-              selectedId={selectedId}
-              onSelect={(id) => void select(id)}
-              onNew={() => setComposerOpen(true)}
-              onScan={() => void scan()}
-              scanning={scanning || state.scanning}
-              query={query}
-              onClearQuery={() => setQuery('')}
-            />
-          )}
+          {view === 'memory' &&
+            (activeAgent ? (
+              <AgentMemoryView
+                key={activeAgent.id}
+                agent={activeAgent}
+                agents={state.agents}
+                memories={memories}
+                selectedId={selectedId}
+                onSelect={(id) => void select(id)}
+                onBack={closeAgentMemory}
+                onOpenAgent={openAgentMemory}
+                onScan={() => void scan()}
+                scanning={scanning || state.scanning}
+              />
+            ) : (
+              <MemoryFeed
+                memories={memories}
+                agents={state.agents}
+                counts={state.counts}
+                activeAgentId={null}
+                activeCategory={memoryCategory}
+                onCategory={setMemoryCategory}
+                onOpenAgent={openAgentMemory}
+                onOpenAllAgents={closeAgentMemory}
+                selectedId={selectedId}
+                onSelect={(id) => void select(id)}
+                onNew={() => setComposerOpen(true)}
+                onScan={() => void scan()}
+                scanning={scanning || state.scanning}
+                query={query}
+                onClearQuery={() => setQuery('')}
+              />
+            ))}
           {view === 'pulse' && (
             <PulseView
               memories={state.memories}
@@ -257,7 +296,21 @@ export default function App() {
               counts={state.counts}
               scanning={scanning || state.scanning}
               onScan={() => void scan()}
+              onOpenCategory={(category) => {
+                setActiveAgentId(null)
+                setMemoryCategory(category)
+                setQuery('')
+                setMemories(state.memories)
+                setView('memory')
+              }}
+              onOpenAgent={(id) => {
+                setView('memory')
+                openAgentMemory(id)
+              }}
               onOpenMemory={(id) => {
+                setActiveAgentId(null)
+                setMemoryCategory(null)
+                setQuery('')
                 setView('memory')
                 void select(id)
               }}

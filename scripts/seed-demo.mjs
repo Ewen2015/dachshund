@@ -31,13 +31,46 @@ const memories = [
   {
     id: 'mem_demo_reader',
     title: 'Ship the reader before the editor',
-    kind: 'project',
+    kind: 'decision',
     project: 'Field Notes',
     tags: ['roadmap', 'scope'],
     days: 0,
     agents: ['codex', 'claude-code', 'doubao', 'zcode', 'deepseek-harness'],
     content:
       'The first release ships the reading experience only. Editing, collaboration, and publishing stay behind the next milestone. The reader has to feel finished on its own before we add authoring.'
+  },
+  {
+    id: 'mem_demo_research',
+    title: 'Memory research lives beside docs',
+    kind: 'reference',
+    project: 'dachshund',
+    tags: ['research', 'docs'],
+    days: 5,
+    agents: ['codex'],
+    content:
+      'Dynamic product research belongs beside the docs directory, while stable architecture and import contracts stay inside docs. Link new findings from the implementation notes instead of copying them into several places.'
+  },
+  {
+    id: 'mem_demo_feedback',
+    title: 'Do not mock the storage boundary',
+    kind: 'feedback',
+    project: 'dachshund',
+    tags: ['testing', 'sqlite'],
+    days: 7,
+    agents: ['codex', 'cursor'],
+    content:
+      'Validation should exercise the real local storage boundary. A passing mock is not evidence that persistence, source attachment, or restart recovery works.'
+  },
+  {
+    id: 'mem_demo_episode',
+    title: 'Traced the missing menu bar update',
+    kind: 'episode',
+    project: 'dachshund',
+    tags: ['session', 'updater'],
+    days: 9,
+    agents: ['pi', 'trae'],
+    content:
+      'The update state existed in the main process but never reached the compact panel. The session traced the event bridge, renderer subscription, and panel lifecycle before the fix was applied.'
   },
   {
     id: 'mem_demo_type',

@@ -1,16 +1,24 @@
 import type { AgentSummary, Counts, MemorySummary } from '../../../shared/types'
-import { groupByLabel } from '../lib/format'
-import { AgentLogo } from './AgentLogo'
-import { MemoryCard } from './MemoryCard'
+import {
+  MEMORY_CATEGORIES,
+  categoryForKind,
+  type MemoryCategoryId
+} from '../../../shared/memory-taxonomy'
+import { AgentFilterBar } from './AgentFilterBar'
+import { CategoryLegend } from './CategoryLegend'
 import { Mark } from './Mark'
-import { RefreshIcon, SparkIcon } from './Icons'
+import { MemoryTimeline } from './MemoryTimeline'
+import { SparkIcon } from './Icons'
 
 export function MemoryFeed({
   memories,
   agents,
   counts,
-  filter,
-  onFilter,
+  activeAgentId,
+  activeCategory,
+  onCategory,
+  onOpenAgent,
+  onOpenAllAgents,
   selectedId,
   onSelect,
   onNew,
@@ -22,8 +30,11 @@ export function MemoryFeed({
   memories: MemorySummary[]
   agents: AgentSummary[]
   counts: Counts
-  filter: string | null
-  onFilter: (id: string | null) => void
+  activeAgentId: string | null
+  activeCategory: MemoryCategoryId | null
+  onCategory: (category: MemoryCategoryId | null) => void
+  onOpenAgent: (id: string) => void
+  onOpenAllAgents: () => void
   selectedId: string | null
   onSelect: (id: string) => void
   onNew: () => void
@@ -32,20 +43,30 @@ export function MemoryFeed({
   query: string
   onClearQuery: () => void
 }) {
-  const groups = groupByLabel(memories)
-  const installed = agents.filter((agent) => agent.installed)
+  const categoryCounts = Object.fromEntries(
+    MEMORY_CATEGORIES.map((item) => [
+      item.id,
+      memories.filter((memory) => categoryForKind(memory.kind) === item.id).length
+    ])
+  ) as Record<MemoryCategoryId, number>
+  const visible = [...memories]
+    .filter(
+      (memory) =>
+        activeCategory === null || categoryForKind(memory.kind) === activeCategory
+    )
+    .sort((a, b) => b.updatedAt - a.updatedAt)
 
   return (
     <div className="feed">
       <section className="hero">
         <p className="eyebrow">
           <span className="eyebrow-dot" />
-          On this Mac
+          Local memory, by meaning
         </p>
-        <h1>Everything your agents know.</h1>
+        <h1>What your agents remember, in one local timeline.</h1>
         <p className="hero-copy">
-          One quiet place for the decisions, preferences, and lessons your agents picked up.
-          Read by all of them. Stored only here.
+          Every memory sits in one newest-first feed. Category and kind stay visible, and each item
+          remains traceable to the agent and file that produced it.
         </p>
         <div className="stats">
           <div className="stat">
@@ -57,49 +78,33 @@ export function MemoryFeed({
             <span className="stat-label">agents</span>
           </div>
           <div className="stat">
-            <span className="stat-number">{counts.echoes}</span>
-            <span className="stat-label">cross-agent echoes</span>
+            <span className="stat-number">{MEMORY_CATEGORIES.length}</span>
+            <span className="stat-label">categories</span>
           </div>
           <div className="stat-note">
             <SparkIcon size={14} />
-            <span>When two agents remember the same thing, dachshund keeps one copy.</span>
+            <span>The agent is provenance. Category and kind are both filing decisions.</span>
           </div>
         </div>
       </section>
 
-      <div className="filter-row">
-        <div className="chips" role="tablist" aria-label="Filter by agent">
-          <button
-            type="button"
-            className={`chip ${filter === null ? 'active' : ''}`}
-            onClick={() => onFilter(null)}
-          >
-            All
-          </button>
-          {installed.map((agent) => (
-            <button
-              key={agent.id}
-              type="button"
-              className={`chip ${filter === agent.id ? 'active' : ''}`}
-              onClick={() => onFilter(agent.id)}
-            >
-              <AgentLogo
-                agentId={agent.id}
-                agentName={agent.name}
-                size={14}
-                shape="circle"
-                className="chip-dot"
-                decorative
-              />
-              {agent.name}
-            </button>
-          ))}
-        </div>
-        <button className="text-button" type="button" onClick={onScan} disabled={scanning}>
-          <RefreshIcon size={14} />
-          {scanning ? 'Reading…' : 'Scan again'}
-        </button>
+      <div className="memory-section-label">
+        <span>Category legend</span>
       </div>
+      <CategoryLegend
+        counts={categoryCounts}
+        selected={activeCategory}
+        onSelect={onCategory}
+      />
+
+      <AgentFilterBar
+        agents={agents}
+        activeAgentId={activeAgentId}
+        onOpenAgent={onOpenAgent}
+        onAll={onOpenAllAgents}
+        onScan={onScan}
+        scanning={scanning}
+      />
 
       {scanning && (
         <div className="scan-strip">
@@ -137,26 +142,12 @@ export function MemoryFeed({
           )}
         </div>
       ) : (
-        <div className="timeline">
-          {groups.map((group) => (
-            <section className="timeline-group" key={group.label}>
-              <div className="group-heading">
-                <span>{group.label}</span>
-                <span className="group-count">{group.items.length}</span>
-              </div>
-              <div className="group-items">
-                {group.items.map((memory) => (
-                  <MemoryCard
-                    key={memory.id}
-                    memory={memory}
-                    selected={selectedId === memory.id}
-                    onSelect={() => onSelect(memory.id)}
-                  />
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
+        <MemoryTimeline
+          category={activeCategory}
+          memories={visible}
+          selectedId={selectedId}
+          onSelect={onSelect}
+        />
       )}
     </div>
   )

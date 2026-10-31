@@ -1,12 +1,17 @@
 import { useMemo, useState } from 'react'
 import type { AgentSummary, Counts, MemorySummary } from '../../../shared/types'
-import { accentFor, kindLabel, relativeTime, uniqueSources } from '../lib/format'
+import {
+  MEMORY_CATEGORIES,
+  categoryForKind,
+  type MemoryCategoryId
+} from '../../../shared/memory-taxonomy'
+import { accentFor, relativeTime, uniqueSources } from '../lib/format'
 import { AgentLogo } from './AgentLogo'
 import { AgentStack } from './AgentStack'
 import { RefreshIcon } from './Icons'
 
 type RangeKey = '7d' | '30d' | '90d' | 'all'
-type Breakdown = 'agent' | 'overlap'
+type Breakdown = 'agent' | 'category' | 'overlap'
 
 interface RangeOption {
   key: RangeKey
@@ -19,6 +24,7 @@ interface Series {
   label: string
   color: string
   agentId?: string
+  categoryId?: MemoryCategoryId
   count: number
 }
 
@@ -35,7 +41,6 @@ const RANGES: RangeOption[] = [
   { key: 'all', label: 'All', days: null }
 ]
 
-const KIND_COLORS = ['#b5542f', '#54725f', '#6d7481', '#a48258', '#81928a', '#9a6f73']
 const DAY = 86_400_000
 
 function startOfDay(timestamp: number): number {
@@ -167,6 +172,8 @@ function buildBuckets(
     bucket.total += 1
     if (breakdown === 'overlap') {
       bucket.counts[memory.echoCount > 1 ? 'overlap' : 'single'] += 1
+    } else if (breakdown === 'category') {
+      bucket.counts[categoryForKind(memory.kind)] += 1
     } else {
       for (const source of uniqueSources(memory.sources)) {
         if (source.agentId in bucket.counts) bucket.counts[source.agentId] += 1
@@ -184,6 +191,8 @@ export function PulseView({
   counts,
   scanning,
   onScan,
+  onOpenCategory,
+  onOpenAgent,
   onOpenMemory
 }: {
   memories: MemorySummary[]
@@ -191,6 +200,8 @@ export function PulseView({
   counts: Counts
   scanning: boolean
   onScan: () => void
+  onOpenCategory: (category: MemoryCategoryId) => void
+  onOpenAgent: (id: string) => void
   onOpenMemory: (id: string) => void
 }) {
   const [range, setRange] = useState<RangeKey>('30d')
@@ -233,6 +244,18 @@ export function PulseView({
       ]
     }
 
+    if (breakdown === 'category') {
+      return MEMORY_CATEGORIES.map((category) => ({
+        id: category.id,
+        label: category.label,
+        color: category.color,
+        categoryId: category.id,
+        count: visible.filter((memory) => categoryForKind(memory.kind) === category.id).length
+      }))
+        .filter((item) => item.count > 0)
+        .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+    }
+
     const countsByAgent = new Map<string, number>()
     for (const memory of visible) {
       for (const source of uniqueSources(memory.sources)) {
@@ -258,19 +281,13 @@ export function PulseView({
     [breakdown, range, series, visible]
   )
 
-  const kindCounts = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const memory of visible) {
-      map.set(memory.kind, (map.get(memory.kind) ?? 0) + 1)
-    }
-    return [...map.entries()]
-      .map(([kind, count], index) => ({
-        kind,
-        label: kindLabel(kind),
-        count,
-        color: KIND_COLORS[index % KIND_COLORS.length]
-      }))
-      .sort((a, b) => b.count - a.count)
+  const categoryCounts = useMemo(() => {
+    return MEMORY_CATEGORIES.map((category) => ({
+      ...category,
+      count: visible.filter((memory) => categoryForKind(memory.kind) === category.id).length
+    }))
+      .filter((category) => category.count > 0)
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
   }, [visible])
 
   const selectedAgent = agentFilter === 'all' ? null : agents.find((agent) => agent.id === agentFilter)
@@ -357,7 +374,13 @@ export function PulseView({
         <div className="pulse-panel-head">
           <div>
             <p className="section-label">Memory added</p>
-            <h2>{breakdown === 'agent' ? 'Who is growing the library' : 'What crosses agent boundaries'}</h2>
+            <h2>
+              {breakdown === 'agent'
+                ? 'Who is growing the library'
+                : breakdown === 'category'
+                  ? 'Which categories are growing'
+                  : 'What crosses agent boundaries'}
+            </h2>
           </div>
           <div className="pulse-breakdown" role="group" aria-label="Chart breakdown">
             <button
@@ -367,6 +390,14 @@ export function PulseView({
               onClick={() => setBreakdown('agent')}
             >
               By agent
+            </button>
+            <button
+              type="button"
+              className={breakdown === 'category' ? 'active' : ''}
+              aria-pressed={breakdown === 'category'}
+              onClick={() => setBreakdown('category')}
+            >
+              Categories
             </button>
             <button
               type="button"
@@ -383,7 +414,9 @@ export function PulseView({
           <p>
             {breakdown === 'agent'
               ? 'A memory can count once for each source agent.'
-              : 'Single-source memories versus memories echoed by two or more agents.'}
+              : breakdown === 'category'
+                ? 'A memory belongs to one of the five dachshund categories.'
+                : 'Single-source memories versus memories echoed by two or more agents.'}
           </p>
           <span>{visible.length} memories</span>
         </div>
@@ -441,8 +474,9 @@ export function PulseView({
         </div>
 
         <div className={`pulse-series ${series.length > 2 ? 'two-columns' : ''}`}>
-          {series.map((item) => (
-            <div className="pulse-series-item" key={item.id}>
+          {series.map((item) => {
+            const content = (
+              <>
               <div className="pulse-series-line">
                 {item.agentId ? (
                   <AgentLogo
@@ -469,25 +503,49 @@ export function PulseView({
                   }}
                 />
               </div>
-            </div>
-          ))}
+              </>
+            )
+            const target = item.agentId ?? item.categoryId
+            return target ? (
+              <button
+                type="button"
+                className="pulse-series-item"
+                key={item.id}
+                onClick={() => {
+                  if (item.agentId) onOpenAgent(item.agentId)
+                  else if (item.categoryId) onOpenCategory(item.categoryId)
+                }}
+                aria-label={
+                  item.agentId
+                    ? `Open ${item.label} memory`
+                    : `Open ${item.label} memories`
+                }
+              >
+                {content}
+              </button>
+            ) : (
+              <div className="pulse-series-item" key={item.id}>
+                {content}
+              </div>
+            )
+          })}
         </div>
       </section>
 
       <div className="pulse-secondary">
-        <section className="pulse-panel pulse-kinds">
+        <section className="pulse-panel pulse-categories">
           <div className="pulse-panel-head compact">
             <div>
-              <p className="section-label">Knowledge mix</p>
+              <p className="section-label">Category mix</p>
               <h2>What the library is made of</h2>
             </div>
           </div>
-          {kindCounts.length ? (
+          {categoryCounts.length ? (
             <>
-              <div className="pulse-kind-bar" aria-hidden="true">
-                {kindCounts.map((item) => (
+              <div className="pulse-category-bar" aria-hidden="true">
+                {categoryCounts.map((item) => (
                   <span
-                    key={item.kind}
+                    key={item.id}
                     style={{
                       width: `${(item.count / visible.length) * 100}%`,
                       background: item.color
@@ -495,19 +553,25 @@ export function PulseView({
                   />
                 ))}
               </div>
-              <div className="pulse-kind-list">
-                {kindCounts.map((item) => (
-                  <div key={item.kind}>
+              <div className="pulse-category-list">
+                {categoryCounts.map((item) => (
+                  <button
+                    type="button"
+                    key={item.id}
+                    onClick={() => onOpenCategory(item.id)}
+                    aria-label={`Open ${item.label} memories`}
+                    title={item.description}
+                  >
                     <span className="pulse-series-dot" style={{ background: item.color }} />
                     <span>{item.label}</span>
                     <strong>{item.count}</strong>
                     <small>{Math.round((item.count / visible.length) * 100)}%</small>
-                  </div>
+                  </button>
                 ))}
               </div>
             </>
           ) : (
-            <p className="pulse-card-empty">No memory kinds to compare yet.</p>
+            <p className="pulse-card-empty">No memory categories to compare yet.</p>
           )}
         </section>
 

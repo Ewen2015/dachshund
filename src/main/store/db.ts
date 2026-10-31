@@ -10,6 +10,7 @@ import type {
   MemorySource,
   MemorySummary
 } from '../../shared/types'
+import { normalizeMemoryKind } from '../../shared/memory-taxonomy'
 import { DB_PATH } from '../paths'
 
 type Row = Record<string, unknown>
@@ -251,6 +252,7 @@ export class Db {
 
   upsertMemory(input: UpsertMemoryInput): void {
     const hash = contentHash(input.content)
+    const kind = normalizeMemoryKind(input.kind)
     this.db
       .prepare(`
         INSERT INTO memories(id, title, content, kind, project, tags, created_at, updated_at, archived, pinned, hash, origin, file_path)
@@ -272,7 +274,7 @@ export class Db {
         input.id,
         input.title,
         input.content,
-        input.kind,
+        kind,
         input.project,
         JSON.stringify(input.tags),
         input.createdAt,
@@ -359,7 +361,7 @@ export class Db {
       id,
       title: patch.title ?? current.title,
       content: patch.content ?? current.content,
-      kind: patch.kind ?? current.kind,
+      kind: normalizeMemoryKind(patch.kind ?? current.kind),
       project: patch.project !== undefined ? patch.project : current.project,
       tags: patch.tags ?? current.tags,
       createdAt: current.createdAt,
@@ -375,7 +377,7 @@ export class Db {
     const rows = this.db
       .prepare(
         `SELECT * FROM memories ${includeArchived ? '' : 'WHERE archived = 0'}
-         ORDER BY pinned DESC, updated_at DESC LIMIT ?`
+         ORDER BY updated_at DESC LIMIT ?`
       )
       .all(limit) as Row[]
     return this.rowsToSummaries(rows)
@@ -483,7 +485,7 @@ export class Db {
         id,
         title: str(row.title),
         excerpt: excerptOf(str(row.content)),
-        kind: str(row.kind, 'fact'),
+        kind: normalizeMemoryKind(str(row.kind, 'fact')),
         project: str(row.project) || null,
         tags: parseTags(row.tags),
         createdAt: num(row.created_at),

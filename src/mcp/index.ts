@@ -137,7 +137,21 @@ server.registerTool(
     inputSchema: {
       content: z.string().min(1).describe('The memory itself. Be specific and self-contained.'),
       title: z.string().optional().describe('Short human-readable title'),
-      kind: z.enum(['fact', 'preference', 'project', 'lesson', 'profile', 'rule']).optional(),
+      kind: z
+        .enum([
+          'profile',
+          'preference',
+          'rule',
+          'feedback',
+          'lesson',
+          'workflow',
+          'project',
+          'decision',
+          'fact',
+          'reference',
+          'episode'
+        ])
+        .optional(),
       project: z.string().optional().describe('Project path or short project name'),
       tags: z.array(z.string()).max(12).optional()
     }

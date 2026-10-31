@@ -13,15 +13,15 @@ fs.writeFileSync(
   updateManifest,
   JSON.stringify(
     {
-      tag_name: 'v0.1.4',
-      name: 'dachshund v0.1.4',
+      tag_name: 'v0.1.5',
+      name: 'dachshund v0.1.5',
       body: 'Faster agent discovery and a quieter update experience.',
-      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.4',
+      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.5',
       assets: [
         {
-          name: 'dachshund-0.1.4-arm64.dmg',
+          name: 'dachshund-0.1.5-arm64.dmg',
           browser_download_url:
-            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.4/dachshund-0.1.4-arm64.dmg'
+            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.5/dachshund-0.1.5-arm64.dmg'
         }
       ]
     },
@@ -61,7 +61,7 @@ await app.evaluate(({ BrowserWindow }) => {
     (item) => !item.webContents.getURL().includes('panel=1')
   )
   if (!win) return
-  win.setSize(1380, 900)
+  win.setSize(920, 700)
   win.center()
 })
 await page.waitForTimeout(1200)
@@ -84,6 +84,18 @@ await page.getByText('Paper before pixels', { exact: true }).first().click()
 await page.waitForTimeout(500)
 await page.screenshot({ path: path.join(shots, '03-detail.png') })
 
+await page.getByRole('button', { name: 'Close detail' }).click()
+await page.waitForTimeout(250)
+await page.getByRole('button', { name: 'Open Claude Code memory' }).click()
+await page.waitForTimeout(600)
+await page.screenshot({ path: path.join(shots, '09-agent-memory.png') })
+
+await page.locator('.category-legend-item').filter({ hasText: 'Working together' }).click()
+await page.waitForTimeout(350)
+await page.screenshot({ path: path.join(shots, '10-agent-category.png') })
+
+await page.locator('.back-link').click()
+await page.waitForTimeout(350)
 await page.getByRole('button', { name: 'New memory', exact: true }).click()
 await page.waitForTimeout(400)
 await page.screenshot({ path: path.join(shots, '04-composer.png') })
@@ -99,6 +111,9 @@ await page.screenshot({ path: path.join(shots, '05-settings.png') })
 await page.getByRole('button', { name: 'Pulse', exact: true }).click()
 await page.waitForTimeout(650)
 await page.screenshot({ path: path.join(shots, '07-pulse.png') })
+await page.locator('.pulse-categories').scrollIntoViewIfNeeded()
+await page.waitForTimeout(350)
+await page.screenshot({ path: path.join(shots, '11-pulse-category-mix.png') })
 
 const panelPage = await waitForPage((item) => item.url().includes('panel=1'))
 await app.evaluate(async ({ BrowserWindow }) => {

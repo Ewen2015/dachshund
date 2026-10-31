@@ -10,7 +10,7 @@ not generic analytics questions.
 | What has been remembered recently? | Shows whether the library is alive or dormant. | Memories added over time |
 | Which agents contribute? | Reveals a narrow or lopsided memory base. | Stacked bars by source agent |
 | What crosses agent boundaries? | Echoes are the core value of dachshund. | Shared versus single-source bars |
-| What kind of knowledge is stored? | A library of rules behaves differently from a library of facts. | Knowledge mix bar |
+| How is memory distributed across dachshund categories? | A library of rules behaves differently from a library of facts. | Category mix bar |
 | Is the knowledge getting old? | Old project constraints can mislead an agent. | Median age and last-7-days count |
 | How far does the shared layer reach? | Imported memory and MCP-connected memory are different states. | Connected-agent count |
 
@@ -23,10 +23,11 @@ deterministic local library should not invent a model-based score.
 1. **Range filter** - 7, 30, 90 days, or all time.
 2. **Agent filter** - one installed agent or all agents.
 3. **Summary strip** - memories, cross-agent echoes, active agents, median age.
-4. **Growth chart** - additions over time, broken down by agent or by overlap.
+4. **Growth chart** - additions over time, broken down by agent, dachshund
+   category, or overlap.
 5. **Series detail** - contribution bars with product marks and counts.
-6. **Knowledge mix** - proportion of preferences, rules, projects, facts,
-   lessons, and profiles.
+6. **Category mix** - proportion of About me, Working together, Projects,
+   Knowledge, and Timeline memories.
 7. **Cross-agent echoes** - the highest-overlap memories, with source marks and
    direct links into the library.
 
@@ -42,6 +43,15 @@ deterministic local library should not invent a model-based score.
   memories.
 - **Memory added** uses `createdAt`. Re-importing or updating a memory does not
   increase the growth count.
+
+## Interaction
+
+- Selecting a category, in either the growth series or category mix, opens the
+  Memory page with that category filter applied.
+- Selecting an agent contribution opens that agent's memory view.
+- Selecting an echo opens the memory detail directly.
+
+![Pulse category mix](screenshots/11-pulse-category-mix.png)
 
 ## Visual Direction
 

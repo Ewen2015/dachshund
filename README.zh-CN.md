@@ -10,11 +10,11 @@
 dachshund 找到这些 Agent 已经写在本机的 Memory，把它们汇入一份 Markdown
 记忆库，再通过 MCP 提供给所有 Agent 使用。无需账号，无需上云，也不依赖模型
 
-[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.4/dachshund-0.1.4-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
+[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.5/dachshund-0.1.5-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
-**[下载](#下载)** &nbsp;·&nbsp; **[首次启动](#首次启动)** &nbsp;·&nbsp; **[支持 Agents](#支持-agents)** &nbsp;·&nbsp; **[工作原理](#工作原理)** &nbsp;·&nbsp; **[文档](#文档)** &nbsp;·&nbsp; **[竞品调研](docs/COMPETITORS.md)**
+**[下载](#下载)** &nbsp;·&nbsp; **[首次启动](#首次启动)** &nbsp;·&nbsp; **[支持 Agents](#支持-agents)** &nbsp;·&nbsp; **[工作原理](#工作原理)** &nbsp;·&nbsp; **[文档](#文档)** &nbsp;·&nbsp; **[调研](research/cross-agent-memory-products.md)**
 
 <br>
 
@@ -44,7 +44,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 
 | 平台 | 架构 | 安装包 | 大小 | 下载 |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.4](https://github.com/Ewen2015/dachshund/releases/download/v0.1.4/dachshund-0.1.4-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.5](https://github.com/Ewen2015/dachshund/releases/download/v0.1.5/dachshund-0.1.5-arm64.dmg)** |
 
 **系统要求：** Apple Silicon Mac
 
@@ -53,7 +53,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 > 选择“打开”
 
 [所有版本](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.4/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.5/SHA256SUMS)
 
 **安装**
 
@@ -72,7 +72,7 @@ SHA-256 用于确认下载的 DMG 与正式发布文件一致。它不是激活�
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.4/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.5/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -162,8 +162,8 @@ SQLite 记录
 ### Pulse：看清记忆的形状
 
 Pulse 不是一张为了好看而做的使用量报表。它能看出哪些 Agent 正在扩充记忆库、
-多少知识被多个 Agent 共同记住、你主要保存哪些类型的 Memory，以及记忆是否正在
-变旧。菜单栏小窗里也有同一组数据的紧凑视图
+多少知识被多个 Agent 共同记住、Memory 在五类中的分布，以及记忆是否正在变旧。
+菜单栏小窗里也有同一组数据的紧凑视图
 
 <img src="docs/screenshots/07-pulse.png" width="900" alt="dachshund Pulse 页面，展示 Memory 增长、跨 Agent 重合和新鲜度">
 
@@ -220,6 +220,7 @@ dachshund 的本地性来自架构，而不是配置开关
 | | |
 | :-- | :-- |
 | **[产品](docs/PRODUCT.md)** | 产品定位、用户、界面和边界 |
+| **[Memory 分类](docs/MEMORY.md)** | 各 Agent 原生结构、统一分类和归类规则 |
 | **[设计](docs/DESIGN.md)** | 视觉系统、布局、动效和无障碍 |
 | **[Pulse](docs/PULSE.md)** | Memory 可视化、指标定义和设计取舍 |
 | **[架构](docs/ARCHITECTURE.md)** | 进程、存储、MCP 和安全边界 |
@@ -228,7 +229,7 @@ dachshund 的本地性来自架构，而不是配置开关
 | **[MVP](docs/MVP.md)** | 验证结果、校验值和已知限制 |
 | **[开发](docs/DEVELOPMENT.md)** | 数据隔离、测试、截图和打包 |
 | **[更新](docs/UPDATES.md)** | 发布约定、下载校验与原位安装流程 |
-| **[竞品调研](docs/COMPETITORS.md)** | 本地优先 Memory 产品格局与 dachshund 的切入点 |
+| **[跨 Agent Memory 调研](research/cross-agent-memory-products.md)** | 本地优先 Memory 产品、菜单栏形态与 dachshund 的切入点 |
 
 ## 本地开发
 

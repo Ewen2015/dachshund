@@ -61,10 +61,11 @@ function iconPath(name: string): string {
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
-    width: 1380,
-    height: 900,
-    minWidth: 1040,
-    minHeight: 680,
+    width: 920,
+    height: 700,
+    minWidth: 800,
+    minHeight: 600,
+    center: true,
     show: false,
     backgroundColor: '#fafafa',
     titleBarStyle: 'hiddenInset',

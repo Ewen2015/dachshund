@@ -153,6 +153,7 @@ npm run build
 npm run screenshot
 ```
 
-Review the full app with a 1380 x 900 window and the compact panel at a logical
+Review the app at its default 920 x 700 window, then confirm that it still
+adapts cleanly when enlarged or maximized. Review the compact panel at a logical
 420 x 620. Screenshots are captured at device scale on Retina, so 840 x 1240
 pixels is the expected compact-panel file size.

@@ -67,12 +67,14 @@ dachshund.
 
 ### Full Window
 
-The full window is the library and control surface:
+The full window opens as a compact 920 x 700 Mac app rather than a browser-sized
+workspace. It can be resized, maximized, or sent full screen when the user wants
+the wider library view. It is the library and control surface:
 
 - Memory feed grouped by recency.
 - Search and agent filters.
 - Memory detail with Markdown rendering and source provenance.
-- Pulse: growth, agent contribution, overlap, knowledge mix and freshness.
+- Pulse: growth, agent contribution, overlap, category mix and freshness.
 - New-memory composer.
 - Agent discovery, sharing toggles, and MCP connection controls.
 - Settings, library path, privacy model, and index rebuild.
@@ -122,7 +124,8 @@ The distinguishing product choices are:
 - a deliberately small tool surface rather than a broad agent platform.
 
 This is a product wedge, not a claim that no similar project exists. See
-[Competitor research](COMPETITORS.md) for the current landscape.
+[cross-agent memory product research](../research/cross-agent-memory-products.md)
+for the current landscape.
 
 ## Non-Goals
 

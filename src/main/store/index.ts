@@ -12,6 +12,7 @@ import type {
   UpdateMemoryInput
 } from '../../shared/types'
 import { DISABLE_IMPORT, IS_DEMO, LIBRARY_DIR, ensureDirs } from '../paths'
+import { normalizeMemoryKind } from '../../shared/memory-taxonomy'
 import { discoverAgents, refreshAgents } from '../agents/discovery'
 import { importAgentMemories } from '../agents/importers'
 import { installMcp } from '../agents/mcp-install'
@@ -134,7 +135,7 @@ export class Store {
       id,
       title: memory.title,
       content,
-      kind: memory.kind,
+      kind: normalizeMemoryKind(memory.kind),
       project: memory.project,
       tags: memory.tags.slice(0, 12),
       createdAt: memory.createdAt,
@@ -173,7 +174,7 @@ export class Store {
       id: makeId('mem'),
       title,
       content,
-      kind: input.kind || 'fact',
+      kind: normalizeMemoryKind(input.kind),
       project: input.project ?? null,
       tags: (input.tags ?? []).slice(0, 12),
       createdAt: now,
@@ -203,7 +204,7 @@ export class Store {
       id,
       title: patch.title?.trim() || current.title,
       content: patch.content?.trim() ?? current.content,
-      kind: patch.kind || current.kind,
+      kind: normalizeMemoryKind(patch.kind || current.kind),
       project: patch.project !== undefined ? patch.project : current.project,
       tags: patch.tags ?? current.tags,
       createdAt: current.createdAt,

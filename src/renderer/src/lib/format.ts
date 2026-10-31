@@ -1,4 +1,5 @@
 import type { MemorySource } from '../../../shared/types'
+import { kindLabel as taxonomyKindLabel } from '../../../shared/memory-taxonomy'
 
 export const AGENT_ACCENTS: Record<string, string> = {
   'claude-code': '#C0663B',
@@ -78,15 +79,7 @@ export function groupLabel(timestamp: number): string {
 }
 
 export function kindLabel(kind: string): string {
-  const labels: Record<string, string> = {
-    fact: 'Fact',
-    preference: 'Preference',
-    project: 'Project',
-    lesson: 'Lesson',
-    profile: 'Profile',
-    rule: 'Rule'
-  }
-  return labels[kind] ?? kind.charAt(0).toUpperCase() + kind.slice(1)
+  return taxonomyKindLabel(kind)
 }
 
 export function formatDate(timestamp: number): string {

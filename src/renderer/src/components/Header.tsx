@@ -72,7 +72,7 @@ export function Header({
       </button>
       <button className="primary-button" type="button" onClick={onNew} aria-label="New memory">
         <PlusIcon size={15} />
-        New memory
+        <span className="primary-label">New memory</span>
       </button>
     </header>
   )
