@@ -74,7 +74,7 @@ memory.
 Imported memory keeps the source agent's native structure and a normalized
 dachshund category. The native model explains why an agent stored something;
 the category provides one cross-agent browsing layer. The eleven kinds are
-grouped into About me, Working together, Projects, Knowledge, and Timeline.
+grouped into About me, Ways of working, Projects, Facts & references, and History.
 
 Classification happens during import and is deterministic: no API key, model
 call, or embedding is required. See [Memory Taxonomy](MEMORY.md) for the full

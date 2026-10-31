@@ -1,6 +1,7 @@
 import type { AgentSummary, Counts, ScanProgress } from '../../../shared/types'
 import { AgentLogo } from './AgentLogo'
 import { CheckIcon, RefreshIcon, ShieldIcon } from './Icons'
+import { sortAgentsByMemory } from '../lib/format'
 
 export function AgentsView({
   agents,
@@ -24,6 +25,7 @@ export function AgentsView({
   const installed = agents.filter((agent) => agent.installed)
   const sharing = installed.filter((agent) => agent.shared)
   const memories = counts.memories
+  const sortedAgents = sortAgentsByMemory(agents)
 
   return (
     <div className="page agents-page">
@@ -64,7 +66,7 @@ export function AgentsView({
       </div>
 
       <div className="agent-list">
-        {agents.map((agent) => {
+        {sortedAgents.map((agent) => {
           const state = progress[agent.id]
           return (
             <div

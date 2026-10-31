@@ -28,7 +28,9 @@ export function CategoryLegend({
         <strong>All</strong>
         <small>{total}</small>
       </button>
-      {MEMORY_CATEGORIES.map((category) => (
+      {MEMORY_CATEGORIES.filter(
+        (category) => (counts[category.id] ?? 0) > 0 || selected === category.id
+      ).map((category) => (
         <button
           key={category.id}
           type="button"

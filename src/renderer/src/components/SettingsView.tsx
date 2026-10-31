@@ -1,5 +1,6 @@
 import type { AppState } from '../../../shared/types'
 import { AgentLogo } from './AgentLogo'
+import { sortAgentsByMemory } from '../lib/format'
 import {
   ArrowUpRightIcon,
   CheckIcon,
@@ -24,7 +25,7 @@ export function SettingsView({
   onInstallMcp: (id: string) => void
   onQuit: () => void
 }) {
-  const installed = state.agents.filter((agent) => agent.installed)
+  const installed = sortAgentsByMemory(state.agents.filter((agent) => agent.installed))
   return (
     <div className="page settings-page">
       <section className="page-head">

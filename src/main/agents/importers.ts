@@ -197,14 +197,18 @@ function importWorkBuddy(agent: AgentDefinition): ImportedMemory[] {
   }
 
   addFile(path.join(agent.home, 'IDENTITY.md'), {
-    kind: 'profile',
+    kind: 'rule',
     tags: ['workbuddy', 'assistant-identity']
   })
   addFile(path.join(agent.home, 'USER.md'), {
     kind: 'profile',
     tags: ['workbuddy', 'user-profile']
   })
-  for (const file of walk(path.join(agent.home, 'memory'), (item) => item.endsWith('.md'), 120)) {
+  for (const file of walk(
+    path.join(agent.home, 'memory'),
+    (item) => item.endsWith('.md') && path.basename(item) !== 'MEMORY.md',
+    120
+  )) {
     addFile(file, { kind: 'profile', tags: ['workbuddy', 'user-memory'] })
   }
 
@@ -223,7 +227,11 @@ function importWorkBuddy(agent: AgentDefinition): ImportedMemory[] {
   for (const workspace of workBuddyWorkspaces(agent)) {
     const project = path.basename(workspace)
     const memoryRoot = path.join(workspace, '.workbuddy', 'memory')
-    for (const file of walk(memoryRoot, (item) => item.endsWith('.md'), 160)) {
+    for (const file of walk(
+      memoryRoot,
+      (item) => item.endsWith('.md') && path.basename(item) !== 'MEMORY.md',
+      160
+    )) {
       addFile(file, { kind: 'project', project, tags: ['workbuddy', 'workspace-memory'] })
     }
   }
@@ -274,9 +282,13 @@ function stringList(value: unknown): string[] {
   return []
 }
 
-function projectFromTraeDir(file: string): string | null {
-  // ~/.trae-cn/memory/projects/<encoded-cwd>/<date>/session_memory_*.jsonl
-  const encoded = path.basename(path.dirname(path.dirname(file)))
+function projectFromTraeDir(file: string, levels = 2): string | null {
+  // Session files live under <encoded-cwd>/<date>; project_memory.md lives one level up.
+  let projectDir = path.dirname(file)
+  for (let index = 1; index < levels; index += 1) {
+    projectDir = path.dirname(projectDir)
+  }
+  const encoded = path.basename(projectDir)
   const stripped = encoded.replace(/--p2-[a-z0-9]+$/i, '').replace(/^-/, '')
   const decoded = stripped.replace(/-/g, '/')
   if (decoded.includes('TRAE/SOLO/CN')) return 'TRAE SOLO'
@@ -389,12 +401,33 @@ function importTrae(agent: AgentDefinition): ImportedMemory[] {
   const roots = [...new Set([agent.home, ...(agent.homes ?? [])])]
   for (const root of roots) {
     const projectsRoot = path.join(root, 'memory', 'projects')
-    const files = walk(
+    const profile = parseMarkdownFile(
+      path.join(root, 'memory', 'user_profile.md'),
+      agent,
+      { kind: 'profile', tags: ['trae', 'user-profile'] }
+    )
+    if (profile) out.push(profile)
+
+    const projectMemories = walk(
+      projectsRoot,
+      (file) => path.basename(file) === 'project_memory.md',
+      400
+    )
+    for (const file of projectMemories) {
+      const memory = parseMarkdownFile(file, agent, {
+        kind: 'project',
+        project: projectFromTraeDir(file, 1),
+        tags: ['trae', 'project-memory']
+      })
+      if (memory) out.push(memory)
+    }
+
+    const episodeFiles = walk(
       projectsRoot,
       (file) => file.endsWith('.jsonl') || path.basename(file) === 'topics.md',
       400
     )
-    for (const file of files) {
+    for (const file of episodeFiles) {
       const project = projectFromTraeDir(file)
       if (path.basename(file) === 'topics.md') {
         out.push(...importTraeTopics(file, agent, project))
@@ -428,21 +461,42 @@ function importClaude(agent: AgentDefinition): ImportedMemory[] {
   const root = path.join(agent.home, 'projects')
   const memoryFiles = walk(
     root,
-    (file) => file.endsWith('.md') && file.includes(`${path.sep}memory${path.sep}`)
+    (file) =>
+      file.endsWith('.md') &&
+      file.includes(`${path.sep}memory${path.sep}`) &&
+      path.basename(file) !== 'MEMORY.md'
   )
-  const globalFiles = [
-    path.join(agent.home, 'CLAUDE.md'),
-    ...walk(path.join(agent.home, 'memory'), (file) => file.endsWith('.md'), 80)
-  ].filter((file) => fs.existsSync(file))
-  const files = [...memoryFiles, ...globalFiles]
-  return files
+  const projectMemories = memoryFiles
     .map((file) =>
       parseMarkdownFile(file, agent, {
         kind: 'project',
-        project: projectFromClaudeDir(file)
+        project: projectFromClaudeDir(file),
+        tags: ['claude-code', 'auto-memory']
       })
     )
-    .filter((item): item is ImportedMemory => Boolean(item))
+  const instructionFiles = [
+    path.join(agent.home, 'CLAUDE.md'),
+    ...walk(path.join(agent.home, 'rules'), (file) => file.endsWith('.md'), 160)
+  ].filter((file) => fs.existsSync(file))
+  const instructions = instructionFiles.map((file) =>
+    parseMarkdownFile(file, agent, {
+      kind: 'rule',
+      tags: ['claude-code', 'instructions']
+    })
+  )
+  const globalMemories = walk(
+    path.join(agent.home, 'memory'),
+    (file) => file.endsWith('.md') && path.basename(file) !== 'MEMORY.md',
+    80
+  ).map((file) =>
+    parseMarkdownFile(file, agent, {
+      kind: 'fact',
+      tags: ['claude-code', 'global-memory']
+    })
+  )
+  return [...projectMemories, ...instructions, ...globalMemories].filter(
+    (item): item is ImportedMemory => Boolean(item)
+  )
 }
 
 function codexTags(section: string): string[] {
@@ -567,7 +621,7 @@ function importCodexSqlite(agent: AgentDefinition): ImportedMemory[] {
         out.push({
           title: slug ? humanize(slug) : `Codex thread ${threadId.slice(0, 8)}`,
           content,
-          kind: 'lesson',
+          kind: summary ? 'episode' : 'lesson',
           project: null,
           tags: ['codex', 'rollout'],
           createdAt: generated,
@@ -644,12 +698,65 @@ function importCursor(agent: AgentDefinition): ImportedMemory[] {
     .filter((item): item is ImportedMemory => Boolean(item))
 }
 
-function importGeneric(agent: AgentDefinition, roots: string[]): ImportedMemory[] {
-  const files = roots.flatMap((root) =>
-    walk(root, (file) => file.endsWith('.md') || file.endsWith('.mdc'), 300)
+function importCopilot(agent: AgentDefinition): ImportedMemory[] {
+  const instructionFiles = walk(
+    path.join(agent.home, 'instructions'),
+    (file) => file.endsWith('.md') || file.endsWith('.mdc'),
+    300
   )
-  return files
-    .map((file) => parseMarkdownFile(file, agent))
+  const memoryFiles = walk(
+    path.join(agent.home, 'memories'),
+    (file) => file.endsWith('.md'),
+    300
+  )
+  return [
+    ...instructionFiles.map((file) =>
+      parseMarkdownFile(file, agent, {
+        kind: 'rule',
+        tags: ['copilot', 'instructions']
+      })
+    ),
+    ...memoryFiles.map((file) =>
+      parseMarkdownFile(file, agent, {
+        kind: 'fact',
+        tags: ['copilot', 'local-memory']
+      })
+    )
+  ].filter((item): item is ImportedMemory => Boolean(item))
+}
+
+function importOpenCode(agent: AgentDefinition): ImportedMemory[] {
+  const instruction = parseMarkdownFile(path.join(agent.home, 'AGENTS.md'), agent, {
+    kind: 'rule',
+    tags: ['opencode', 'instructions']
+  })
+  const memoryFiles = [
+    ...walk(path.join(agent.home, 'memory'), (file) => file.endsWith('.md'), 300),
+    ...walk(
+      expandHome('~/.local/share/opencode/memory'),
+      (file) => file.endsWith('.md'),
+      300
+    )
+  ]
+  return [
+    ...(instruction ? [instruction] : []),
+    ...memoryFiles.map((file) =>
+      parseMarkdownFile(file, agent, {
+        kind: 'fact',
+        tags: ['opencode', 'local-memory']
+      })
+    )
+  ].filter((item): item is ImportedMemory => Boolean(item))
+}
+
+function importWindsurf(agent: AgentDefinition): ImportedMemory[] {
+  return walk(path.join(agent.home, 'memories'), (file) => file.endsWith('.md'), 300)
+    .map((file) =>
+      parseMarkdownFile(file, agent, {
+        kind: 'project',
+        tags: ['windsurf', 'workspace-memory']
+      })
+    )
     .filter((item): item is ImportedMemory => Boolean(item))
 }
 
@@ -675,13 +782,24 @@ function durableMemoryText(input: string): boolean {
   ) {
     return false
   }
-  return /(请记住|记住|记得|以后(都|所有|默认|请|不|要)|从今以后|我的偏好|偏好是|我喜欢|我不喜欢|不要再|请始终|始终使用|默认使用|不要使用|我的名字|我叫|remember (that|to)|from now on|my preference|always use|never use|do not use|don't use)/i.test(
+  return /(请记住|记住|记得|以后(都|所有|默认|请|不|要)|从今以后|我的偏好|偏好是|我喜欢|我不喜欢|不要再|请始终|始终使用|默认使用|不要使用|我的名字|我叫|remember (that|to)|from now on|my preference|always use|never\s+\S|do not\s+\S|don't\s+\S)/i.test(
     text
   )
 }
 
 function memoryKind(input: string, fallback: string): string {
-  if (/(prefer|preference|always|never|以后|记住|偏好|喜欢|不要|不用|总是|默认|始终)/i.test(input)) {
+  if (
+    /(不要再|不要|别用|别改|别再|别把|别在|别对|别只|别直接|禁止|避免|改为|换成|never|do not|don't|avoid|instead of|stop using)/i.test(
+      input
+    )
+  ) {
+    return 'feedback'
+  }
+  if (
+    /(prefer|preference|always|以后|记住|偏好|喜欢|总是|默认|始终|from now on|remember)/i.test(
+      input
+    )
+  ) {
     return 'preference'
   }
   return fallback
@@ -827,7 +945,27 @@ function importPi(agent: AgentDefinition): ImportedMemory[] {
   return out
 }
 
-function importZCode(agent: AgentDefinition): ImportedMemory[] {
+function importZCodeMarkdown(agent: AgentDefinition): ImportedMemory[] {
+  const root = path.join(agent.home, 'cli', 'memories', 'projects')
+  const files = walk(
+    root,
+    (file) => file.endsWith('.md') && path.basename(file) !== 'MEMORY.md',
+    1000
+  )
+  return files
+    .map((file) => {
+      const relative = path.relative(root, file).split(path.sep)
+      const project = relative[0] || null
+      return parseMarkdownFile(file, agent, {
+        kind: 'project',
+        project,
+        tags: ['zcode', 'markdown-memory']
+      })
+    })
+    .filter((item): item is ImportedMemory => Boolean(item))
+}
+
+function importZCodeSqlite(agent: AgentDefinition): ImportedMemory[] {
   const file = path.join(agent.home, 'cli', 'db', 'db.sqlite')
   if (!fs.existsSync(file)) return []
   const out: ImportedMemory[] = []
@@ -898,6 +1036,10 @@ function importZCode(agent: AgentDefinition): ImportedMemory[] {
     }
   }
   return out
+}
+
+function importZCode(agent: AgentDefinition): ImportedMemory[] {
+  return [...importZCodeMarkdown(agent), ...importZCodeSqlite(agent)]
 }
 
 interface ZstdFrame {
@@ -1060,19 +1202,13 @@ export function importAgentMemories(agent: AgentDefinition): ImportedMemory[] {
       memories = importCursor(agent)
       break
     case 'copilot':
-      memories = importGeneric(agent, [
-        path.join(agent.home, 'memories'),
-        path.join(agent.home, 'instructions')
-      ])
+      memories = importCopilot(agent)
       break
     case 'opencode':
-      memories = importGeneric(agent, [
-        path.join(agent.home, 'memory'),
-        expandHome('~/.local/share/opencode/memory')
-      ])
+      memories = importOpenCode(agent)
       break
     case 'windsurf':
-      memories = importGeneric(agent, [path.join(agent.home, 'memories')])
+      memories = importWindsurf(agent)
       break
     case 'workbuddy':
       memories = importWorkBuddy(agent)

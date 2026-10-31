@@ -26,8 +26,8 @@ deterministic local library should not invent a model-based score.
 4. **Growth chart** - additions over time, broken down by agent, dachshund
    category, or overlap.
 5. **Series detail** - contribution bars with product marks and counts.
-6. **Category mix** - proportion of About me, Working together, Projects,
-   Knowledge, and Timeline memories.
+6. **Category mix** - proportion of About me, Ways of working, Projects,
+   Facts & references, and History memories.
 7. **Cross-agent echoes** - the highest-overlap memories, with source marks and
    direct links into the library.
 

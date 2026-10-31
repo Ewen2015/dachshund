@@ -1,4 +1,4 @@
-import type { MemorySource } from '../../../shared/types'
+import type { AgentSummary, MemorySource } from '../../../shared/types'
 import { kindLabel as taxonomyKindLabel } from '../../../shared/memory-taxonomy'
 
 export const AGENT_ACCENTS: Record<string, string> = {
@@ -49,6 +49,16 @@ export function uniqueSources(sources: MemorySource[]): MemorySource[] {
     if (!map.has(source.agentId)) map.set(source.agentId, source)
   }
   return [...map.values()]
+}
+
+export function sortAgentsByMemory(agents: AgentSummary[]): AgentSummary[] {
+  return [...agents].sort(
+    (a, b) =>
+      Number(b.installed) - Number(a.installed) ||
+      b.memoryCount - a.memoryCount ||
+      b.sourceCount - a.sourceCount ||
+      a.name.localeCompare(b.name)
+  )
 }
 
 export function relativeTime(timestamp: number): string {

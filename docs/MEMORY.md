@@ -43,33 +43,38 @@ knowledge is this?”
 | --- | --- | --- | --- |
 | **About me** | `profile` | Stable identity, role, expertise, and personal context | Temporary task details |
 | **About me** | `preference` | Desired tone, tools, defaults, and ways of working | One-off corrections |
-| **Working together** | `rule` | Explicit instructions, constraints, and policies | A reason a decision was made |
-| **Working together** | `feedback` | Corrections, approval signals, and rejected approaches | General reference material |
-| **Working together** | `lesson` | A reusable conclusion learned from an attempt | Raw event history |
-| **Working together** | `workflow` | A repeatable sequence, command, or method | A single project fact |
+| **Ways of working** | `rule` | Explicit instructions, constraints, and policies | A reason a decision was made |
+| **Ways of working** | `feedback` | Corrections, approval signals, and rejected approaches | General reference material |
+| **Ways of working** | `lesson` | A reusable conclusion learned from an attempt | Raw event history |
+| **Ways of working** | `workflow` | A repeatable sequence, command, or method | A single project fact |
 | **Projects** | `project` | Goals, scope, constraints, and current project context | Long-term personal identity |
 | **Projects** | `decision` | A choice already made and the rationale worth preserving | Open questions |
-| **Knowledge** | `fact` | A durable fact worth recalling later | An event that only matters as history |
-| **Knowledge** | `reference` | A pointer to a document, link, path, or external system | The full external document |
-| **Timeline** | `episode` | Session summaries, topic summaries, compactions, and task history | Promoted durable knowledge |
+| **Facts & references** | `fact` | A durable fact worth recalling later | An event that only matters as history |
+| **Facts & references** | `reference` | A pointer to a document, link, path, or external system | The full external document |
+| **History** | `episode` | Session summaries, topic summaries, compactions, and task history | Promoted durable knowledge |
 
 ### Why these boundaries
 
 - **About me** is portable across projects. It should remain useful when the
   repository changes.
-- **Working together** changes behavior. Rules and feedback are separated
+- **Ways of working** shapes behavior. Rules and feedback are separated
   because one is an instruction and the other is evidence that an instruction
   worked or failed.
 - **Projects** is scoped context. A project can be active for months without
   becoming a personal preference.
-- **Knowledge** is durable but not necessarily personal. It includes both facts
-  and references to information kept elsewhere.
-- **Timeline** is historical evidence. Session logs are deliberately not mixed
+- The **Facts & references** category contains durable information that is not necessarily
+  personal. It includes both facts and references to information kept elsewhere.
+- The **History** category is the historical-evidence layer. Session logs are deliberately not mixed
   into durable facts by recency alone.
 
 An `episode` can later be expressed as a `lesson`, `decision`, or `fact` through
 an explicit write. dachshund does not silently promote a summary into a durable
 claim.
+
+The History filter is hidden while the library has no episode records, so an
+empty evidence layer does not add a permanent empty control to the interface.
+Codex records with a rollout summary become episodes; raw thread records without
+a summary remain lessons.
 
 ## Normalization
 
@@ -99,27 +104,36 @@ The implementation lives in
 
 The detail page for an installed agent shows its native structure, the path
 dachshund reads, and how each native section maps into the shared taxonomy.
+Rows explicitly marked **Not imported** describe the native model without
+claiming that dachshund currently has access to that data.
 
-| Agent | Native organization | Primary dachshund landing |
-| --- | --- | --- |
-| **Claude Code** | `user`, `feedback`, `project`, `reference`, plus `CLAUDE.md` | About me, Working together, Projects, Knowledge |
-| **Claude Desktop** | Account topics and project memory; MCP target only | Knowledge, About me, Projects |
-| **Codex** | Task groups, merged summaries, rollouts | Projects, About me, Timeline |
-| **Cursor** | Rules, `AGENTS.md`, automation memory | Working together, Projects, Knowledge |
-| **DeepSeek Harness** | Append-only session events, compaction, MCP memory | Timeline, Knowledge |
-| **Doubao** | Account memory, assistant memory, Agent Mode workspace | About me, Knowledge, Projects |
-| **Gemini CLI** | `GEMINI.md` instructions and `save_memory` entries | Working together, Knowledge, Timeline |
-| **GitHub Copilot** | Instructions, `AGENTS.md`, local CLI sessions | Working together, Projects, Timeline |
-| **Hermes** | `USER.md` and `MEMORY.md` | About me, Knowledge, Projects |
-| **OpenCode** | `AGENTS.md`, instructions, local sessions | Working together, Projects, Timeline |
-| **Pi** | Session tree, compaction, branch summaries | Timeline, with explicit durable cues in About me |
-| **Trae** | `user_profile`, `project_memory`, `topics.md`, session memory | About me, Projects, Timeline |
-| **WorkBuddy** | Typed `user`, `feedback`, `project`, `reference` memory | About me, Working together, Projects, Knowledge |
-| **ZCode** | Project-scoped typed memory | About me, Working together, Projects, Knowledge |
-| **Windsurf** | Workspace memories, rules, `AGENTS.md` | Projects, Working together |
+| Agent | Native organization | Imported now | Native but not imported |
+| --- | --- | --- | --- |
+| **Claude Code** | `user`, `feedback`, `project`, `reference`, plus written instructions | Typed auto memory maps to About me, Ways of working, Projects, and Facts & references; `CLAUDE.md` and rules map to Ways of working | Session transcripts |
+| **Claude Desktop** | Account topics and project memory | Nothing; MCP connection only | Account topics, preferences, and project memory |
+| **Codex** | Task groups, merged summaries, rollouts | Task groups to Projects, summary to About me, rollout summaries to History, raw memories without a summary to Ways of working | Nothing in the documented local store |
+| **Cursor** | Rules, `AGENTS.md`, automation memory | Local rules and agent definitions to Ways of working | Repository `AGENTS.md` and cloud automation `MEMORIES.md` |
+| **DeepSeek Harness** | Append-only session events; durable memory comes from plugins or MCP | Explicit durable preference and correction cues to About me or Ways of working | Raw session events, compaction records, and MCP memory stores |
+| **Doubao** | Account memory, assistant memory, Agent Mode workspace | Locally observable Agent Mode workspace and session memory to Projects | Account memory and per-assistant memory |
+| **Gemini CLI** | `GEMINI.md` instructions and `save_memory` entries | Instructions to Ways of working; added memories to Facts & references | CLI session history |
+| **GitHub Copilot** | Instructions, `AGENTS.md`, local CLI sessions | Local instruction Markdown to Ways of working; local memory Markdown to Facts & references | `AGENTS.md` and CLI session history |
+| **Hermes** | `USER.md` and `MEMORY.md` | `USER.md` to About me; untyped `MEMORY.md` entries conservatively to Facts & references | SQLite session history |
+| **OpenCode** | Global and project `AGENTS.md`, observed memory Markdown, sessions | Global `AGENTS.md` to Ways of working; observed memory Markdown to Facts & references | Project `AGENTS.md` and session history |
+| **Pi** | Session tree, compaction, branch summaries | Compaction and branch summaries to History; explicit durable cues to About me or Ways of working | Raw session branches and ordinary messages |
+| **Trae** | `user_profile.md`, `project_memory.md`, `topics.md`, session JSONL | Profile to About me; project memory to Projects; topics and session summaries to History | Rules |
+| **WorkBuddy** | Typed `user`, `feedback`, `project`, `reference` memory plus identity files | Typed memory maps to About me, Ways of working, Projects, and Facts & references; assistant identity maps to Ways of working | Sessions |
+| **ZCode** | Project-scoped typed Markdown memory plus session evidence | Typed Markdown maps to About me, Ways of working, Projects, and Facts & references; explicit session cues map to About me or Ways of working | Global and project `AGENTS.md` |
+| **Windsurf** | Workspace memories, rules, `AGENTS.md` | Workspace memory Markdown to Projects | Rules and `AGENTS.md` |
 
 This table describes the current adapters, not a claim that every agent exposes
-the same five categories natively.
+the same five categories natively. A mapping row and an imported record are
+different claims: the UI shows **Not imported** whenever the native concept is
+visible but no adapter reads it yet.
+
+The same rule applies inside the code. A native signal has exactly one
+dachshund category, so a source that can produce both a preference and a
+correction is represented as two native mapping rows rather than one row with
+kinds from two categories.
 
 ## Interface contract
 

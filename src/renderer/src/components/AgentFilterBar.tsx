@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { AgentSummary } from '../../../shared/types'
 import { AgentLogo } from './AgentLogo'
 import { RefreshIcon } from './Icons'
+import { sortAgentsByMemory } from '../lib/format'
 
 export function AgentFilterBar({
   agents,
@@ -19,7 +20,7 @@ export function AgentFilterBar({
   scanning: boolean
 }) {
   const [showEmpty, setShowEmpty] = useState(false)
-  const installed = agents.filter((agent) => agent.installed)
+  const installed = sortAgentsByMemory(agents.filter((agent) => agent.installed))
   const withMemory = installed.filter((agent) => agent.memoryCount > 0)
   const withoutMemory = installed.filter((agent) => agent.memoryCount === 0)
   const activeEmptyAgent = withoutMemory.find((agent) => agent.id === activeAgentId)

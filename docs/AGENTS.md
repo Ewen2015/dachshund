@@ -9,20 +9,20 @@ and build-time fetching rules.
 
 | Agent | Local memory import | MCP config | Imported sources |
 | --- | --- | --- | --- |
-| Claude Code | Yes | `~/.claude.json` | Project memory Markdown and global Claude memory |
+| Claude Code | Yes | `~/.claude.json` | Project topic memory, written instructions, rules, and global memory |
 | Codex | Yes | `~/.codex/config.toml` | Codex memory Markdown and readable memory SQLite |
 | Gemini CLI | Yes | `~/.gemini/settings.json` | `GEMINI.md` files |
 | Cursor | Yes | `~/.cursor/mcp.json` | Rules and agent Markdown/MDC files |
 | GitHub Copilot | Yes | `~/.copilot/mcp-config.json` | Memory and instruction Markdown |
-| OpenCode | Yes | `~/.config/opencode/opencode.json` | OpenCode memory Markdown |
+| OpenCode | Yes | `~/.config/opencode/opencode.json` | Global `AGENTS.md` and observed memory Markdown |
 | Windsurf | Yes | `~/.codeium/windsurf/mcp_config.json` | Windsurf memory Markdown |
 | Claude Desktop | Connect only | Claude Desktop MCP config | No importer in the current MVP |
 | WorkBuddy | Yes | `~/.workbuddy/mcp.json` | Identity, user memory, and workspace memory Markdown |
 | Doubao | Yes | Import only | Agent Mode global and session memory Markdown |
-| Trae | Yes | `~/Library/Application Support/TRAE SOLO CN/User/mcp.json` | Project topics and session memory JSONL |
+| Trae | Yes | `~/Library/Application Support/TRAE SOLO CN/User/mcp.json` | User profile, project memory, topics, and session memory JSONL |
 | Hermes | Yes | `~/.hermes/config.yaml` | Native `MEMORY.md` and `USER.md` entries |
 | Pi | Yes | `~/.pi/agent/mcp.json` | Compaction summaries and durable user context |
-| ZCode | Yes | `~/.zcode/cli/config.json` | Read-only SQLite session and durable user text |
+| ZCode | Yes | `~/.zcode/cli/config.json` | Project memory Markdown plus read-only SQLite durable user text |
 | DeepSeek Harness | Yes | `~/.dsh/profiles/desktop/cordis.patch.yml` | Zstandard session logs and durable user text |
 
 Installation is detected from the agent home directory or known application
@@ -36,9 +36,14 @@ Home: `~/.claude`
 Imported:
 
 - files under project `memory` directories:
-  `~/.claude/projects/<project>/memory/*.md`;
+  `~/.claude/projects/<project>/memory/*.md` except the `MEMORY.md` index;
 - `~/.claude/CLAUDE.md`;
-- Markdown under `~/.claude/memory/`.
+- Markdown under `~/.claude/rules/`;
+- Markdown under `~/.claude/memory/` except the `MEMORY.md` index.
+
+The typed project files retain their native `user`, `feedback`, `project`, and
+`reference` frontmatter. Written instructions are imported as rules rather than
+as project memory.
 
 MCP target: `~/.claude.json`, under `mcpServers`.
 
@@ -96,8 +101,11 @@ Home: `~/.config/opencode`
 
 Imported:
 
+- `~/.config/opencode/AGENTS.md`;
 - Markdown under `~/.config/opencode/memory/`;
 - Markdown under `~/.local/share/opencode/memory/`.
+
+Project-level `AGENTS.md` files and session history are not imported.
 
 MCP target: `~/.config/opencode/opencode.json`, as `mcp.dachshund`.
 
@@ -135,7 +143,10 @@ Imported:
   database.
 
 The importer strips WorkBuddy's trailing raw JSON metadata block before creating
-the shared memory. MCP target: `~/.workbuddy/mcp.json`, under `mcpServers`.
+the shared memory. A typed memory file keeps its native `user`, `feedback`,
+`project`, or `reference` kind. `IDENTITY.md` is treated as assistant behavior
+and maps to Rules; `USER.md` maps to Profile. MCP target: `~/.workbuddy/mcp.json`,
+under `mcpServers`.
 
 ## Doubao
 
@@ -158,10 +169,14 @@ Homes:
 Imported:
 
 - `memory/projects/<project>/<date>/topics.md`;
-- `memory/projects/<project>/<date>/session_memory_*.jsonl`.
+- `memory/projects/<project>/<date>/session_memory_*.jsonl`;
+- `memory/user_profile.md`;
+- `memory/projects/<project>/project_memory.md`.
 
 Session JSONL entries are converted into readable memory with `Outcome`,
-`Learned`, and `Actions` sections. MCP target for the current China build:
+`Learned`, and `Actions` sections. Profile memory maps to About me; project
+memory maps to Projects; topic and session summaries map to History. Trae rules
+are not imported. MCP target for the current China build:
 `~/Library/Application Support/TRAE SOLO CN/User/mcp.json`, under `mcpServers`.
 
 ## Hermes
@@ -207,12 +222,17 @@ Home: `~/.zcode`
 
 Imported:
 
+- project memory Markdown under
+  `~/.zcode/cli/memories/projects/<project>/memory/`, excluding `MEMORY.md`;
 - read-only queries against `~/.zcode/cli/db/db.sqlite`;
 - text parts attached to user messages are considered only when they contain an
   explicit durable preference or instruction.
 
-The canonical ZCode database is the source of truth. Rollout debug logs are not
-imported because they duplicate requests and may contain provider payloads.
+The Markdown files retain native `user`, `feedback`, `project`, and `reference`
+metadata when present and otherwise default conservatively to project memory.
+The SQLite scan is a compatibility path for explicit durable user cues. Rollout
+debug logs are not imported because they duplicate requests and may contain
+provider payloads.
 
 MCP target: `~/.zcode/cli/config.json`, under `mcp.servers.dachshund`. ZCode uses
 a strict schema, so dachshund writes only `type`, `command`, `args`, `env`, and

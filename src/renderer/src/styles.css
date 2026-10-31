@@ -1168,6 +1168,15 @@ kbd {
   border-bottom: 0;
 }
 
+.mapping-row.not-imported .native-kind,
+.mapping-row.not-imported .mapped-kind {
+  opacity: 0.62;
+}
+
+.mapping-row.not-imported .mapping-arrow {
+  opacity: 0.45;
+}
+
 .native-kind {
   display: inline-flex;
   width: fit-content;
@@ -1214,6 +1223,19 @@ kbd {
   margin-top: 2px;
   color: var(--faint);
   font-size: 8.5px;
+}
+
+.mapped-kind .mapping-state {
+  width: fit-content;
+  margin: 0 0 3px;
+  padding: 1px 4px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 7px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .agent-stack {

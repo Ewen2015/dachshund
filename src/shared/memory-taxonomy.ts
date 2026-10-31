@@ -1,4 +1,4 @@
-export type MemoryCategoryId = 'about' | 'working' | 'projects' | 'knowledge' | 'timeline'
+export type MemoryCategoryId = 'about' | 'working' | 'projects' | 'knowledge' | 'episodes'
 
 export interface MemoryCategoryDefinition {
   id: MemoryCategoryId
@@ -14,6 +14,7 @@ export interface AgentMemoryMapping {
   description: string
   category: MemoryCategoryId
   kinds: string[]
+  imported: boolean
 }
 
 export interface AgentMemoryModel {
@@ -34,9 +35,10 @@ export const MEMORY_CATEGORIES: MemoryCategoryDefinition[] = [
   },
   {
     id: 'working',
-    label: 'Working together',
+    label: 'Ways of working',
     shortLabel: 'Working',
-    description: 'Rules, corrections, lessons, and repeatable ways of getting work done.',
+    description:
+      'Rules, corrections, reusable lessons, and repeatable workflows that shape how agents work with you.',
     color: '#55745F',
     kinds: ['rule', 'feedback', 'lesson', 'workflow']
   },
@@ -50,16 +52,16 @@ export const MEMORY_CATEGORIES: MemoryCategoryDefinition[] = [
   },
   {
     id: 'knowledge',
-    label: 'Knowledge',
-    shortLabel: 'Knowledge',
-    description: 'Facts worth keeping and pointers to documents, links, and external systems.',
+    label: 'Facts & references',
+    shortLabel: 'Facts',
+    description: 'Durable facts and pointers to documents, links, and external systems.',
     color: '#9B7A4D',
     kinds: ['fact', 'reference']
   },
   {
-    id: 'timeline',
-    label: 'Timeline',
-    shortLabel: 'Timeline',
+    id: 'episodes',
+    label: 'History',
+    shortLabel: 'History',
     description: 'Session summaries and task episodes kept as evidence rather than durable facts.',
     color: '#8B6D76',
     kinds: ['episode']
@@ -139,26 +141,27 @@ export function kindLabel(value: unknown): string {
 
 export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
   'claude-code': {
-    title: 'Typed auto memory + CLAUDE.md',
+    title: 'Typed auto memory + written instructions',
     summary:
-      'Claude Code keeps written instructions separate from four typed auto-memory files scoped to each repository.',
-    path: '~/.claude/projects/<repo>/memory + CLAUDE.md',
+      'Claude Code keeps CLAUDE.md and rules separate from four typed auto-memory files scoped to each repository.',
+    path: '~/.claude/projects/<repo>/memory + CLAUDE.md + rules',
     mappings: [
-      { native: 'user', description: 'Role, expertise, and working preferences', category: 'about', kinds: ['profile', 'preference'] },
-      { native: 'feedback', description: 'Corrections and approved methods', category: 'working', kinds: ['feedback', 'lesson'] },
-      { native: 'project', description: 'Goals, deadlines, and decisions', category: 'projects', kinds: ['project', 'decision'] },
-      { native: 'reference', description: 'Where external context lives', category: 'knowledge', kinds: ['reference', 'fact'] }
+      { native: 'user', description: 'Role, expertise, and working preferences', category: 'about', kinds: ['profile'], imported: true },
+      { native: 'feedback', description: 'Corrections and approved methods', category: 'working', kinds: ['feedback'], imported: true },
+      { native: 'project', description: 'Goals, deadlines, and decisions', category: 'projects', kinds: ['project'], imported: true },
+      { native: 'reference', description: 'Where external context lives', category: 'knowledge', kinds: ['reference'], imported: true },
+      { native: 'CLAUDE.md / rules', description: 'Written global and project instructions', category: 'working', kinds: ['rule'], imported: true }
     ]
   },
   'claude-desktop': {
     title: 'Account topics + project memory',
     summary:
-      'Claude Desktop stores individual topics and project memory on the account. dachshund can reach only local MCP configuration.',
+      'Claude Desktop stores individual topics and project memory on the account. dachshund connects over MCP but does not import that account memory.',
     path: 'Account memory + claude_desktop_config.json',
     mappings: [
-      { native: 'topic', description: 'A remembered subject from chat', category: 'knowledge', kinds: ['fact', 'reference'] },
-      { native: 'preference', description: 'Stable user expectations', category: 'about', kinds: ['preference', 'profile'] },
-      { native: 'project memory', description: 'Context scoped to one project', category: 'projects', kinds: ['project', 'decision'] }
+      { native: 'topic', description: 'A remembered subject from chat', category: 'knowledge', kinds: ['fact'], imported: false },
+      { native: 'preference', description: 'Stable user expectations', category: 'about', kinds: ['preference'], imported: false },
+      { native: 'project memory', description: 'Context scoped to one project', category: 'projects', kinds: ['project'], imported: false }
     ]
   },
   codex: {
@@ -167,44 +170,46 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
       'Codex is organized around work threads. dachshund reads merged summaries and rollout evidence as local files.',
     path: '~/.codex/memories + rollouts',
     mappings: [
-      { native: 'task group', description: 'A durable project workstream', category: 'projects', kinds: ['project', 'decision'] },
-      { native: 'summary', description: 'Merged user and workflow context', category: 'about', kinds: ['profile', 'preference'] },
-      { native: 'rollout', description: 'Evidence from a completed task', category: 'timeline', kinds: ['episode'] },
-      { native: 'lesson', description: 'A reusable correction', category: 'working', kinds: ['lesson', 'feedback'] }
+      { native: 'task group', description: 'A durable project workstream', category: 'projects', kinds: ['project'], imported: true },
+      { native: 'summary', description: 'Merged user and workflow context', category: 'about', kinds: ['profile'], imported: true },
+      { native: 'rollout', description: 'Evidence from a completed task', category: 'episodes', kinds: ['episode'], imported: true },
+      { native: 'lesson', description: 'A reusable correction', category: 'working', kinds: ['lesson'], imported: true }
     ]
   },
   cursor: {
-    title: 'Rules first, memory by scope',
+    title: 'Rules and agent definitions',
     summary:
-      'Cursor durable context is mainly project, user, and team instruction. Automation memory is a separate scoped layer.',
-    path: '.cursor/rules + AGENTS.md',
+      'dachshund imports the local Cursor rules and agent definitions. Project AGENTS.md files and cloud automation memories are not scanned.',
+    path: '~/.cursor/rules + ~/.cursor/agents',
     mappings: [
-      { native: 'rule', description: 'Project, user, or team instruction', category: 'working', kinds: ['rule', 'workflow'] },
-      { native: 'AGENTS.md', description: 'Shared repository guidance', category: 'projects', kinds: ['project', 'workflow'] },
-      { native: 'automation memory', description: 'Named MEMORIES.md entries', category: 'knowledge', kinds: ['reference', 'fact'] }
+      { native: 'rule', description: 'Local user or project rule', category: 'working', kinds: ['rule'], imported: true },
+      { native: 'agent definition', description: 'Markdown or MDC agent guidance', category: 'working', kinds: ['rule'], imported: true },
+      { native: 'AGENTS.md', description: 'Repository instruction outside the local Cursor home', category: 'working', kinds: ['rule'], imported: false },
+      { native: 'automation memory', description: 'Named MEMORIES.md entries owned by a cloud automation', category: 'knowledge', kinds: ['fact'], imported: false }
     ]
   },
   'deepseek-harness': {
-    title: 'Event log + MCP memory',
+    title: 'Session evidence + durable cues',
     summary:
-      'The core session is append-only historical evidence. Durable memory is supplied by plugins or an MCP memory backend.',
+      'DeepSeek Harness keeps append-only session evidence. dachshund imports only explicit durable user cues; raw events, compactions, and MCP memory stores are not imported.',
     path: '~/.dsh/sessions + cordis.patch.yml',
     mappings: [
-      { native: 'session event', description: 'Append-only task history', category: 'timeline', kinds: ['episode'] },
-      { native: 'compaction', description: 'Projected working context', category: 'timeline', kinds: ['episode'] },
-      { native: 'MCP memory', description: 'Externally stored durable context', category: 'knowledge', kinds: ['fact', 'reference'] },
-      { native: 'durable cue', description: 'Explicit preference or correction', category: 'about', kinds: ['preference', 'feedback'] }
+      { native: 'session event', description: 'Append-only task history used only as scan input', category: 'episodes', kinds: ['episode'], imported: false },
+      { native: 'compaction', description: 'Projected working context', category: 'episodes', kinds: ['episode'], imported: false },
+      { native: 'MCP memory', description: 'Externally stored durable context', category: 'knowledge', kinds: ['fact'], imported: false },
+      { native: 'durable preference', description: 'Explicit remember, always, or preference cue', category: 'about', kinds: ['preference'], imported: true },
+      { native: 'durable correction', description: 'Explicit never, do not, or correction cue', category: 'working', kinds: ['feedback'], imported: true }
     ]
   },
   doubao: {
-    title: 'Account memory + Agent Mode',
+    title: 'Local Agent Mode memory',
     summary:
-      'Doubao manages account memory as independent, probabilistic topics. Agent Mode adds locally available workspace context.',
-    path: 'Account memory + Doubao Agent Mode workspace',
+      'Doubao account memory is probabilistic and account-scoped. dachshund imports only the locally observable Agent Mode workspace memory.',
+    path: '~/Library/Application Support/Doubao/Default/.doubao/agent_mode/workspace',
     mappings: [
-      { native: 'account memory', description: 'Probabilistic user-level recall', category: 'about', kinds: ['profile', 'preference'] },
-      { native: 'agent memory', description: 'Context isolated per assistant', category: 'knowledge', kinds: ['fact', 'reference'] },
-      { native: 'Agent Mode', description: 'Local task workspace context', category: 'projects', kinds: ['project', 'episode'] }
+      { native: 'account memory', description: 'Probabilistic user-level recall', category: 'about', kinds: ['profile'], imported: false },
+      { native: 'assistant memory', description: 'Context isolated per Doubao assistant', category: 'knowledge', kinds: ['fact'], imported: false },
+      { native: 'Agent Mode memory', description: 'Local workspace and session task context', category: 'projects', kinds: ['project'], imported: true }
     ]
   },
   'gemini-cli': {
@@ -213,20 +218,21 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
       'Gemini CLI separates layered GEMINI.md context from facts explicitly appended by save_memory.',
     path: '~/.gemini/GEMINI.md + workspace GEMINI.md',
     mappings: [
-      { native: 'GEMINI.md', description: 'Global, workspace, and path context', category: 'working', kinds: ['rule', 'workflow'] },
-      { native: 'added memory', description: 'Facts appended by save_memory', category: 'knowledge', kinds: ['fact', 'reference'] },
-      { native: 'session', description: 'Command and conversation history', category: 'timeline', kinds: ['episode'] }
+      { native: 'GEMINI.md', description: 'Global, workspace, and path instructions', category: 'working', kinds: ['rule'], imported: true },
+      { native: 'added memory', description: 'Facts appended by save_memory', category: 'knowledge', kinds: ['fact'], imported: true },
+      { native: 'session', description: 'Command and conversation history', category: 'episodes', kinds: ['episode'], imported: false }
     ]
   },
   copilot: {
-    title: 'Instructions + CLI sessions',
+    title: 'Local memory + instructions',
     summary:
-      'Copilot does not expose a four-type durable memory model. Instructions and local CLI history remain distinct.',
-    path: '.github/instructions + Copilot CLI sessions',
+      'Copilot does not expose a four-type durable memory model. dachshund imports local memory and instruction Markdown but does not import CLI sessions.',
+    path: '~/.copilot/memories + ~/.copilot/instructions',
     mappings: [
-      { native: 'instructions', description: 'Repository and path-level guidance', category: 'working', kinds: ['rule', 'workflow'] },
-      { native: 'AGENTS.md', description: 'Cross-tool project instruction', category: 'projects', kinds: ['project', 'workflow'] },
-      { native: 'session', description: 'Local CLI conversation history', category: 'timeline', kinds: ['episode'] }
+      { native: 'instructions', description: 'Local instruction Markdown', category: 'working', kinds: ['rule'], imported: true },
+      { native: 'local memory', description: 'Untyped local memory Markdown', category: 'knowledge', kinds: ['fact'], imported: true },
+      { native: 'AGENTS.md', description: 'Tool-native repository instruction', category: 'working', kinds: ['rule'], imported: false },
+      { native: 'CLI session', description: 'Local and account-synced conversation history', category: 'episodes', kinds: ['episode'], imported: false }
     ]
   },
   hermes: {
@@ -235,21 +241,21 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
       'Hermes classifies by ownership first: USER.md describes the person, while MEMORY.md holds the agent’s own notes.',
     path: '~/.hermes/memories/USER.md + MEMORY.md',
     mappings: [
-      { native: 'USER.md', description: 'Profile, communication, and expectations', category: 'about', kinds: ['profile', 'preference'] },
-      { native: 'MEMORY.md', description: 'Environment and learned facts', category: 'knowledge', kinds: ['fact', 'reference'] },
-      { native: 'MEMORY.md', description: 'Project conventions and outcomes', category: 'projects', kinds: ['project', 'decision'] },
-      { native: 'session history', description: 'Evidence not imported as durable memory', category: 'timeline', kinds: ['episode'] }
+      { native: 'USER.md', description: 'Profile, communication, and expectations', category: 'about', kinds: ['profile'], imported: true },
+      { native: 'MEMORY.md', description: 'Untyped agent notes, conservatively imported as facts', category: 'knowledge', kinds: ['fact'], imported: true },
+      { native: 'session history', description: 'Evidence not imported as durable memory', category: 'episodes', kinds: ['episode'], imported: false }
     ]
   },
   opencode: {
-    title: 'AGENTS.md + local sessions',
+    title: 'Global instructions + observed memory',
     summary:
-      'OpenCode durable context is instruction-first. Local memory and session records are read as a compatibility layer.',
-    path: '~/.config/opencode/AGENTS.md + project AGENTS.md',
+      'OpenCode durable context is instruction-first. dachshund imports the global AGENTS.md and observed local memory Markdown, but not project instructions or sessions.',
+    path: '~/.config/opencode/AGENTS.md + memory',
     mappings: [
-      { native: 'AGENTS.md', description: 'Global and project behavior', category: 'working', kinds: ['rule', 'workflow'] },
-      { native: 'instructions', description: 'Referenced additional guidance', category: 'projects', kinds: ['project', 'workflow'] },
-      { native: 'session', description: 'Local interaction history', category: 'timeline', kinds: ['episode'] }
+      { native: 'global AGENTS.md', description: 'Global OpenCode behavior', category: 'working', kinds: ['rule'], imported: true },
+      { native: 'memory Markdown', description: 'Untyped observed local memory files', category: 'knowledge', kinds: ['fact'], imported: true },
+      { native: 'project AGENTS.md', description: 'Repository-scoped instructions', category: 'working', kinds: ['rule'], imported: false },
+      { native: 'session', description: 'Local interaction history', category: 'episodes', kinds: ['episode'], imported: false }
     ]
   },
   pi: {
@@ -258,10 +264,11 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
       'Pi records execution history. Compaction and branch summaries are episodes; only explicit durable cues become long-term memory.',
     path: '~/.pi/agent/sessions/*.jsonl',
     mappings: [
-      { native: 'session', description: 'A branch of work in one directory', category: 'timeline', kinds: ['episode'] },
-      { native: 'compaction', description: 'Compressed earlier context', category: 'timeline', kinds: ['episode'] },
-      { native: 'branch summary', description: 'Work left behind when switching', category: 'timeline', kinds: ['episode'] },
-      { native: 'durable cue', description: 'Explicit remember, always, or never', category: 'about', kinds: ['preference', 'feedback'] }
+      { native: 'session', description: 'A branch of work in one directory', category: 'episodes', kinds: ['episode'], imported: false },
+      { native: 'compaction', description: 'Compressed earlier context', category: 'episodes', kinds: ['episode'], imported: true },
+      { native: 'branch summary', description: 'Work left behind when switching', category: 'episodes', kinds: ['episode'], imported: true },
+      { native: 'durable preference', description: 'Explicit remember, always, or preference cue', category: 'about', kinds: ['preference'], imported: true },
+      { native: 'durable correction', description: 'Explicit never, do not, or correction cue', category: 'working', kinds: ['feedback'], imported: true }
     ]
   },
   trae: {
@@ -270,45 +277,48 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
       'Trae separates persistent profile and project memory from chronological topic and session summaries.',
     path: '~/.trae/memory/user_profile.md + projects',
     mappings: [
-      { native: 'user_profile', description: 'Global identity and preferences', category: 'about', kinds: ['profile', 'preference'] },
-      { native: 'project_memory', description: 'Durable project context', category: 'projects', kinds: ['project', 'decision'] },
-      { native: 'topics.md', description: 'Topic summaries over time', category: 'timeline', kinds: ['episode'] },
-      { native: 'session_memory', description: 'One task’s outcome and actions', category: 'timeline', kinds: ['episode'] }
+      { native: 'user_profile', description: 'Global identity and preferences', category: 'about', kinds: ['profile'], imported: true },
+      { native: 'project_memory', description: 'Durable project context', category: 'projects', kinds: ['project'], imported: true },
+      { native: 'topics.md', description: 'Topic summaries over time', category: 'episodes', kinds: ['episode'], imported: true },
+      { native: 'session_memory', description: 'One task’s outcome and actions', category: 'episodes', kinds: ['episode'], imported: true }
     ]
   },
   workbuddy: {
     title: 'Four typed memory kinds',
     summary:
-      'WorkBuddy chooses a native kind before dachshund files the entry into a broader memory category.',
-    path: '~/.workbuddy/memory + MEMORY.md',
+      'WorkBuddy chooses a native kind before dachshund files the entry into a broader memory category. Separate identity and user files are imported by their ownership.',
+    path: '~/.workbuddy/IDENTITY.md + USER.md + memory',
     mappings: [
-      { native: 'user', description: 'Identity and stable preferences', category: 'about', kinds: ['profile', 'preference'] },
-      { native: 'feedback', description: 'Corrections and approved methods', category: 'working', kinds: ['feedback', 'lesson'] },
-      { native: 'project', description: 'Goals, constraints, and active work', category: 'projects', kinds: ['project', 'decision'] },
-      { native: 'reference', description: 'Where to find external context', category: 'knowledge', kinds: ['reference', 'fact'] }
+      { native: 'user', description: 'Identity and stable preferences', category: 'about', kinds: ['profile'], imported: true },
+      { native: 'feedback', description: 'Corrections and approved methods', category: 'working', kinds: ['feedback'], imported: true },
+      { native: 'project', description: 'Goals, constraints, and active work', category: 'projects', kinds: ['project'], imported: true },
+      { native: 'reference', description: 'Where to find external context', category: 'knowledge', kinds: ['reference'], imported: true },
+      { native: 'assistant identity', description: 'How the assistant presents itself', category: 'working', kinds: ['rule'], imported: true }
     ]
   },
   zcode: {
-    title: 'Project typed memory',
+    title: 'Project typed memory + session cues',
     summary:
-      'ZCode uses the same four native memory kinds as Claude Code and WorkBuddy, scoped to one project.',
-    path: '~/.zcode/cli/memories/projects/<project>/memory',
+      'ZCode writes project-scoped Markdown memory with four native kinds. dachshund also scans the local session database for explicit durable cues.',
+    path: '~/.zcode/cli/memories/projects/<project>/memory + db.sqlite',
     mappings: [
-      { native: 'user', description: 'Stable user context', category: 'about', kinds: ['profile', 'preference'] },
-      { native: 'feedback', description: 'Corrections to preserve', category: 'working', kinds: ['feedback', 'lesson'] },
-      { native: 'project', description: 'Project decisions and constraints', category: 'projects', kinds: ['project', 'decision'] },
-      { native: 'reference', description: 'External context locations', category: 'knowledge', kinds: ['reference', 'fact'] }
+      { native: 'user', description: 'Stable user context', category: 'about', kinds: ['profile'], imported: true },
+      { native: 'feedback', description: 'Corrections to preserve', category: 'working', kinds: ['feedback'], imported: true },
+      { native: 'project', description: 'Project decisions and constraints', category: 'projects', kinds: ['project'], imported: true },
+      { native: 'reference', description: 'External context locations', category: 'knowledge', kinds: ['reference'], imported: true },
+      { native: 'durable preference', description: 'Explicit preference found in session text', category: 'about', kinds: ['preference'], imported: true },
+      { native: 'durable correction', description: 'Explicit correction found in session text', category: 'working', kinds: ['feedback'], imported: true }
     ]
   },
   windsurf: {
-    title: 'Workspace memories + rules',
+    title: 'Workspace memories',
     summary:
-      'Cascade memories are workspace-scoped. Rules remain explicit instructions and take a different path through dachshund.',
-    path: '~/.codeium/windsurf/memories + rules',
+      'Cascade memories are workspace-scoped. dachshund imports the local memories directory; current Devin Local rules and project AGENTS.md files are not scanned.',
+    path: '~/.codeium/windsurf/memories',
     mappings: [
-      { native: 'memory', description: 'A workspace-scoped Cascade memory', category: 'projects', kinds: ['project', 'decision'] },
-      { native: 'rule', description: 'User, workspace, or system guidance', category: 'working', kinds: ['rule', 'workflow'] },
-      { native: 'AGENTS.md', description: 'Location-scoped project instruction', category: 'projects', kinds: ['project', 'workflow'] }
+      { native: 'memory', description: 'A workspace-scoped Cascade memory', category: 'projects', kinds: ['project'], imported: true },
+      { native: 'rule', description: 'User, workspace, or system guidance', category: 'working', kinds: ['rule'], imported: false },
+      { native: 'AGENTS.md', description: 'Location-scoped project instruction', category: 'working', kinds: ['rule'], imported: false }
     ]
   }
 }
@@ -320,7 +330,7 @@ export function agentMemoryModel(agentId: string): AgentMemoryModel {
       summary:
         'This agent exposes local memory files without a documented native taxonomy. dachshund classifies each imported entry by its kind.',
       path: 'Local memory files',
-      mappings: [{ native: 'memory', description: 'Imported local context', category: 'knowledge', kinds: ['fact', 'reference'] }]
+      mappings: [{ native: 'memory', description: 'Recognized local context', category: 'knowledge', kinds: ['fact'], imported: false }]
     }
   )
 }

@@ -85,7 +85,10 @@ export function AgentMemoryView({
           {model.mappings.map((mapping) => {
             const target = categoryDefinition(mapping.category)
             return (
-              <div className="mapping-row" key={`${mapping.native}-${mapping.category}`}>
+              <div
+                className={`mapping-row ${mapping.imported ? '' : 'not-imported'}`}
+                key={`${mapping.native}-${mapping.category}-${mapping.kinds.join('-')}`}
+              >
                 <div>
                   <span
                     className="native-kind"
@@ -101,6 +104,7 @@ export function AgentMemoryView({
                   </svg>
                 </div>
                 <div className="mapped-kind" style={{ '--mapping-color': target.color } as CSSProperties}>
+                  {!mapping.imported && <span className="mapping-state">Not imported</span>}
                   <strong>{target.label}</strong>
                   <span>{mapping.kinds.map(kindLabel).join(' / ')}</span>
                 </div>

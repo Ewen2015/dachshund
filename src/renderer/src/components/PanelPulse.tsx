@@ -102,7 +102,7 @@ export function PanelPulse({
   const categoryCounts = MEMORY_CATEGORIES.map((category) => ({
     ...category,
     count: visible.filter((memory) => categoryForKind(memory.kind) === category.id).length
-  }))
+  })).filter((category) => category.count > 0)
   const activeAgentIds = new Set(
     visible.flatMap((memory) => uniqueSources(memory.sources).map((source) => source.agentId))
   )

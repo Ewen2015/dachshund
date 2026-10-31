@@ -10,19 +10,19 @@
 | Agent | 手写指令 / Rules | 自动或主动长期记忆 | Session / Episode | 主要作用域 | dachshund 当前读取 | 证据 |
 | --- | --- | --- | --- | --- | --- | --- |
 | Codex | `AGENTS.md`、Skills | 本地 memory store，含 summary、merged memory、raw memory | rollouts、raw memories | 用户机器 + 项目内容 | `~/.codex/memories/*`、可读 SQLite | Official + Observed |
-| Claude Code | `CLAUDE.md`、`AGENTS.md`、`.claude/rules/` | 每 repo 的 topic memory + `MEMORY.md` 索引 | 会话 transcript | repo / worktree 共享 | repo memory Markdown、全局 memory | Official + Observed |
+| Claude Code | `CLAUDE.md`、`AGENTS.md`、`.claude/rules/` | 每 repo 的 topic memory + `MEMORY.md` 索引 | 会话 transcript | repo / worktree 共享 | repo topic memory、`CLAUDE.md`、rules、全局 memory | Official + Observed |
 | Claude Desktop | Project instructions | 账号侧 topic memory、每个 Project 独立 memory | 聊天与 Project chats | 账号 / Project | 无 importer，仅 MCP 接入 | Official |
 | Gemini CLI | 分层 `GEMINI.md` | `save_memory` 追加事实到全局 `GEMINI.md` | session history | global / workspace / JIT path | `GEMINI.md` | Official + Observed |
 | Cursor | Project/User/Team Rules、`AGENTS.md` | 普通 Agent 无跨 completion 持久记忆；Automations 有独立 `MEMORIES.md` | chat / agent history | project / path / user | `rules/`、`agents/` Markdown | Official + Observed |
 | GitHub Copilot | repo instructions、path instructions、`AGENTS.md`、用户级 instructions | 没有公开的同类 typed durable memory | CLI sessions、Chronicle | repo / path / user | `memories/`、`instructions/` Markdown | Official + Observed |
 | Windsurf | global/workspace/system Rules、`AGENTS.md` | 当前 Devin Local 以 Rules 为主；legacy Cascade 的 Memories 需单独看待 | Cascade conversations | workspace | `memories/` Markdown | Official + Observed |
-| OpenCode | 项目/全局 `AGENTS.md`、CLAUDE fallback、instructions array | 官方文档未定义 typed auto memory | local sessions | global / project | memory Markdown | Official + Observed |
-| Trae | global/project Rules、`.trae/rules/`、AGENTS/CLAUDE 兼容 | 全局 `user_profile.md`、项目 `project_memory.md` | session memory JSONL、topics | global / project | topics、session memory | Official + Observed |
+| OpenCode | 项目/全局 `AGENTS.md`、CLAUDE fallback、instructions array | 官方文档未定义 typed auto memory | local sessions | global / project | 全局 `AGENTS.md`、observed memory Markdown | Official + Observed |
+| Trae | global/project Rules、`.trae/rules/`、AGENTS/CLAUDE 兼容 | 全局 `user_profile.md`、项目 `project_memory.md` | session memory JSONL、topics | global / project | profile、project memory、topics、session memory | Official + Observed |
 | WorkBuddy | `CODEBUDDY.md` / `AGENTS.md` | CodeBuddy CLI 的 Auto Memory：typed memory `user` / `feedback` / `project` / `reference` | sessions | global / workspace | IDENTITY、USER、MEMORY、workspace memory | Official + Observed |
 | 豆包 | 自定义智能体设定、技能 | 账号侧概率性记忆 | Agent Mode session memory 文件 | 用户 / 不同智能体隔离 | Agent Mode 可观察到的本地 memory | Official + Observed |
 | Hermes | project instructions / config | `MEMORY.md` + `USER.md`，字符上限，冻结注入 | SQLite session history | Hermes home / profile | 两个 memory 文件 | Official + Observed |
 | Pi | 项目上下文 | 无独立 typed long-term store | session tree、compaction、branch summary | session / branch | compaction 与 durable cue | Official + Observed |
-| ZCode | 全局和 workspace `AGENTS.md` | 项目级 typed memory: `user` / `feedback` / `project` / `reference`，Markdown topic files | SQLite sessions | global / project | SQLite 中的 durable user text（当前 importer 的兼容实现） | Official + Observed |
+| ZCode | 全局和 workspace `AGENTS.md` | 项目级 typed memory: `user` / `feedback` / `project` / `reference`，Markdown topic files | SQLite sessions | global / project | 官方 Markdown memory + SQLite 中的 durable user text | Official + Observed |
 | DeepSeek Harness | 依赖 plugin / MCP | 核心不提供跨 session durable memory；官方提供 MCP memory 接法 | append-only event log、compaction | session / plugin scope | session log 中的 durable cue | Official + Observed |
 
 ## 1. 四类型长期记忆
@@ -83,8 +83,8 @@ Memory 聚焦 `user`、`feedback`、`project`、`reference` 四类，由 agent �
 ZCode v3.6.4 及以上版本，在“设置 → 常规”按项目开启。
 
 对 dachshund 的含义：ZCode 是“四类 memory + 两级 AGENTS.md”的另一个清晰实现。
-其正式 memory 文件是 Markdown；dachshund 当前读取的 SQLite 文本属于观察到的
-兼容路径，不能把 SQLite 说成 ZCode 的正式 memory schema。
+dachshund 直接读取正式 memory Markdown，并保留 SQLite 文本扫描作为显式 durable
+cue 的兼容路径；不能把 SQLite 说成 ZCode 的正式 memory schema。
 
 ## 2. 双文件或双作用域记忆
 
@@ -111,8 +111,9 @@ Trae 明确区分：
 - 全局 Rules 与项目 `.trae/rules/`。
 
 官方说明 memory 保存在本地、不跨设备，且不会自动保存一次性指令、模糊偏好或
-敏感信息。当前 dachshund 还读取了 `topics.md` 和 `session_memory_*.jsonl`，
-这些更接近 episode/topic summary，不应全部归为同一种 durable memory。
+敏感信息。当前 dachshund 读取 `user_profile.md` 和 `project_memory.md`，也读取
+`topics.md` 与 `session_memory_*.jsonl`；后两者属于 episode/topic summary，不应
+归为 durable memory。
 
 对 dachshund 的含义：需要同时保留 scope 和 authority。全局 `user_profile.md`
 是 user memory；项目规则是 instruction；session memory 是 episode。

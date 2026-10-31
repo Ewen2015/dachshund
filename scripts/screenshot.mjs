@@ -90,7 +90,7 @@ await page.getByRole('button', { name: 'Open Claude Code memory' }).click()
 await page.waitForTimeout(600)
 await page.screenshot({ path: path.join(shots, '09-agent-memory.png') })
 
-await page.locator('.category-legend-item').filter({ hasText: 'Working together' }).click()
+await page.locator('.category-legend-item').filter({ hasText: 'Ways of working' }).click()
 await page.waitForTimeout(350)
 await page.screenshot({ path: path.join(shots, '10-agent-category.png') })
 

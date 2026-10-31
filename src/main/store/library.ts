@@ -100,18 +100,28 @@ export class Library {
         firstHeading(body) ||
         path.basename(file, '.md')
       const id = typeof data.id === 'string' && data.id ? data.id : makeId()
+      const tags = asTags(data.tags)
+      const sources = asSources(data.sources, file)
+      const storedKind = normalizeMemoryKind(data.kind)
+      const kind =
+        storedKind === 'lesson' &&
+        tags.includes('codex') &&
+        tags.includes('rollout') &&
+        sources.some((source) => source.agentId === 'codex')
+          ? 'episode'
+          : storedKind
       return {
         id,
         title,
         content: body,
-        kind: normalizeMemoryKind(data.kind),
+        kind,
         project: typeof data.project === 'string' && data.project ? data.project : null,
-        tags: asTags(data.tags),
+        tags,
         createdAt: toTime(data.created, stats.birthtimeMs || fallbackTime),
         updatedAt: toTime(data.updated, fallbackTime),
         archived: data.status === 'archived' || data.archived === true,
         pinned: data.pinned === true,
-        sources: asSources(data.sources, file),
+        sources,
         filePath: file
       }
     } catch {

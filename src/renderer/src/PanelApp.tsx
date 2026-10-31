@@ -20,7 +20,7 @@ import {
 } from './components/Icons'
 import { Mark } from './components/Mark'
 import { UpdateNotice } from './components/UpdateNotice'
-import { kindLabel, relativeTime, uniqueSources } from './lib/format'
+import { kindLabel, relativeTime, sortAgentsByMemory, uniqueSources } from './lib/format'
 import { useUpdater } from './lib/useUpdater'
 
 type Tab = 'memory' | 'pulse' | 'agents'
@@ -41,11 +41,11 @@ export default function PanelApp() {
     void (async () => {
       const initial = await window.dachshund.getState()
       setState(initial)
-      setMemories(initial.memories.slice(0, 24))
+      setMemories(initial.memories)
     })()
     const offState = window.dachshund.onStateChanged((next) => {
       setState(next)
-      setMemories(next.memories.slice(0, 24))
+      setMemories(next.memories)
     })
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') void window.dachshund.hidePanel()
@@ -62,8 +62,8 @@ export default function PanelApp() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void (async () => {
-        const list = await window.dachshund.search({ query, limit: 24 })
-        setMemories(list.slice(0, 24))
+        const list = await window.dachshund.search({ query, limit: 120 })
+        setMemories(list)
       })()
     }, 140)
     return () => window.clearTimeout(timer)
@@ -71,16 +71,17 @@ export default function PanelApp() {
 
   if (!state) return <div className="panel-shell loading-shell" />
 
-  const installed = state.agents.filter((agent) => agent.installed)
+  const installed = sortAgentsByMemory(state.agents.filter((agent) => agent.installed))
   const categoryCounts = Object.fromEntries(
     MEMORY_CATEGORIES.map((item) => [
       item.id,
       memories.filter((memory) => categoryForKind(memory.kind) === item.id).length
     ])
   ) as Record<MemoryCategoryId, number>
-  const visibleMemories = memories
-    .filter((memory) => category === null || categoryForKind(memory.kind) === category)
-    .slice(0, 8)
+  const filteredMemories = memories.filter(
+    (memory) => category === null || categoryForKind(memory.kind) === category
+  )
+  const visibleMemories = filteredMemories.slice(0, 8)
   const agentsWithMemory = installed.filter((agent) => agent.memoryCount > 0)
   const agentsWithoutMemory = installed.filter((agent) => agent.memoryCount === 0)
   const visibleAgents = showAllAgents
@@ -95,7 +96,7 @@ export default function PanelApp() {
     try {
       const next = await window.dachshund.scan()
       setState(next)
-      setMemories(next.memories.slice(0, 24))
+      setMemories(next.memories)
     } finally {
       setScanning(false)
     }
@@ -179,7 +180,7 @@ export default function PanelApp() {
         </button>
         <span className="panel-tab-count">
           {tab === 'memory'
-            ? `${state.counts.memories} memories`
+            ? `${visibleMemories.length} of ${filteredMemories.length} memories`
             : tab === 'pulse'
               ? `${state.counts.echoes} echoes`
               : `${installed.length} found`}
@@ -213,7 +214,9 @@ export default function PanelApp() {
               <i />
               <span>All</span>
             </button>
-            {MEMORY_CATEGORIES.map((item) => (
+            {MEMORY_CATEGORIES.filter(
+              (item) => categoryCounts[item.id] > 0 || category === item.id
+            ).map((item) => (
               <button
                 type="button"
                 key={item.id}
