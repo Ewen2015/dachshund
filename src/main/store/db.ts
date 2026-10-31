@@ -245,6 +245,7 @@ export class Db {
         shared: bool(row.shared),
         mcpInstalled: bool(row.mcp_installed),
         mcpConfigPath: str(row.mcp_config_path) || null,
+        mcpMode: str(row.mcp_config_path) ? 'config' : null,
         note: null
       }
     })

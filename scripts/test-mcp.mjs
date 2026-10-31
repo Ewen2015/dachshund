@@ -1,6 +1,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
 import path from 'node:path'
 
 const home = process.env.DACHSHUND_HOME
@@ -16,6 +17,19 @@ const transport = new StdioClientTransport({
 
 const client = new Client({ name: 'dachshund-smoke-test', version: '0.1.0' }, { capabilities: {} })
 await client.connect(transport)
+
+const receiptPath = path.join(home, 'mcp-clients.jsonl')
+for (let attempt = 0; attempt < 20 && !fs.existsSync(receiptPath); attempt += 1) {
+  await new Promise((resolve) => setTimeout(resolve, 25))
+}
+assert.ok(fs.existsSync(receiptPath), 'MCP handshake receipt should exist')
+const receipts = fs
+  .readFileSync(receiptPath, 'utf8')
+  .trim()
+  .split('\n')
+  .map((line) => JSON.parse(line))
+assert.equal(receipts.at(-1)?.name, 'dachshund-smoke-test')
+assert.equal(receipts.at(-1)?.version, '0.1.0')
 
 const tools = await client.listTools()
 console.log('tools:', tools.tools.map((tool) => tool.name).join(', '))

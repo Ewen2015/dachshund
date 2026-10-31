@@ -87,6 +87,7 @@ kind table, alias rules, and per-agent mapping.
 | `~/Library/Application Support/dachshund/` | App data, SQLite, runtime token |
 | `~/Documents/dachshund/memory/` | Markdown memory library |
 | `~/Library/Application Support/dachshund/runtime.json` | Active loopback port and token |
+| `~/Library/Application Support/dachshund/mcp-clients.jsonl` | MCP client handshake receipts |
 
 The following environment variables override defaults for tests and development:
 
@@ -188,7 +189,9 @@ It:
 2. waits for the app and checks `/health`;
 3. optionally launches the installed app if it is not running;
 4. sends authenticated HTTP requests;
-5. exposes five MCP tools over stdio.
+5. exposes five MCP tools over stdio;
+6. records the client name, version, and timestamp after a completed MCP
+   initialization handshake.
 
 Tools:
 
@@ -216,6 +219,11 @@ Six configuration formats are supported:
 
 The installed entry runs Node against the dachshund bridge and sets
 `DACHSHUND_HOME` to the active data directory.
+
+Doubao has no stable user-editable MCP config file. It is marked `manual` in the
+agent registry, so the UI opens a guided STDIO setup instead of writing an app
+config. Doubao is shown as connected only when the newest matching receipt in
+`mcp-clients.jsonl` reports a client name containing `Doubao` or `豆包`.
 
 ## Process And Window Model
 

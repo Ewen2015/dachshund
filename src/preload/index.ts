@@ -2,7 +2,9 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type {
   AppState,
   CreateMemoryInput,
+  McpConnectionStatus,
   McpInstallResult,
+  McpSetup,
   MemoryDetail,
   MemorySummary,
   ScanProgress,
@@ -39,6 +41,12 @@ const api = {
     ipcRenderer.invoke('agent:shared', id, shared),
   installMcp: (id: string, dryRun = false): Promise<McpInstallResult> =>
     ipcRenderer.invoke('agent:install-mcp', id, dryRun),
+  getMcpSetup: (id: string): Promise<McpSetup | null> =>
+    ipcRenderer.invoke('agent:mcp-setup', id),
+  checkMcp: (id: string): Promise<McpConnectionStatus> =>
+    ipcRenderer.invoke('agent:mcp-status', id),
+  openAgentApp: (id: string): Promise<boolean> =>
+    ipcRenderer.invoke('agent:open-app', id),
   reveal: (target: string): Promise<boolean> => ipcRenderer.invoke('shell:reveal', target),
   openExternal: (url: string): Promise<boolean> => ipcRenderer.invoke('shell:open-external', url),
   onScanProgress: (callback: (progress: ScanProgress) => void): (() => void) => {

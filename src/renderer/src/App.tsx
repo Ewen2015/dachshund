@@ -12,6 +12,7 @@ import { Header } from './components/Header'
 import { AgentMemoryView } from './components/AgentMemoryView'
 import { MemoryDetail } from './components/MemoryDetail'
 import { MemoryFeed } from './components/MemoryFeed'
+import { McpSetupDialog } from './components/McpSetupDialog'
 import { Onboarding } from './components/Onboarding'
 import { PulseView } from './components/PulseView'
 import { SettingsView } from './components/SettingsView'
@@ -32,6 +33,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [detail, setDetail] = useState<MemoryDetailType | null>(null)
   const [composerOpen, setComposerOpen] = useState(false)
+  const [mcpSetupAgentId, setMcpSetupAgentId] = useState<string | null>(null)
   const [scanning, setScanning] = useState(false)
   const [progress, setProgress] = useState<Record<string, ScanProgress>>({})
   const [toast, setToast] = useState<{ message: string; error?: boolean } | null>(null)
@@ -119,7 +121,8 @@ export default function App() {
         void window.dachshund.minimizeToTray()
       }
       if (event.key === 'Escape') {
-        if (composerOpen) setComposerOpen(false)
+        if (mcpSetupAgentId) setMcpSetupAgentId(null)
+        else if (composerOpen) setComposerOpen(false)
         else if (detail) {
           setDetail(null)
           setSelectedId(null)
@@ -128,7 +131,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [composerOpen, detail])
+  }, [composerOpen, detail, mcpSetupAgentId])
 
   const scan = async () => {
     if (scanning) return
@@ -194,6 +197,11 @@ export default function App() {
   }
 
   const installMcp = async (id: string) => {
+    const agent = state?.agents.find((item) => item.id === id)
+    if (agent?.mcpMode === 'manual') {
+      setMcpSetupAgentId(id)
+      return
+    }
     const result = await window.dachshund.installMcp(id)
     notify(result.message, !result.ok)
     if (result.ok) {
@@ -201,6 +209,11 @@ export default function App() {
       setState(next)
     }
   }
+
+  const refreshAfterMcpConnection = useCallback(async () => {
+    const next = await refreshState()
+    setState(next)
+  }, [refreshState])
 
   const enter = async () => {
     const next = await window.dachshund.markOnboarded()
@@ -218,6 +231,9 @@ export default function App() {
   const showOnboarding = !state.onboarded
   const activeAgent = activeAgentId
     ? state.agents.find((agent) => agent.id === activeAgentId) ?? null
+    : null
+  const mcpSetupAgent = mcpSetupAgentId
+    ? state.agents.find((agent) => agent.id === mcpSetupAgentId) ?? null
     : null
   const openAgentMemory = (id: string) => {
     setActiveAgentId(id)
@@ -355,6 +371,14 @@ export default function App() {
       )}
 
       {composerOpen && <Composer onClose={() => setComposerOpen(false)} onSave={save} />}
+      {mcpSetupAgent && (
+        <McpSetupDialog
+          agent={mcpSetupAgent}
+          onClose={() => setMcpSetupAgentId(null)}
+          onConnected={refreshAfterMcpConnection}
+          onToast={notify}
+        />
+      )}
       {showOnboarding && (
         <Onboarding
           agents={state.agents}

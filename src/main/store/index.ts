@@ -38,9 +38,9 @@ export class Store {
   }
 
   state(): AppState {
-    refreshAgents(this.db)
+    const agents = refreshAgents(this.db)
     return {
-      agents: this.db.listAgents(),
+      agents,
       memories: this.db.listMemories(90),
       counts: this.db.counts(),
       libraryPath: LIBRARY_DIR,

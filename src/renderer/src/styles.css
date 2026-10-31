@@ -1546,10 +1546,11 @@ kbd {
 }
 
 .agent-controls {
-  display: flex;
+  display: grid;
+  grid-template-columns: 33px 86px;
   align-items: center;
+  column-gap: 8px;
   justify-content: flex-end;
-  gap: 8px;
 }
 
 .switch {
@@ -1589,7 +1590,9 @@ kbd {
 .mcp-button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  width: 86px;
   height: 25px;
   padding: 0 7px;
   border: 1px solid var(--line);
@@ -2844,6 +2847,255 @@ button.pulse-series-item:focus-visible {
   color: rgba(255, 255, 255, 0.6);
 }
 
+/* App-managed MCP setup */
+
+.mcp-setup {
+  width: min(620px, 92vw);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 23px 24px 18px;
+  border: 1px solid var(--line-strong);
+  border-radius: 15px;
+  background: var(--surface);
+  box-shadow: 0 26px 80px rgba(17, 17, 18, 0.22);
+  animation: rise 0.24s var(--ease) both;
+}
+
+.mcp-setup-head,
+.mcp-setup-title,
+.mcp-setup-foot,
+.mcp-setup-foot > div {
+  display: flex;
+  align-items: center;
+}
+
+.mcp-setup-head {
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.mcp-setup-title {
+  gap: 10px;
+}
+
+.mcp-setup-title .eyebrow {
+  margin-bottom: 3px;
+}
+
+.mcp-setup h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+
+.mcp-setup-lede {
+  max-width: 535px;
+  margin: 14px 0 13px;
+  color: var(--muted);
+  font-size: 10.5px;
+  line-height: 1.6;
+}
+
+.mcp-setup-lede strong {
+  color: var(--ink-soft);
+  font-weight: 590;
+}
+
+.mcp-setup-inline {
+  white-space: nowrap;
+}
+
+.mcp-setup-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  overflow: hidden;
+  margin: 0 0 13px;
+  padding: 1px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--line);
+  list-style: none;
+}
+
+.mcp-setup-steps li {
+  min-width: 0;
+  padding: 10px 11px;
+  background: var(--surface-soft);
+}
+
+.mcp-setup-steps span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.mcp-setup-steps p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 9.5px;
+  line-height: 1.42;
+}
+
+.mcp-setup-steps strong {
+  color: var(--ink-soft);
+  font-weight: 590;
+}
+
+.mcp-setup-fields {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.mcp-setup-field {
+  display: grid;
+  grid-template-columns: 108px minmax(0, 1fr) 28px;
+  gap: 9px;
+  align-items: center;
+  min-height: 38px;
+  padding: 6px 7px 6px 11px;
+  border-bottom: 1px solid var(--line);
+}
+
+.mcp-setup-field:last-child {
+  border-bottom: 0;
+}
+
+.mcp-setup-field > span {
+  color: var(--faint);
+  font-size: 8.5px;
+  font-weight: 570;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.mcp-setup-field > code {
+  min-width: 0;
+  overflow: hidden;
+  padding: 5px 7px;
+  border-radius: 5px;
+  background: var(--surface-soft);
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 9px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.mcp-setup-field.multiline {
+  align-items: start;
+}
+
+.mcp-setup-field.multiline > span {
+  padding-top: 6px;
+}
+
+.mcp-setup-field code em {
+  display: block;
+  font-style: normal;
+}
+
+.mcp-setup-field > button {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--faint);
+}
+
+.mcp-setup-field > button:hover {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.mcp-setup-loading {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-soft);
+  color: var(--faint);
+  font-size: 10px;
+  text-align: center;
+}
+
+.mcp-handshake {
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  margin-top: 12px;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-soft);
+}
+
+.mcp-handshake.connected {
+  border-color: #cde8dc;
+  background: var(--green-soft);
+}
+
+.mcp-handshake-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line-strong);
+}
+
+.mcp-handshake.connected .mcp-handshake-dot {
+  background: var(--green);
+  box-shadow: 0 0 0 3px rgba(37, 132, 95, 0.1);
+}
+
+.mcp-handshake > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mcp-handshake strong {
+  font-size: 10.5px;
+  font-weight: 610;
+}
+
+.mcp-handshake span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mcp-handshake.connected strong {
+  color: var(--green);
+}
+
+.mcp-setup-foot {
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1px solid var(--line);
+}
+
+.mcp-setup-foot > div {
+  gap: 7px;
+}
+
+.spinning {
+  animation: spin 0.8s linear infinite;
+}
+
 /* Onboarding */
 
 .onboarding {
@@ -3269,7 +3521,7 @@ button.pulse-series-item:focus-visible {
   }
 
   .agent-row {
-    grid-template-columns: 42px minmax(0, 1fr) 118px;
+    grid-template-columns: 42px minmax(0, 1fr) 127px;
   }
 
   .agent-numbers {

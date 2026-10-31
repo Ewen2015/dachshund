@@ -86,7 +86,10 @@ export function SettingsView({
             </div>
             <div className="settings-copy">
               <strong>One memory, every agent</strong>
-              <span>Connecting writes a small MCP entry to the agent’s config. No memory files are touched.</span>
+              <span>
+                Most agents receive a small MCP entry automatically. App-managed connectors open a
+                guided setup instead. No memory files are touched.
+              </span>
               <code className="bridge-path">{bridgePath}</code>
             </div>
           </div>
@@ -107,17 +110,19 @@ export function SettingsView({
                 className={`mcp-button ${agent.mcpInstalled ? 'connected' : ''}`}
                 type="button"
                 onClick={() => onInstallMcp(agent.id)}
-                disabled={!agent.mcpConfigPath}
+                disabled={!agent.mcpMode}
               >
-                {!agent.mcpConfigPath ? (
-                  'Import only'
-                ) : agent.mcpInstalled ? (
+                {agent.mcpInstalled ? (
                   <>
                     <CheckIcon size={13} />
                     Connected
                   </>
-                ) : (
+                ) : agent.mcpMode === 'manual' ? (
+                  'Set up'
+                ) : agent.mcpMode === 'config' ? (
                   'Connect'
+                ) : (
+                  'Import only'
                 )}
               </button>
             </div>

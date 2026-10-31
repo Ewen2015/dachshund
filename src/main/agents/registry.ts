@@ -10,10 +10,11 @@ export type McpTargetType =
   | 'pi-json'
   | 'zcode-json'
   | 'deepseek-cordis'
+  | 'manual'
 
 export interface McpTarget {
   type: McpTargetType
-  path: string
+  path?: string
 }
 
 export interface AgentDefinition {
@@ -127,7 +128,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, 'Library', 'Application Support', 'Doubao'),
     description: 'Agent Mode session memory',
     accent: '#1E37FC',
-    mcp: null,
+    mcp: { type: 'manual' },
     appPath: '/Applications/Doubao.app'
   },
   {

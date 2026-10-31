@@ -22,6 +22,8 @@ import type {
 } from '../shared/types'
 import { LIBRARY_DIR, expandHome } from './paths'
 import { UpdateService } from './updater'
+import { findDefinition } from './agents/discovery'
+import { buildMcpSetup, getMcpConnectionStatus } from './agents/mcp-connection'
 import {
   currentAppBundlePath,
   installerLogPath,
@@ -474,6 +476,25 @@ function registerIpc(): void {
     const result = await store.installAgentMcp(id, bridgePath(), dryRun)
     mainWindow?.webContents.send('state:changed', store.state())
     return result
+  })
+  ipcMain.handle('agent:mcp-setup', (_event, id: string) => buildMcpSetup(id, bridgePath()))
+  ipcMain.handle('agent:mcp-status', (_event, id: string) => {
+    const status = getMcpConnectionStatus(id)
+    if (status.connected) {
+      mainWindow?.webContents.send('state:changed', store.state())
+    }
+    return status
+  })
+  ipcMain.handle('agent:open-app', async (_event, id: string) => {
+    const definition = findDefinition(id)
+    const candidates = [
+      ...(definition?.appPath ? [definition.appPath] : []),
+      ...(definition?.appPaths ?? [])
+    ]
+    const appPath = candidates.find((candidate) => fs.existsSync(candidate))
+    if (!appPath) return false
+    const error = await shell.openPath(appPath)
+    return !error
   })
   ipcMain.handle('shell:reveal', (_event, target: string) => {
     if (!target) return false

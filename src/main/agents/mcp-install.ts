@@ -222,24 +222,42 @@ export function installMcp(agentId: string, options: InstallOptions): McpInstall
       message: 'This agent does not expose an MCP configuration'
     }
   }
+  if (definition.mcp.type === 'manual') {
+    return {
+      ok: false,
+      agentId,
+      configPath: null,
+      message: `Add the dachshund connector inside ${definition.name}`
+    }
+  }
+  if (!definition.mcp.path) {
+    return {
+      ok: false,
+      agentId,
+      configPath: null,
+      message: 'This agent does not expose an MCP configuration path'
+    }
+  }
+  const target = definition.mcp
+  const configPath = target.path as string
   try {
     let result: McpInstallResult
-    switch (definition.mcp.type) {
+    switch (target.type) {
       case 'codex-toml':
-        result = upsertCodexToml(definition.mcp.path, options.bridgePath, options.dryRun)
+        result = upsertCodexToml(configPath, options.bridgePath, options.dryRun)
         break
       case 'hermes-yaml':
-        result = upsertHermesYaml(definition.mcp.path, options.bridgePath, options.dryRun)
+        result = upsertHermesYaml(configPath, options.bridgePath, options.dryRun)
         break
       case 'zcode-json':
-        result = upsertJsonMcp(definition.mcp.path, options.bridgePath, options.dryRun, 'zcode')
+        result = upsertJsonMcp(configPath, options.bridgePath, options.dryRun, 'zcode')
         break
       case 'deepseek-cordis':
-        result = upsertDeepSeekCordis(definition.mcp.path, options.bridgePath, options.dryRun)
+        result = upsertDeepSeekCordis(configPath, options.bridgePath, options.dryRun)
         break
       case 'opencode-json':
         result = upsertJsonMcp(
-          definition.mcp.path,
+          configPath,
           options.bridgePath,
           options.dryRun,
           'opencode'
@@ -248,19 +266,21 @@ export function installMcp(agentId: string, options: InstallOptions): McpInstall
       case 'pi-json':
       case 'json-mcpServers':
         result = upsertJsonMcp(
-          definition.mcp.path,
+          configPath,
           options.bridgePath,
           options.dryRun,
           'mcpServers'
         )
         break
+      case 'manual':
+        throw new Error(`Add the dachshund connector inside ${definition.name}`)
     }
     return { ...result, agentId }
   } catch (error) {
     return {
       ok: false,
       agentId,
-      configPath: definition.mcp.path,
+      configPath,
       message: error instanceof Error ? error.message : 'Could not update the MCP config'
     }
   }

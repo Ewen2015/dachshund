@@ -1,4 +1,5 @@
 export type AgentKind = 'cli' | 'editor' | 'desktop'
+export type McpMode = 'config' | 'manual' | null
 
 export interface AgentSummary {
   id: string
@@ -14,6 +15,7 @@ export interface AgentSummary {
   shared: boolean
   mcpInstalled: boolean
   mcpConfigPath: string | null
+  mcpMode: McpMode
   note: string | null
 }
 
@@ -126,6 +128,23 @@ export interface McpInstallResult {
   configPath: string | null
   message: string
   dryRun?: boolean
+}
+
+export interface McpSetup {
+  agentId: string
+  agentName: string
+  name: string
+  transport: 'stdio'
+  command: string
+  args: string[]
+  env: Record<string, string>
+}
+
+export interface McpConnectionStatus {
+  connected: boolean
+  clientName: string | null
+  clientVersion: string | null
+  connectedAt: number | null
 }
 
 export interface Settings {

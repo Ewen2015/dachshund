@@ -18,7 +18,7 @@ and build-time fetching rules.
 | Windsurf | Yes | `~/.codeium/windsurf/mcp_config.json` | Windsurf memory Markdown |
 | Claude Desktop | Connect only | Claude Desktop MCP config | No importer in the current MVP |
 | WorkBuddy | Yes | `~/.workbuddy/mcp.json` | Identity, user memory, and workspace memory Markdown |
-| Doubao | Yes | Import only | Agent Mode global and session memory Markdown |
+| Doubao | Yes | Guided STDIO connector | Agent Mode global and session memory Markdown |
 | Trae | Yes | `~/Library/Application Support/TRAE SOLO CN/User/mcp.json` | User profile, project memory, topics, and session memory JSONL |
 | Hermes | Yes | `~/.hermes/config.yaml` | Native `MEMORY.md` and `USER.md` entries |
 | Pi | Yes | `~/.pi/agent/mcp.json` | Compaction summaries and durable user context |
@@ -157,7 +157,23 @@ Imported:
 - Agent Mode `memory/MEMORY.md`;
 - Markdown under Agent Mode `.sessions/<session>/memory/`.
 
-Doubao is import-only until a stable global MCP configuration path is verified.
+Doubao stores custom connectors in **Plugins / Skills (插件 · 技能) > Add (添加) >
+Custom connector (新建自定义连接器)** rather than a stable user-editable JSON
+file. The MCP button therefore opens a local setup panel instead of writing
+Doubao's internal state.
+
+The connector uses:
+
+- transport: `STDIO`;
+- command: `/usr/bin/env`;
+- arguments: `node`, followed by the absolute dachshund bridge path;
+- environment: `DACHSHUND_HOME=/Users/<user>/Library/Application Support/dachshund`.
+
+dachshund marks Doubao connected only after the bridge receives a real MCP
+`initialized` handshake from a client name containing `Doubao` or `豆包`. The
+bridge appends only the client name, version, and timestamp to
+`mcp-clients.jsonl` in the dachshund data directory. Merely opening or filling in
+the Doubao form does not count as connected.
 
 ## Trae
 

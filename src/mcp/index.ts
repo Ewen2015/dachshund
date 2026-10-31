@@ -6,6 +6,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
 import packageJson from '../../package.json'
+import { appendMcpClientReceipt } from '../shared/mcp-client-receipts'
 
 interface RuntimeInfo {
   port: number
@@ -85,6 +86,19 @@ const server = new McpServer({
   name: 'dachshund',
   version: packageJson.version
 })
+
+server.server.oninitialized = () => {
+  const client = server.server.getClientVersion()
+  if (!client) return
+  try {
+    appendMcpClientReceipt(dataDir, {
+      name: client.name,
+      version: client.version
+    })
+  } catch (error) {
+    console.error('[dachshund] Could not record MCP client:', error)
+  }
+}
 
 server.registerTool(
   'memory_search',

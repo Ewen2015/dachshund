@@ -28,6 +28,7 @@ discover existing agent memory
 - MCP bridge with five tools.
 - MCP config installation for JSON, Codex TOML, OpenCode, Hermes YAML, and
   DeepSeek Harness Cordis patches.
+- Guided app-managed MCP setup for Doubao with verified client handshakes.
 - macOS app icon, tray template icon, and brand mark.
 - In-app update download, digest verification, in-place replacement, rollback,
   and automatic relaunch.
@@ -71,22 +72,25 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development settings screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.7-arm64.dmg` was produced on 2026-10-31.
+- `release/dachshund-0.1.8-arm64.dmg` was produced on 2026-10-31.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.7`.
+  healthy loopback service at version `0.1.8`.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.7` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.8` passed the same
   five-tool MCP smoke test.
+- A packaged Doubao setup session accepted a real
+  `Doubao MCP Client` `2.33.5` stdio handshake and updated the UI to the
+  verified connected state.
 - The packaged app is ad-hoc signed only; Gatekeeper assessment fails because it
   has no Developer ID signature or notarization.
 
 The DMG SHA-256 from this build is:
 
 ```text
-529c6bb7540a461e3fa5c1699b42bc9e46c521b08e50b342dd43d90e940c6835
+18932743a7b04cbaa554455c458948985eeda2d69c1a79c35fd51a0547604285
 ```
 
 ## Known Limitations
@@ -166,9 +170,18 @@ token are not a defense against a compromised account.
 - added importer fixtures for WorkBuddy, Trae, Doubao, Cursor, Copilot, OpenCode,
   Windsurf, Claude Code, Codex, Gemini, Hermes, Pi, ZCode, and DeepSeek Harness.
 
+#### 0.1.8: App-Managed MCP Setup
+
+- the Doubao MCP action now opens a guided local STDIO setup instead of a
+  disabled import-only state;
+- the bridge records a client name, version, and timestamp after a completed MCP
+  initialization handshake;
+- Doubao is marked connected only after a real matching handshake;
+- Agent controls use a fixed two-column grid for consistent row alignment.
+
 ### Next
 
-#### 0.1.8: Trustworthy Incremental Import
+#### 0.1.9: Trustworthy Incremental Import
 
 - persist per-source mtime, size, and hash;
 - update an existing memory when its source changes;
@@ -176,7 +189,7 @@ token are not a defense against a compromised account.
 - expose source status in the detail view;
 - add importer fixtures and regression tests.
 
-#### 0.1.9: Reviewable Consolidation
+#### 0.1.10: Reviewable Consolidation
 
 - near-duplicate suggestions;
 - merge and split flows;

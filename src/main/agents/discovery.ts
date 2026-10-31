@@ -2,13 +2,15 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { AgentSummary } from '../../shared/types'
 import { Db, accentFor, monogramForId } from '../store/db'
-import { IS_DEMO } from '../paths'
+import { DATA_DIR, IS_DEMO } from '../paths'
+import { latestMcpClientReceipt } from '../../shared/mcp-client-receipts'
 import { AGENT_DEFINITIONS, DEMO_AGENT_IDS, type AgentDefinition } from './registry'
 
 export interface DetectedAgent extends AgentDefinition {
   installed: boolean
   mcpInstalled: boolean
   mcpConfigPath: string | null
+  mcpMode: AgentSummary['mcpMode']
 }
 
 function exists(target: string): boolean {
@@ -21,6 +23,10 @@ function exists(target: string): boolean {
 
 export function isMcpInstalled(definition: AgentDefinition): boolean {
   if (!definition.mcp) return false
+  if (definition.mcp.type === 'manual') {
+    return Boolean(latestMcpClientReceipt(DATA_DIR, definition.id))
+  }
+  if (!definition.mcp.path) return false
   try {
     if (!fs.existsSync(definition.mcp.path)) return false
     return fs.readFileSync(definition.mcp.path, 'utf8').includes('dachshund')
@@ -46,7 +52,13 @@ export function discoverAgents(): DetectedAgent[] {
       ...definition,
       installed,
       mcpInstalled: isMcpInstalled(definition),
-      mcpConfigPath: definition.mcp?.path ?? null
+      mcpConfigPath: definition.mcp?.path ?? null,
+      mcpMode:
+        definition.mcp?.type === 'manual'
+          ? 'manual'
+          : definition.mcp
+            ? 'config'
+            : null
     }
   })
 }
@@ -70,7 +82,13 @@ export function refreshAgents(db: Db): AgentSummary[] {
       ...agent,
       accent: agent.accent || accentFor(agent.id),
       monogram: agent.monogram || monogramForId(agent.name, agent.id),
-      description: definition?.description ?? ''
+      description: definition?.description ?? '',
+      mcpMode:
+        definition?.mcp?.type === 'manual'
+          ? 'manual'
+          : definition?.mcp
+            ? 'config'
+            : null
     }
   })
 }

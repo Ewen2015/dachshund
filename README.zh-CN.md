@@ -10,7 +10,7 @@
 dachshund 找到这些 Agent 已经写在本机的 Memory，把它们汇入一份 Markdown
 记忆库，再通过 MCP 提供给所有 Agent 使用。无需账号，无需上云，也不依赖模型
 
-[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.7/dachshund-0.1.7-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
+[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.8/dachshund-0.1.8-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -44,7 +44,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 
 | 平台 | 架构 | 安装包 | 大小 | 下载 |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.7](https://github.com/Ewen2015/dachshund/releases/download/v0.1.7/dachshund-0.1.7-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.8](https://github.com/Ewen2015/dachshund/releases/download/v0.1.8/dachshund-0.1.8-arm64.dmg)** |
 
 **系统要求：** Apple Silicon Mac
 
@@ -53,7 +53,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 > 选择“打开”
 
 [所有版本](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.7/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.8/SHA256SUMS)
 
 **安装**
 
@@ -72,7 +72,7 @@ SHA-256 用于确认下载的 DMG 与正式发布文件一致。它不是激活�
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.7/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.8/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -99,7 +99,8 @@ Memory 导入：
 ```
 
 **2 · 连接 Agent。** 打开 **Agents**，为已安装的 Agent 开启共享，再点击
-**Connect MCP**。dachshund 只写入自己的 MCP 条目，并会在修改现有配置前创建备份
+**Connect MCP**。大多数 Agent 只需要 dachshund 自己的 MCP 条目，修改现有配置前会
+创建备份；包括豆包在内的应用内连接器则会打开一份本地配置向导
 
 ## 支持 Agents
 
@@ -112,8 +113,8 @@ Claude Code · Codex · Cursor · Gemini CLI · GitHub Copilot · OpenCode · Wi
 </table>
 
 dachshund 只显示本机实际发现的 Agent。当前 15 个集成中有 14 个支持只读导入，
-Claude Desktop 作为 MCP 连接目标使用。Doubao 目前仅支持导入，暂不写入全局 MCP
-配置
+Claude Desktop 作为 MCP 连接目标使用。Doubao 的自定义连接器保存在应用内，因此
+通过 STDIO 配置向导手动接入
 
 具体路径和格式见 [Agent 集成](docs/AGENTS.md)，图标来源与许可见
 [Agent 图标](docs/AGENT_ICONS.md)

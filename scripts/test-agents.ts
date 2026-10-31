@@ -18,6 +18,12 @@ import {
   categoryForKind,
   normalizeMemoryKind
 } from '../src/shared/memory-taxonomy'
+import {
+  appendMcpClientReceipt,
+  latestMcpClientReceipt,
+  mcpClientReceiptPath,
+  readMcpClientReceipts
+} from '../src/shared/mcp-client-receipts'
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dachshund-agents-'))
 
@@ -684,6 +690,28 @@ function testWriters(): void {
   assert.ok(dsh.includes('name: "@example/locale"'))
 }
 
+function testMcpClientReceipts(): void {
+  const dataDir = path.join(root, 'receipts')
+  appendMcpClientReceipt(dataDir, {
+    name: 'Some Other Client',
+    version: '1.0.0',
+    connectedAt: 100
+  })
+  appendMcpClientReceipt(dataDir, {
+    name: 'Doubao MCP Client',
+    version: '2.33.5',
+    connectedAt: 200
+  })
+
+  const receipts = readMcpClientReceipts(dataDir)
+  assert.equal(receipts.length, 2)
+  assert.equal(fs.statSync(mcpClientReceiptPath(dataDir)).mode & 0o777, 0o600)
+  const doubao = latestMcpClientReceipt(dataDir, 'doubao')
+  assert.equal(doubao?.name, 'Doubao MCP Client')
+  assert.equal(doubao?.version, '2.33.5')
+  assert.equal(latestMcpClientReceipt(dataDir, 'codex'), null)
+}
+
 try {
   testHermes()
   testPi()
@@ -699,6 +727,7 @@ try {
   testKindNormalization()
   testAgentModelMappings()
   testWriters()
+  testMcpClientReceipts()
   console.log('Agent import and memory taxonomy fixtures passed')
 } finally {
   fs.rmSync(root, { recursive: true, force: true })

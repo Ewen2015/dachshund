@@ -122,18 +122,25 @@ export function AgentsView({
                 <button
                   type="button"
                   className={`mcp-button ${agent.mcpInstalled ? 'connected' : ''}`}
-                  disabled={!agent.installed || !agent.mcpConfigPath}
+                  disabled={!agent.installed || !agent.mcpMode}
                   onClick={() => onInstallMcp(agent.id)}
+                  title={
+                    agent.mcpMode === 'manual'
+                      ? 'Doubao stores MCP connectors in its app. Open the setup guide.'
+                      : undefined
+                  }
                 >
-                  {!agent.mcpConfigPath ? (
-                    'Import only'
-                  ) : agent.mcpInstalled ? (
+                  {agent.mcpInstalled ? (
                     <>
                       <CheckIcon size={13} />
                       MCP on
                     </>
-                  ) : (
+                  ) : agent.mcpMode === 'manual' ? (
+                    'Set up MCP'
+                  ) : agent.mcpMode === 'config' ? (
                     'Connect MCP'
+                  ) : (
+                    'Import only'
                   )}
                 </button>
               </div>
