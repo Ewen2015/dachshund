@@ -53,7 +53,8 @@ dachshund 不把四种原生类型直接照搬为一级分类，而是先归一�
 - Windsurf 的自动记忆目前主要是 legacy Cascade 能力，workspace 之间有边界。
 - Cursor、Copilot、OpenCode 当前更偏 instructions/rules；Cursor Automations 另有
   独立的 `MEMORIES.md`，不能等同于编辑器内的全局长期记忆。
-- Pi、DeepSeek Harness 更偏 session/trace；长期记忆需要摘要、显式指令或插件。
+- Pi、DeepSeek Harness 更偏 session/trace；dachshund 只把明确 durable cue、
+  compaction summary 和全局指令提升出来，长期共享记忆仍需 MCP 或插件。
 - Claude Desktop 的 Cowork Space memory 是本地 Markdown；普通 Chat memory 和
   豆包普通账号记忆仍然主要是账号侧服务能力。
 - 豆包的普通账号记忆不对 dachshund 暴露；当前本地 importer 只能覆盖可观察到的

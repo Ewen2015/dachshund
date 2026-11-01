@@ -93,7 +93,8 @@ server.server.oninitialized = () => {
   try {
     appendMcpClientReceipt(dataDir, {
       name: client.name,
-      version: client.version
+      version: client.version,
+      agentId: process.env.DACHSHUND_CLIENT_AGENT
     })
   } catch (error) {
     console.error('[dachshund] Could not record MCP client:', error)

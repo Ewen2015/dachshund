@@ -174,9 +174,9 @@ and notarized.
 
 Verified build:
 
-- output: `release/dachshund-0.1.12-arm64.dmg`
+- output: `release/dachshund-0.1.13-arm64.dmg`
 - SHA-256:
-  `f920b3dd4cd60b730308e0da838e7f1d9480db0ff12a48ab55ca0e3354eb7f4c`
+  `353085de2a221d02d487c6e9cbd8f437a865057e88ab77fb55bf4d2d8171c4af`
 - packaged app launch and packaged MCP bridge smoke test pass
 - automatic in-place update, signature verification and relaunch pass
 - code signing: ad-hoc only

@@ -11,7 +11,7 @@ dachshund finds the memory files your agents already keep, brings them into one
 Markdown library, and serves that library back through MCP. No account, no cloud,
 no model requirement.
 
-[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.12/dachshund-0.1.12-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
+[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.13/dachshund-0.1.13-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -52,7 +52,7 @@ already remembers everything you need, you probably do not need dachshund.
 
 | Platform | Architecture | Package | Size | Download |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.12](https://github.com/Ewen2015/dachshund/releases/download/v0.1.12/dachshund-0.1.12-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.13](https://github.com/Ewen2015/dachshund/releases/download/v0.1.13/dachshund-0.1.13-arm64.dmg)** |
 
 **System requirement:** macOS on Apple Silicon
 
@@ -61,7 +61,7 @@ already remembers everything you need, you probably do not need dachshund.
 > **Open** on first launch.
 
 [All releases](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.12/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.13/SHA256SUMS)
 
 **Install**
 
@@ -82,7 +82,7 @@ into the app.
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.12/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.13/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -135,7 +135,14 @@ currently have read-only importers. For Claude Desktop this covers local
 Cowork Space memory; ordinary Chat memory stays on the account and remains
 available to Claude over MCP. Doubao connects through a guided STDIO setup
 because its custom connectors live inside the Doubao app rather than a stable
-local JSON file.
+local JSON file. Doubao can then read and write dachshund's shared memory over
+MCP; its account and per-assistant memories remain separate.
+
+DeepSeek Harness is treated as event evidence rather than as a native memory
+folder. dachshund derives explicit durable cues, imports compaction summaries as
+History and `~/.dsh/AGENTS.md` as rules, then exposes the shared library through
+the managed Cordis MCP connection. Raw sessions and tool output stay evidence
+and do not become memories.
 
 See [Agent integrations](docs/AGENTS.md) for exact paths and formats, and
 [Agent icons](docs/AGENT_ICONS.md) for brand asset provenance.

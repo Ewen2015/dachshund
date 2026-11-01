@@ -4,6 +4,7 @@ import path from 'node:path'
 export interface McpClientReceipt {
   name: string
   version: string | null
+  agentId?: string
   connectedAt: number
 }
 
@@ -15,11 +16,17 @@ export function mcpClientReceiptPath(dataDir: string): string {
 
 export function appendMcpClientReceipt(
   dataDir: string,
-  input: { name: string; version?: string | null; connectedAt?: number }
+  input: {
+    name: string
+    version?: string | null
+    agentId?: string | null
+    connectedAt?: number
+  }
 ): McpClientReceipt {
   const receipt: McpClientReceipt = {
     name: input.name.trim().slice(0, 160),
     version: input.version?.trim().slice(0, 80) || null,
+    ...(input.agentId?.trim() ? { agentId: input.agentId.trim().slice(0, 80) } : {}),
     connectedAt: input.connectedAt ?? Date.now()
   }
   fs.mkdirSync(dataDir, { recursive: true })
@@ -50,6 +57,9 @@ export function readMcpClientReceipts(dataDir: string): McpClientReceipt[] {
             {
               name: parsed.name,
               version: typeof parsed.version === 'string' ? parsed.version : null,
+              ...(typeof parsed.agentId === 'string' && parsed.agentId.trim()
+                ? { agentId: parsed.agentId }
+                : {}),
               connectedAt: parsed.connectedAt
             }
           ]
@@ -63,7 +73,12 @@ export function readMcpClientReceipts(dataDir: string): McpClientReceipt[] {
   }
 }
 
-export function isClientForAgent(agentId: string, clientName: string): boolean {
+export function isClientForAgent(
+  agentId: string,
+  clientName: string,
+  receiptAgentId?: string
+): boolean {
+  if (receiptAgentId?.toLowerCase() === agentId.toLowerCase()) return true
   if (agentId === 'doubao') return /doubao|豆包/i.test(clientName)
   return clientName.toLowerCase().includes(agentId.toLowerCase())
 }
@@ -74,7 +89,9 @@ export function latestMcpClientReceipt(
 ): McpClientReceipt | null {
   const receipts = readMcpClientReceipts(dataDir)
   for (let index = receipts.length - 1; index >= 0; index -= 1) {
-    if (isClientForAgent(agentId, receipts[index].name)) return receipts[index]
+    if (isClientForAgent(agentId, receipts[index].name, receipts[index].agentId)) {
+      return receipts[index]
+    }
   }
   return null
 }

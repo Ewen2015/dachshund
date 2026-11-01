@@ -2,6 +2,7 @@ import type { McpConnectionStatus, McpSetup } from '../../shared/types'
 import { latestMcpClientReceipt } from '../../shared/mcp-client-receipts'
 import { DATA_DIR } from '../paths'
 import { findDefinition, isMcpInstalled } from './discovery'
+import { nodeRuntime } from './node-runtime'
 
 export function buildMcpSetup(agentId: string, bridgePath: string): McpSetup | null {
   const definition = findDefinition(agentId)
@@ -11,9 +12,12 @@ export function buildMcpSetup(agentId: string, bridgePath: string): McpSetup | n
     agentName: definition.name,
     name: 'dachshund',
     transport: 'stdio',
-    command: '/usr/bin/env',
-    args: ['node', bridgePath],
-    env: { DACHSHUND_HOME: DATA_DIR }
+    command: nodeRuntime(),
+    args: [bridgePath],
+    env: {
+      DACHSHUND_HOME: DATA_DIR,
+      DACHSHUND_CLIENT_AGENT: agentId
+    }
   }
 }
 

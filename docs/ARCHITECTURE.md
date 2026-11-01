@@ -221,13 +221,31 @@ Six configuration formats are supported:
 - ZCode's strict `mcp.servers.dachshund` JSON object;
 - DeepSeek Harness's managed Cordis patch row.
 
-The installed entry runs Node against the dachshund bridge and sets
-`DACHSHUND_HOME` to the active data directory.
+Installed entries run Node against the dachshund bridge and set `DACHSHUND_HOME`
+to the active data directory. DeepSeek Harness additionally uses an absolute
+Node.js executable and `DACHSHUND_CLIENT_AGENT=deepseek-harness`, so its MCP
+receipt is attributed correctly even when the underlying client reports a
+generic name.
+
+Connecting DeepSeek Harness also maintains a delimited instruction block in
+`~/.dsh/AGENTS.md`. This keeps memory retrieval and explicit write rules in the
+harness's normal user-global instruction path without patching DSH core. The
+block is idempotent and excluded from the importer, so it cannot become a
+self-referential memory.
 
 Doubao has no stable user-editable MCP config file. It is marked `manual` in the
 agent registry, so the UI opens a guided STDIO setup instead of writing an app
-config. Doubao is shown as connected only when the newest matching receipt in
-`mcp-clients.jsonl` reports a client name containing `Doubao` or `豆包`.
+config. The guided setup resolves an absolute Node.js executable and sets
+`DACHSHUND_CLIENT_AGENT=doubao`, because Doubao 2.33.5 reports the generic MCP
+client name `rmcp`. Doubao is shown as connected only when the newest matching
+receipt in `mcp-clients.jsonl` carries the explicit agent identity or its client
+name contains `Doubao` or `豆包`.
+
+The bridge path is specific to the running app bundle. Moving or replacing the
+app can invalidate an existing Doubao connector even though its other fields are
+unchanged. The setup panel always exposes the current command, bridge path, and
+environment so the connector can be refreshed without editing Doubao's internal
+state directly.
 
 ## Process And Window Model
 

@@ -6,6 +6,7 @@ import { DatabaseSync } from 'node:sqlite'
 import type { ImportedMemory } from '../../shared/types'
 import { normalizeMemoryKind } from '../../shared/memory-taxonomy'
 import { expandHome } from '../paths'
+import { stripDeepSeekInstructions } from './deepseek-instructions'
 import type { AgentDefinition } from './registry'
 
 const MAX_FILE_BYTES = 1_200_000
@@ -1162,90 +1163,273 @@ function scanZstdFrames(buffer: Buffer): ZstdFrame[] {
   return frames
 }
 
-function deepSeekSessionText(file: string): string | null {
+interface DeepSeekUserCue {
+  seq: number | null
+  time: number
+  content: string
+  sourceRef: string
+}
+
+interface DeepSeekCompaction {
+  time: number
+  content: string
+  sourceRef: string
+}
+
+interface DeepSeekSessionSnapshot {
+  sessionId: string
+  project: string | null
+  createdAt: number
+  title: string | null
+  userMessages: DeepSeekUserCue[]
+  compactions: DeepSeekCompaction[]
+  visibleSeqs: Set<number>
+}
+
+const deepSeekSessionCache = new Map<
+  string,
+  { cacheKey: string; snapshot: DeepSeekSessionSnapshot }
+>()
+
+function visitDeepSeekEvents(
+  file: string,
+  visit: (event: Record<string, unknown>) => void
+): boolean {
   try {
     const stat = fs.statSync(file)
-    if (!stat.isFile() || stat.size === 0 || stat.size > 32_000_000) return null
-    if (file.endsWith('.jsonl')) return fs.readFileSync(file, 'utf8')
+    if (!stat.isFile() || stat.size === 0 || stat.size > 32_000_000) return false
+    const parse = (text: string): void => {
+      for (const line of text.split('\n')) {
+        if (!line.trim()) continue
+        try {
+          const parsed = JSON.parse(line) as unknown
+          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) continue
+          visit(parsed as Record<string, unknown>)
+        } catch {
+          // A crash can leave one incomplete tail record.
+        }
+      }
+    }
+    if (file.endsWith('.jsonl')) {
+      parse(fs.readFileSync(file, 'utf8'))
+      return true
+    }
     const raw = fs.readFileSync(file)
     const frames = scanZstdFrames(raw)
-    if (!frames.length) return null
-    const chunks: Buffer[] = []
-    let total = 0
+    if (!frames.length) return false
     for (const frame of frames) {
       const decoded = zstdDecompressSync(raw.subarray(frame.start, frame.end))
-      total += decoded.length
-      if (total > MAX_FILE_BYTES) break
-      chunks.push(decoded)
+      parse(decoded.toString('utf8'))
     }
-    return Buffer.concat(chunks).toString('utf8')
+    return true
+  } catch {
+    return false
+  }
+}
+
+function applyDeepSeekSurface(
+  surfaceOp: unknown,
+  seq: number | null,
+  visibleSeqs: Set<number>
+): void {
+  if (seq === null) return
+  if (surfaceOp === 'append' || surfaceOp === undefined) {
+    visibleSeqs.add(seq)
+    return
+  }
+  if (!surfaceOp || typeof surfaceOp !== 'object' || Array.isArray(surfaceOp)) return
+  const replacement = surfaceOp as Record<string, unknown>
+  if (replacement.op !== 'replace') return
+  const start = typeof replacement.startSeq === 'number' ? replacement.startSeq : null
+  const end = typeof replacement.endSeq === 'number' ? replacement.endSeq : start
+  if (start !== null && end !== null) {
+    for (let index = Math.min(start, end); index <= Math.max(start, end); index += 1) {
+      visibleSeqs.delete(index)
+    }
+  }
+  visibleSeqs.add(seq)
+}
+
+function deepSeekProject(cwd: unknown): string | null {
+  if (typeof cwd !== 'string' || !cwd.trim()) return null
+  const normalized = cwd.replace(/[\\/]+$/, '')
+  return path.basename(normalized) || null
+}
+
+function deepSeekSession(file: string): DeepSeekSessionSnapshot | null {
+  let cacheKey: string
+  try {
+    const stat = fs.statSync(file)
+    cacheKey = `${stat.mtimeMs}:${stat.size}`
+    const cached = deepSeekSessionCache.get(file)
+    if (cached?.cacheKey === cacheKey) return cached.snapshot
   } catch {
     return null
   }
+
+  let sessionId = path.basename(path.dirname(file))
+  let project: string | null = null
+  let createdAt = times(file).created
+  let title: string | null = null
+  const userMessages: DeepSeekUserCue[] = []
+  const compactions: DeepSeekCompaction[] = []
+  const visibleSeqs = new Set<number>()
+
+  const complete = visitDeepSeekEvents(file, (event) => {
+    const seq = typeof event.seq === 'number' ? event.seq : null
+    applyDeepSeekSurface(event.surfaceOp, seq, visibleSeqs)
+
+    if (event.type === 'session') {
+      project = deepSeekProject(event.cwd)
+      if (typeof event.id === 'string') sessionId = event.id
+      createdAt = toTime(event.createdAt, createdAt)
+      return
+    }
+    if (event.type === 'working-directory/change' && event.data) {
+      const data = event.data as Record<string, unknown>
+      project = deepSeekProject(data.cwd) ?? project
+      return
+    }
+    if (event.type === 'session/title' && event.data) {
+      const data = event.data as Record<string, unknown>
+      if (typeof data.title === 'string' && data.title.trim()) {
+        title = data.title.trim()
+      }
+      return
+    }
+    if (event.type === 'compaction/summary' && event.data) {
+      const data = event.data as Record<string, unknown>
+      const content = textContent(data.summary)
+      if (content.length < 30) return
+      const timestamp = toTime(event.time, createdAt)
+      compactions.push({
+        time: timestamp,
+        content,
+        sourceRef:
+          typeof data.compactionId === 'string'
+            ? `compaction:${data.compactionId}`
+            : `${sessionId}:compaction:${seq ?? timestamp}`
+      })
+      return
+    }
+    if (event.type !== 'user/message' || !event.data) return
+    const data = event.data as Record<string, unknown>
+    const source =
+      data.source && typeof data.source === 'object'
+        ? (data.source as Record<string, unknown>)
+        : {}
+    if (data.role !== 'user' || source.kind !== 'user') return
+    const content = textContent(data.content)
+    if (!content || userMessages.length >= 5000) return
+    userMessages.push({
+      seq,
+      time: toTime(event.time, createdAt),
+      content,
+      sourceRef:
+        typeof data.id === 'string' ? data.id : `${sessionId}:${seq ?? userMessages.length + 1}`
+    })
+  })
+  if (!complete) return null
+
+  const snapshot: DeepSeekSessionSnapshot = {
+    sessionId,
+    project,
+    createdAt,
+    title,
+    userMessages,
+    compactions,
+    visibleSeqs
+  }
+  deepSeekSessionCache.set(file, { cacheKey, snapshot })
+  if (deepSeekSessionCache.size > 1200) {
+    const oldest = deepSeekSessionCache.keys().next().value
+    if (oldest) deepSeekSessionCache.delete(oldest)
+  }
+  return snapshot
 }
 
 function importDeepSeekHarness(agent: AgentDefinition): ImportedMemory[] {
   const out: ImportedMemory[] = []
+  const seenText = new Set<string>()
+  const instructionsPath = path.join(agent.home, 'AGENTS.md')
+  const instructions = readText(instructionsPath)
+  if (instructions) {
+    const rule = parseMarkdownRaw(
+      instructionsPath,
+      agent,
+      stripDeepSeekInstructions(instructions),
+      {
+        kind: 'rule',
+        tags: ['deepseek-harness', 'user-global-instructions']
+      }
+    )
+    if (rule) {
+      rule.sourceRef = 'user-global-instructions'
+      out.push(rule)
+      seenText.add(rule.content.replace(/\s+/g, ' '))
+    }
+  }
+
   const sessionsRoot = path.join(agent.home, 'sessions')
   const files = walk(
     sessionsRoot,
     (file) => file.endsWith('.jsonl.zstd') || file.endsWith('.jsonl'),
     800
   )
-  const seenText = new Set<string>()
 
   for (const file of files) {
-    const raw = deepSeekSessionText(file)
-    if (!raw) continue
-    const lines = raw.split('\n')
-    let project: string | null = null
-    let createdAt = times(file).created
-    let sessionId = path.basename(path.dirname(file))
+    const snapshot = deepSeekSession(file)
+    if (!snapshot) continue
 
-    for (let index = 0; index < lines.length; index += 1) {
-      if (!lines[index].trim()) continue
-      let event: Record<string, unknown>
-      try {
-        const parsed = JSON.parse(lines[index]) as unknown
-        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) continue
-        event = parsed as Record<string, unknown>
-      } catch {
-        continue
-      }
-      if (event.type === 'session') {
-        if (typeof event.cwd === 'string') project = path.basename(event.cwd) || null
-        if (typeof event.id === 'string') sessionId = event.id
-        createdAt = toTime(event.createdAt, createdAt)
-        continue
-      }
-      if (event.type !== 'user/message' || !event.data || typeof event.data !== 'object') {
-        continue
-      }
-      const data = event.data as Record<string, unknown>
-      const source =
-        data.source && typeof data.source === 'object'
-          ? (data.source as Record<string, unknown>)
-          : {}
-      if (data.role !== 'user' || source.kind !== 'user') continue
-      const content = textContent(data.content)
+    for (const cue of snapshot.userMessages) {
+      const content = cue.content
       if (!durableMemoryText(content)) continue
       const key = content.replace(/\s+/g, ' ')
       if (seenText.has(key)) continue
       seenText.add(key)
-      const timestamp = toTime(event.time, createdAt)
+      const tags = ['deepseek-harness', 'durable-user-context']
+      if (cue.seq === null || !snapshot.visibleSeqs.has(cue.seq)) {
+        tags.push('surface-shadowed')
+      }
       out.push({
-        title: memoryTitle(content, `DeepSeek Harness session ${sessionId.slice(-6)}`),
+        title: memoryTitle(
+          content,
+          `DeepSeek Harness session ${snapshot.sessionId.slice(-6)}`
+        ),
         content,
         kind: memoryKind(content, 'preference'),
-        project,
-        tags: ['deepseek-harness', 'durable-user-context'],
-        createdAt: timestamp,
-        updatedAt: timestamp,
+        project: snapshot.project,
+        tags,
+        createdAt: cue.time,
+        updatedAt: cue.time,
         agentId: agent.id,
         agentName: agent.name,
         sourcePath: file,
-        sourceRef:
-          typeof data.id === 'string' ? data.id : `${sessionId}:${index + 1}`
+        sourceRef: cue.sourceRef
+      })
+      if (out.length >= 400) return out
+    }
+
+    for (const compaction of snapshot.compactions) {
+      const content = compaction.content.trim()
+      const key = content.replace(/\s+/g, ' ')
+      if (seenText.has(key)) continue
+      seenText.add(key)
+      out.push({
+        title: memoryTitle(
+          content,
+          snapshot.title ?? `DeepSeek Harness session ${snapshot.sessionId.slice(-6)}`
+        ),
+        content,
+        kind: 'episode',
+        project: snapshot.project,
+        tags: ['deepseek-harness', 'compaction-summary'],
+        createdAt: compaction.time,
+        updatedAt: compaction.time,
+        agentId: agent.id,
+        agentName: agent.name,
+        sourcePath: file,
+        sourceRef: compaction.sourceRef
       })
       if (out.length >= 400) return out
     }

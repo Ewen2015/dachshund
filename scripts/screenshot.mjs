@@ -13,15 +13,15 @@ fs.writeFileSync(
   updateManifest,
   JSON.stringify(
     {
-      tag_name: 'v0.1.12',
-      name: 'dachshund v0.1.12',
+      tag_name: 'v0.1.13',
+      name: 'dachshund v0.1.13',
       body: 'Claude Desktop local memory, sidebar navigation, Insights, and Connectors.',
-      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.12',
+      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.13',
       assets: [
         {
-          name: 'dachshund-0.1.12-arm64.dmg',
+          name: 'dachshund-0.1.13-arm64.dmg',
           browser_download_url:
-            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.12/dachshund-0.1.12-arm64.dmg'
+            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.13/dachshund-0.1.13-arm64.dmg'
         }
       ]
     },

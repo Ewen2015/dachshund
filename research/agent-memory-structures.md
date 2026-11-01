@@ -254,11 +254,21 @@ DeepSeek Harness 的核心 session 是 append-only event log，模型消息从�
 核心内置能力；长期记忆通常由 plugin 或 MCP 提供。官方文档还给出了 MCP Memory
 参考实现：本地 JSONL 实体/关系图，以及 Memorix、Engram 等后端接法。
 
-dachshund 当前从 JSONL session artifacts 读取人类用户且含 durable cue 的消息。
-这是一条保守的提取规则，不等同于 DSH 自带 memory。
+dachshund 当前把 DSH 拆成三层处理：`user/message` 中由真人发送且含 durable cue
+的事件进入 About me 或 Ways of working；`compaction/summary` 作为 History
+episode 导入；`~/.dsh/AGENTS.md` 作为用户全局规则导入。它会重放
+`surfaceOp=append|replace` 来识别当前可见事件，但不会把被 compaction 遮蔽的
+durable cue 当成撤回，只会标记为 `surface-shadowed`。原始 assistant/tool
+事件和 `@session` 快照不导入。
 
-对 dachshund 的含义：应先归类为 episode，再从 episode 中提取候选 feedback/user
-memory；不要让 session 数量直接污染“记忆”数量。
+MCP 是另一条通路，不是第三方 memory 文件的导入器。dachshund 写入带绝对 Node
+路径和 `DACHSHUND_CLIENT_AGENT=deepseek-harness` 的 Cordis row，并在
+`~/.dsh/AGENTS.md` 维护一段可重复更新的使用规则，让 DSH 在需要旧偏好、决策、
+项目上下文或经验时调用 `memory_context`，且只为用户明确提供或确认的长期信息
+调用 `memory_remember`。
+
+对 dachshund 的含义：session 是证据，compaction 是 episode，AGENTS.md 是规则，
+MCP 是跨 Agent 的共享层；不要让 session 或工具调用数量直接污染“记忆”数量。
 
 ## 6. 账号侧服务记忆
 
@@ -296,6 +306,12 @@ dachshund 导入这些本地 topic files，并把 Space 名称保留为项目标
 
 普通豆包账号记忆没有对 dachshund 暴露为稳定的本地 schema。当前可导入的是
 Agent Mode 相关本地 memory 文件，范围小于“豆包记住了什么”的完整答案。
+
+当前本机观察到的 Agent Mode session `memory/MEMORY.md` 均为空，因此文件
+importer 实际产生 0 条豆包 memory。豆包 `2.33.5` 的 MCP 客户端在握手中
+上报为通用名称 `rmcp 3.2.0`；dachshund 通过 connector 环境变量显式记录
+`DACHSHUND_CLIENT_AGENT=doubao`，并在豆包对话中实际调用了 `memory_stats`。
+这说明“豆包通过 MCP 使用共享记忆”已跑通，但不等于账号侧记忆被导入。
 
 ## 对 dachshund 的产品含义
 

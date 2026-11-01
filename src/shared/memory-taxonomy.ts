@@ -195,22 +195,23 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
     ]
   },
   'deepseek-harness': {
-    title: 'Session evidence + durable cues',
+    title: 'Event evidence + shared MCP memory',
     summary:
-      'DeepSeek Harness keeps append-only session evidence. dachshund imports only explicit durable user cues; raw events, compactions, and MCP memory stores are not imported.',
-    path: '~/.dsh/sessions + cordis.patch.yml',
+      'DeepSeek Harness keeps append-only session evidence. dachshund derives durable cues from human user events, imports compaction summaries as history, and reads the user-global AGENTS.md instructions. Raw sessions and tool output stay evidence; the MCP connector shares dachshund’s library.',
+    path: '~/.dsh/sessions + AGENTS.md + cordis.patch.yml',
     mappings: [
       { native: 'session event', description: 'Append-only task history used only as scan input', category: 'episodes', kinds: ['episode'], imported: false },
-      { native: 'compaction', description: 'Projected working context', category: 'episodes', kinds: ['episode'], imported: false },
-      { native: 'MCP memory', description: 'Externally stored durable context', category: 'knowledge', kinds: ['fact'], imported: false },
+      { native: 'compaction summary', description: 'Model-generated summary of a shadowed context range', category: 'episodes', kinds: ['episode'], imported: true },
+      { native: 'user-global AGENTS.md', description: 'Instructions loaded from ~/.dsh/AGENTS.md', category: 'working', kinds: ['rule'], imported: true },
+      { native: 'MCP shared memory', description: 'dachshund tools expose the same shared library to DeepSeek Harness', category: 'knowledge', kinds: ['fact'], imported: false },
       { native: 'durable preference', description: 'Explicit remember, always, or preference cue', category: 'about', kinds: ['preference'], imported: true },
       { native: 'durable correction', description: 'Explicit never, do not, or correction cue', category: 'working', kinds: ['feedback'], imported: true }
     ]
   },
   doubao: {
-    title: 'Local Agent Mode memory',
+    title: 'MCP shared memory + local Agent Mode files',
     summary:
-      'Doubao account memory is probabilistic and account-scoped. dachshund imports only the locally observable Agent Mode workspace memory.',
+      'Doubao account memory is probabilistic and account-scoped, while Agent Mode workspace files may be imported locally. After MCP setup, Doubao can also search and write dachshund’s shared library.',
     path: '~/Library/Application Support/Doubao/Default/.doubao/agent_mode/workspace',
     mappings: [
       { native: 'account memory', description: 'Probabilistic user-level recall', category: 'about', kinds: ['profile'], imported: false },

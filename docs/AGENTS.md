@@ -177,6 +177,10 @@ Imported:
 - Agent Mode `memory/MEMORY.md`;
 - Markdown under Agent Mode `.sessions/<session>/memory/`.
 
+Empty memory files are ignored. Doubao account memory and per-assistant memory
+remain account-scoped and are not available to a local filesystem importer.
+Doubao can still use the shared library through the MCP connector below.
+
 Doubao stores custom connectors in **Plugins / Skills (插件 · 技能) > Add (添加) >
 Custom connector (新建自定义连接器)** rather than a stable user-editable JSON
 file. The MCP button therefore opens a local setup panel instead of writing
@@ -185,15 +189,23 @@ Doubao's internal state.
 The connector uses:
 
 - transport: `STDIO`;
-- command: `/usr/bin/env`;
-- arguments: `node`, followed by the absolute dachshund bridge path;
-- environment: `DACHSHUND_HOME=/Users/<user>/Library/Application Support/dachshund`.
+- command: the absolute Node.js path detected by dachshund, with `node` as the
+  fallback;
+- argument: the absolute dachshund bridge path inside the current app bundle;
+- environment: `DACHSHUND_HOME` and `DACHSHUND_CLIENT_AGENT=doubao`.
+
+The connector must point at the bridge inside the app bundle. A path under the
+development `out/` directory can be rejected by Doubao's connector sandbox even
+when the same command works in Terminal. If dachshund is moved or reinstalled,
+reopen the setup panel and replace the saved bridge path.
 
 dachshund marks Doubao connected only after the bridge receives a real MCP
-`initialized` handshake from a client name containing `Doubao` or `豆包`. The
-bridge appends only the client name, version, and timestamp to
-`mcp-clients.jsonl` in the dachshund data directory. Merely opening or filling in
-the Doubao form does not count as connected.
+`initialized` handshake. Doubao 2.33.5 identifies itself as the generic
+`rmcp 3.2.0`, so the bridge also records the explicit agent identity from
+`DACHSHUND_CLIENT_AGENT`; legacy receipts whose client name contains `Doubao`
+or `豆包` remain valid. The bridge appends only the client name, version, agent
+identity, and timestamp to `mcp-clients.jsonl` in the dachshund data directory.
+Merely opening or filling in the Doubao form does not count as connected.
 
 ## Trae
 
@@ -284,15 +296,33 @@ Homes:
 Imported:
 
 - JSONL session artifacts under `~/.dsh/sessions/**`;
-- each concatenated Zstandard frame is decompressed before parsing;
+- each concatenated Zstandard frame is decoded and parsed independently, so one
+  large decoded frame does not truncate the rest of the session;
 - user messages whose source is the human user and whose text contains an
-  explicit durable-memory cue.
+  explicit durable-memory cue;
+- `compaction/summary` events as History episodes;
+- `~/.dsh/AGENTS.md` as a user-global rule, excluding dachshund's own managed
+  instruction block.
 
-System snapshots, skill reminders, tool output, and task prompts are excluded.
+System snapshots, skill reminders, runtime context, tool output, and ordinary
+task prompts are excluded. dachshund replays `surfaceOp` to know which events are
+currently visible. A durable user cue preceded by compaction is retained, but
+tagged `surface-shadowed` rather than being mistaken for current visible context.
 
 MCP target: `~/.dsh/profiles/desktop/cordis.patch.yml`. dachshund appends a
 managed Cordis `insert` row for `@deepseek-ai/dsh-mcp-client` and replaces that
-same marked row on later updates.
+same marked row on later updates. The row uses an absolute Node.js executable,
+the current bridge path, `DACHSHUND_HOME`, and
+`DACHSHUND_CLIENT_AGENT=deepseek-harness`.
+
+Connecting also maintains a marked instruction block in `~/.dsh/AGENTS.md`. It
+tells DeepSeek Harness when to call `memory_context` and restricts
+`memory_remember` to durable, user-provided or confirmed information. Repeating
+Connect updates the block in place instead of appending duplicates.
+
+With DeepSeek Harness `0.2.1-rc.5`, saving the managed row caused the running app
+to spawn the bridge without an app restart and record
+`dsh-mcp-client` `0.0.1` with `agentId=deepseek-harness`.
 
 ## What "Connect" Writes
 

@@ -57,7 +57,9 @@ Verified in this repository:
 
 - TypeScript checks pass.
 - `npm run test:agents` passes fixture and config-writer checks for Hermes, Pi,
-  ZCode, DeepSeek Harness, and Claude Desktop.
+  ZCode, DeepSeek Harness, and Claude Desktop. The DeepSeek Harness fixture
+  covers multi-frame Zstandard, surface replacement, compaction summaries,
+  user-global instructions, and the managed Cordis writer.
 - Production build passes.
 - Isolated MCP integration passes for search, context, remember, forget, and
   stats.
@@ -72,14 +74,16 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development Connectors screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.12-arm64.dmg` was produced on 2026-11-01.
+- `release/dachshund-0.1.13-arm64.dmg` was produced on 2026-11-01.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.12`.
+  healthy loopback service at version `0.1.13`.
+- The `0.1.13` DMG mounted read-only, contained a valid ad-hoc-signed app at
+  version `0.1.13`, and included an executable MCP bridge.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.12` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.13` passed the same
   five-tool MCP smoke test.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
@@ -88,16 +92,24 @@ Verified in this repository:
 - The full app keeps one active view while switching between compact top tabs
   and the optional Workspace / Insights / App sidebar layout; the same `Cmd+\`
   shortcut toggles both modes.
-- A packaged Doubao setup session accepted a real
-  `Doubao MCP Client` `2.33.5` stdio handshake and updated the UI to the
-  verified connected state.
+- Doubao `2.33.5` accepted the guided STDIO setup, reported all five dachshund
+  tools as available, and recorded a real `rmcp` `3.2.0` handshake with the
+  explicit `doubao` agent identity.
+- A live Doubao conversation invoked `memory_stats` successfully. Aggregate
+  shared-memory statistics came from the dachshund tool response rather than
+  Doubao's account memory.
+- Doubao's account and per-assistant memories remain cloud-scoped. Empty local
+  Agent Mode memory files do not produce imported records.
+- DeepSeek Harness `0.2.1-rc.5` reloaded the managed Cordis row without exiting
+  the app and spawned a dachshund MCP child. The bridge recorded a real
+  `dsh-mcp-client` `0.0.1` receipt with `agentId=deepseek-harness`.
 - The packaged app is ad-hoc signed only; Gatekeeper assessment fails because it
   has no Developer ID signature or notarization.
 
 The DMG SHA-256 from this build is:
 
 ```text
-f920b3dd4cd60b730308e0da838e7f1d9480db0ff12a48ab55ca0e3354eb7f4c
+353085de2a221d02d487c6e9cbd8f437a865057e88ab77fb55bf4d2d8171c4af
 ```
 
 ## Known Limitations
@@ -220,9 +232,18 @@ token are not a defense against a compromised account.
 - kept the sidebar toggle clear of the macOS window controls at every supported
   window width.
 
+#### 0.1.13: Connected Memory For Doubao And DeepSeek Harness
+
+- verified Doubao's five-tool MCP connection and live `memory_stats` call;
+- attributed Doubao's generic `rmcp` client to the correct agent identity;
+- made DeepSeek Harness session parsing surface-aware and frame-by-frame;
+- imported DeepSeek Harness compaction summaries and user-global rules;
+- connected DeepSeek Harness through a managed Cordis MCP row;
+- added an idempotent shared-memory instruction block to `~/.dsh/AGENTS.md`.
+
 ### Next
 
-#### 0.1.13: Trustworthy Incremental Import
+#### 0.1.14: Trustworthy Incremental Import
 
 - persist per-source mtime, size, and hash;
 - update an existing memory when its source changes;
@@ -230,7 +251,7 @@ token are not a defense against a compromised account.
 - expose source status in the detail view;
 - add importer fixtures and regression tests.
 
-#### 0.1.14: Reviewable Consolidation
+#### 0.1.15: Reviewable Consolidation
 
 - near-duplicate suggestions;
 - merge and split flows;
@@ -238,7 +259,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.15: Recall Quality
+#### 0.1.16: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -246,7 +267,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-### 0.1.16: Distribution
+### 0.1.17: Distribution
 
 - signed and notarized universal build;
 - update channel;

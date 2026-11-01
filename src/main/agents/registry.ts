@@ -143,7 +143,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     name: 'Doubao',
     kind: 'desktop',
     home: path.join(home, 'Library', 'Application Support', 'Doubao'),
-    description: 'Agent Mode session memory',
+    description: 'Shared memory over MCP and Agent Mode files',
     accent: '#1E37FC',
     mcp: { type: 'manual' },
     appPath: '/Applications/Doubao.app'
@@ -198,7 +198,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     name: 'DeepSeek Harness',
     kind: 'desktop',
     home: path.join(home, '.dsh'),
-    description: 'Session logs and durable user context',
+    description: 'Event evidence and shared MCP memory',
     accent: '#4D6BFE',
     mcp: {
       type: 'deepseek-cordis',

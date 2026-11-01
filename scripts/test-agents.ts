@@ -6,6 +6,7 @@ import { DatabaseSync } from 'node:sqlite'
 import { zstdCompressSync } from 'node:zlib'
 import { parse as parseYaml } from 'yaml'
 import { importAgentMemories } from '../src/main/agents/importers'
+import { DEEPSEEK_MANAGED_BLOCK } from '../src/main/agents/deepseek-instructions'
 import {
   upsertDeepSeekCordis,
   upsertHermesYaml,
@@ -543,6 +544,16 @@ function testZCode(): void {
 function testDeepSeekHarness(): void {
   const home = path.join(root, 'dsh')
   const agent = definition('deepseek-harness', 'DeepSeek Harness', home, path.join(home, 'patch.yml'))
+  write(
+    path.join(home, 'AGENTS.md'),
+    [
+      '# Harness rules',
+      '',
+      'Keep repository operations local and verify every release artifact before publishing.',
+      '',
+      DEEPSEEK_MANAGED_BLOCK
+    ].join('\n')
+  )
   const session = path.join(home, 'sessions', '--tmp-beta--', 'session.jsonl.zstd')
   const records = [
     {
@@ -553,9 +564,19 @@ function testDeepSeekHarness(): void {
       cwd: '/tmp/beta'
     },
     {
+      type: 'session/title',
+      seq: 4,
+      time: 1793404800500,
+      data: {
+        title: 'Durable project delivery preferences',
+        messageSeqs: [1]
+      }
+    },
+    {
       type: 'user/message',
       seq: 1,
       time: 1793404801000,
+      surfaceOp: 'append',
       data: {
         role: 'user',
         content: [
@@ -572,6 +593,7 @@ function testDeepSeekHarness(): void {
       type: 'user/message',
       seq: 2,
       time: 1793404802000,
+      surfaceOp: 'append',
       data: {
         role: 'user',
         content: [{ type: 'text', text: 'ABO是啥' }],
@@ -583,6 +605,7 @@ function testDeepSeekHarness(): void {
       type: 'user/message',
       seq: 3,
       time: 1793404803000,
+      surfaceOp: 'append',
       data: {
         role: 'user',
         content: [
@@ -593,6 +616,38 @@ function testDeepSeekHarness(): void {
         ],
         source: { kind: 'user' },
         id: 'dsh-user-3'
+      }
+    },
+    {
+      type: 'compaction/summary',
+      seq: 5,
+      time: 1793404804000,
+      data: {
+        compactionId: 'compact-1',
+        summary: [
+          {
+            type: 'text',
+            text: 'The task established durable delivery and verification conventions for the beta project.'
+          }
+        ],
+        shadowedRange: { start: 1, end: 1 },
+        shadowedSeqs: [1],
+        shadowedTokenCount: 80,
+        provider: 'fixture',
+        model: 'fixture-model'
+      }
+    },
+    {
+      type: 'user/message',
+      seq: 6,
+      time: 1793404804100,
+      surfaceOp: { op: 'replace', startSeq: 1, endSeq: 1 },
+      sourceEventSeqs: [1],
+      data: {
+        role: 'user',
+        content: [{ type: 'text', text: '<compacted-summary>fixture</compacted-summary>' }],
+        source: { kind: 'compaction' },
+        id: 'dsh-compaction-message'
       }
     }
   ]
@@ -605,9 +660,35 @@ function testDeepSeekHarness(): void {
   fs.writeFileSync(session, compressed)
 
   const memories = importAgentMemories(agent)
-  assert.equal(memories.length, 2)
-  assert.ok(memories.every((memory) => memory.project === 'beta'))
-  assert.ok(memories.some((memory) => memory.kind === 'preference'))
+  assert.equal(memories.length, 4)
+  assert.ok(
+    memories
+      .filter((memory) => memory.kind !== 'rule')
+      .every((memory) => memory.project === 'beta')
+  )
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'rule' &&
+        memory.tags.includes('user-global-instructions') &&
+        memory.content.includes('verify every release artifact') &&
+        !memory.content.includes('memory_remember')
+    )
+  )
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'preference' && memory.tags.includes('surface-shadowed')
+    )
+  )
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'episode' &&
+        memory.tags.includes('compaction-summary') &&
+        memory.content.includes('durable delivery')
+    )
+  )
   assert.ok(memories.some((memory) => memory.kind === 'feedback'))
 }
 
@@ -823,14 +904,35 @@ function testWriters(): void {
     'type'
   ])
 
-  const dshPath = path.join(root, 'writer-dsh', 'cordis.patch.yml')
+  const dshHome = path.join(root, 'writer-dsh')
+  const dshPath = path.join(dshHome, 'profiles', 'desktop', 'cordis.patch.yml')
   write(dshPath, '- id: locale\n  name: "@example/locale"\n')
-  upsertDeepSeekCordis(dshPath, bridgePath)
-  upsertDeepSeekCordis(dshPath, bridgePath)
+  upsertDeepSeekCordis(dshPath, bridgePath, false, dshHome)
+  upsertDeepSeekCordis(dshPath, bridgePath, false, dshHome)
   const dsh = fs.readFileSync(dshPath, 'utf8')
   assert.equal(dsh.match(/id: dachshund-mcp/g)?.length, 1)
   assert.ok(dsh.includes('serverName: dachshund'))
   assert.ok(dsh.includes('name: "@example/locale"'))
+  const dshConfig = parseYaml(dsh) as Array<{
+    insert?: Array<{
+      config: {
+        command: string
+        args: string[]
+        env: Record<string, string>
+      }
+    }>
+  }>
+  const dshServer = dshConfig.find((entry) => entry.insert)?.insert?.[0]
+  assert.ok(dshServer)
+  assert.notEqual(dshServer.config.command, '/usr/bin/env')
+  assert.deepEqual(dshServer.config.args, [bridgePath])
+  assert.equal(dshServer.config.env.DACHSHUND_CLIENT_AGENT, 'deepseek-harness')
+  const dshInstructions = fs.readFileSync(path.join(dshHome, 'AGENTS.md'), 'utf8')
+  assert.equal(
+    dshInstructions.match(/dachshund memory \(managed by dachshund\)/g)?.length,
+    1
+  )
+  assert.ok(dshInstructions.includes('memory_context'))
 }
 
 function testMcpClientReceipts(): void {
@@ -845,13 +947,29 @@ function testMcpClientReceipts(): void {
     version: '2.33.5',
     connectedAt: 200
   })
+  appendMcpClientReceipt(dataDir, {
+    name: 'rmcp',
+    version: '3.2.0',
+    agentId: 'doubao',
+    connectedAt: 300
+  })
+  appendMcpClientReceipt(dataDir, {
+    name: 'dsh-mcp-client',
+    version: '0.2.1-rc.5',
+    agentId: 'deepseek-harness',
+    connectedAt: 400
+  })
 
   const receipts = readMcpClientReceipts(dataDir)
-  assert.equal(receipts.length, 2)
+  assert.equal(receipts.length, 4)
   assert.equal(fs.statSync(mcpClientReceiptPath(dataDir)).mode & 0o777, 0o600)
   const doubao = latestMcpClientReceipt(dataDir, 'doubao')
-  assert.equal(doubao?.name, 'Doubao MCP Client')
-  assert.equal(doubao?.version, '2.33.5')
+  assert.equal(doubao?.name, 'rmcp')
+  assert.equal(doubao?.version, '3.2.0')
+  assert.equal(doubao?.agentId, 'doubao')
+  const deepSeek = latestMcpClientReceipt(dataDir, 'deepseek-harness')
+  assert.equal(deepSeek?.name, 'dsh-mcp-client')
+  assert.equal(deepSeek?.agentId, 'deepseek-harness')
   assert.equal(latestMcpClientReceipt(dataDir, 'codex'), null)
 }
 

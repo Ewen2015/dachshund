@@ -12,7 +12,12 @@ const bridge =
 const transport = new StdioClientTransport({
   command: process.execPath,
   args: [bridge],
-  env: { ...process.env, DACHSHUND_HOME: home, DACHSHUND_AUTOLAUNCH: '0' }
+  env: {
+    ...process.env,
+    DACHSHUND_HOME: home,
+    DACHSHUND_AUTOLAUNCH: '0',
+    DACHSHUND_CLIENT_AGENT: 'deepseek-harness'
+  }
 })
 
 const client = new Client({ name: 'dachshund-smoke-test', version: '0.1.0' }, { capabilities: {} })
@@ -30,6 +35,7 @@ const receipts = fs
   .map((line) => JSON.parse(line))
 assert.equal(receipts.at(-1)?.name, 'dachshund-smoke-test')
 assert.equal(receipts.at(-1)?.version, '0.1.0')
+assert.equal(receipts.at(-1)?.agentId, 'deepseek-harness')
 
 const tools = await client.listTools()
 console.log('tools:', tools.tools.map((tool) => tool.name).join(', '))

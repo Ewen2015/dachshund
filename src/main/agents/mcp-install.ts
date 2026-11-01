@@ -3,7 +3,9 @@ import path from 'node:path'
 import { parseDocument } from 'yaml'
 import type { McpInstallResult } from '../../shared/types'
 import { DATA_DIR } from '../paths'
+import { mergeDeepSeekInstructions } from './deepseek-instructions'
 import { findDefinition } from './discovery'
+import { nodeRuntime } from './node-runtime'
 
 interface InstallOptions {
   dryRun?: boolean
@@ -174,11 +176,12 @@ function deepSeekCordisBlock(bridgePath: string): string {
     '      config:',
     '        serverName: dachshund',
     '        transport: stdio',
-    '        command: "/usr/bin/env"',
-    `        args: [node, ${JSON.stringify(bridgePath)}]`,
+    `        command: ${JSON.stringify(nodeRuntime())}`,
+    `        args: [${JSON.stringify(bridgePath)}]`,
     `        cwd: ${JSON.stringify(path.dirname(bridgePath))}`,
     '        env:',
     `          DACHSHUND_HOME: ${JSON.stringify(DATA_DIR)}`,
+    '          DACHSHUND_CLIENT_AGENT: "deepseek-harness"',
     '# <<< dachshund',
     ''
   ].join('\n')
@@ -187,7 +190,8 @@ function deepSeekCordisBlock(bridgePath: string): string {
 export function upsertDeepSeekCordis(
   file: string,
   bridgePath: string,
-  dryRun = false
+  dryRun = false,
+  agentHome?: string
 ): McpInstallResult {
   const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : ''
   const block = deepSeekCordisBlock(bridgePath)
@@ -200,6 +204,18 @@ export function upsertDeepSeekCordis(
     fs.mkdirSync(path.dirname(file), { recursive: true })
     backup(file)
     fs.writeFileSync(file, next, 'utf8')
+    if (agentHome) {
+      const instructionsPath = path.join(agentHome, 'AGENTS.md')
+      const existingInstructions = fs.existsSync(instructionsPath)
+        ? fs.readFileSync(instructionsPath, 'utf8')
+        : ''
+      const mergedInstructions = mergeDeepSeekInstructions(existingInstructions)
+      if (mergedInstructions !== existingInstructions) {
+        fs.mkdirSync(agentHome, { recursive: true })
+        backup(instructionsPath)
+        fs.writeFileSync(instructionsPath, mergedInstructions, 'utf8')
+      }
+    }
   }
   return {
     ok: true,
@@ -253,7 +269,12 @@ export function installMcp(agentId: string, options: InstallOptions): McpInstall
         result = upsertJsonMcp(configPath, options.bridgePath, options.dryRun, 'zcode')
         break
       case 'deepseek-cordis':
-        result = upsertDeepSeekCordis(configPath, options.bridgePath, options.dryRun)
+        result = upsertDeepSeekCordis(
+          configPath,
+          options.bridgePath,
+          options.dryRun,
+          definition.home
+        )
         break
       case 'opencode-json':
         result = upsertJsonMcp(

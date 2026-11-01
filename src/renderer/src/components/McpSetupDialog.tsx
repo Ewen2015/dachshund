@@ -166,7 +166,8 @@ export function McpSetupDialog({
           {agent.name} stores custom connectors inside its app, not in a local JSON file.
           Open <strong>Plugins / Skills</strong>{' '}
           <span className="mcp-setup-inline">(插件 · 技能)</span>, add a custom connector, and
-          use these values.
+          use these values. If {agent.name} reports a start failure after dachshund moves,
+          reopen this panel and replace the saved command and bridge path.
         </p>
 
         <ol className="mcp-setup-steps">
