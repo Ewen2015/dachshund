@@ -153,17 +153,13 @@ stage?.addEventListener("pointermove", (event) => {
 
   stage.querySelectorAll("[data-parallax]").forEach((layer) => {
     const amount = Number(layer.dataset.parallax || 0);
-    const baseRotation = layer.classList.contains("hero-memory-card") ? -2 : 0;
-    layer.style.transform = `translate3d(${x * amount * 18}px, ${y * amount * 12}px, 0) rotate(${baseRotation + x * amount * 2}deg)`;
+    layer.style.transform = `translate3d(${x * amount * 18}px, ${y * amount * 12}px, 0)`;
   });
 });
 
 stage?.addEventListener("pointerleave", () => {
   stage.querySelectorAll("[data-parallax]").forEach((layer) => {
-    const baseRotation = layer.classList.contains("hero-memory-card") ? -2 : 0;
-    layer.style.transform = layer.classList.contains("window-frame")
-      ? ""
-      : `rotate(${baseRotation}deg)`;
+    layer.style.transform = "";
   });
 });
 
