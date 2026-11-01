@@ -2,8 +2,9 @@
 
 ## Purpose
 
-Pulse is the memory visualization tab. It answers questions a person can act on,
-not generic analytics questions.
+Pulse is the memory visualization tab. In sidebar navigation it belongs to the
+Insights group. It answers questions a person can act on, not generic analytics
+questions.
 
 | Question | Why it matters | Visual |
 | --- | --- | --- |

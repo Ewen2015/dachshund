@@ -13,15 +13,15 @@ fs.writeFileSync(
   updateManifest,
   JSON.stringify(
     {
-      tag_name: 'v0.1.11',
-      name: 'dachshund v0.1.11',
-      body: 'The menu bar panel now stays on the current screen.',
-      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.11',
+      tag_name: 'v0.1.12',
+      name: 'dachshund v0.1.12',
+      body: 'Claude Desktop local memory, sidebar navigation, Insights, and Connectors.',
+      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.12',
       assets: [
         {
-          name: 'dachshund-0.1.11-arm64.dmg',
+          name: 'dachshund-0.1.12-arm64.dmg',
           browser_download_url:
-            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.11/dachshund-0.1.11-arm64.dmg'
+            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.12/dachshund-0.1.12-arm64.dmg'
         }
       ]
     },
@@ -74,6 +74,12 @@ if (await page.locator('.onboarding').isVisible().catch(() => false)) {
 
 await page.screenshot({ path: path.join(shots, '01-memory.png') })
 
+await page.getByRole('button', { name: 'Use sidebar navigation' }).click()
+await page.waitForTimeout(450)
+await page.screenshot({ path: path.join(shots, '12-sidebar.png') })
+await page.getByRole('button', { name: 'Use top tab navigation' }).click()
+await page.waitForTimeout(350)
+
 await page.getByRole('button', { name: 'Agents', exact: true }).click()
 await page.waitForTimeout(600)
 await page.screenshot({ path: path.join(shots, '02-agents.png') })
@@ -104,9 +110,9 @@ await page.waitForTimeout(250)
 await page.keyboard.press('Escape')
 await page.waitForTimeout(250)
 
-await page.getByRole('button', { name: 'Settings', exact: true }).click()
+await page.getByRole('button', { name: 'Connectors', exact: true }).click()
 await page.waitForTimeout(500)
-await page.screenshot({ path: path.join(shots, '05-settings.png') })
+await page.screenshot({ path: path.join(shots, '05-connectors.png') })
 
 await page.getByRole('button', { name: 'Pulse', exact: true }).click()
 await page.waitForTimeout(650)

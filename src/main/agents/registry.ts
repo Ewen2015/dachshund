@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 import type { AgentKind } from '../../shared/types'
@@ -31,6 +32,21 @@ export interface AgentDefinition {
 }
 
 const home = os.homedir()
+const claudeDesktopLegacyHome = path.join(
+  home,
+  'Library',
+  'Application Support',
+  'Claude'
+)
+const claudeDesktopCurrentHome = path.join(
+  home,
+  'Library',
+  'Application Support',
+  'Claude-3p'
+)
+const claudeDesktopHome = fs.existsSync(claudeDesktopCurrentHome)
+  ? claudeDesktopCurrentHome
+  : claudeDesktopLegacyHome
 
 export const AGENT_DEFINITIONS: AgentDefinition[] = [
   {
@@ -102,12 +118,13 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     id: 'claude-desktop',
     name: 'Claude Desktop',
     kind: 'desktop',
-    home: path.join(home, 'Library', 'Application Support', 'Claude'),
-    description: 'Desktop connector host',
+    home: claudeDesktopHome,
+    homes: [claudeDesktopLegacyHome, claudeDesktopCurrentHome],
+    description: 'Local Space memory and connector host',
     accent: '#B86A3F',
     mcp: {
       type: 'json-mcpServers',
-      path: path.join(home, 'Library', 'Application Support', 'Claude', 'claude_desktop_config.json')
+      path: path.join(claudeDesktopHome, 'claude_desktop_config.json')
     },
     appPath: '/Applications/Claude.app'
   },

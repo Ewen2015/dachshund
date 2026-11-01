@@ -13,7 +13,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | Codex | `AGENTS.md`、Skills | 本地 memory store，含 summary、merged memory、raw memory | rollouts、raw memories | 用户机器 + 项目内容 | `~/.codex/memories/*`、可读 SQLite | Official + Observed |
 | Claude Code | `CLAUDE.md`、`AGENTS.md`、`.claude/rules/` | 每 repo 的 topic memory + `MEMORY.md` 索引 | 会话 transcript | repo / worktree 共享 | repo topic memory、`CLAUDE.md`、rules、全局 memory | Official + Observed |
-| Claude Desktop | Project instructions | 账号侧 topic memory、每个 Project 独立 memory | 聊天与 Project chats | 账号 / Project | 无 importer，仅 MCP 接入 | Official |
+| Claude Desktop | Project instructions | 本地 Space topic files；账号侧 topic memory 与每个 Project 独立 memory | 聊天与 Project chats | 本地 Space / 账号 | 本地 `MEMORY.md` 索引与 typed topic files；账号侧仍不可导入 | Official + Observed |
 | Gemini CLI | 分层 `GEMINI.md` | `save_memory` 追加事实到全局 `GEMINI.md` | session history | global / workspace / JIT path | `GEMINI.md` | Official + Observed |
 | Cursor | Project/User/Team Rules、`AGENTS.md` | 普通 Agent 无跨 completion 持久记忆；Automations 有独立 `MEMORIES.md` | chat / agent history | project / path / user | `rules/`、`agents/` Markdown | Official + Observed |
 | GitHub Copilot | repo instructions、path instructions、`AGENTS.md`、用户级 instructions | 没有公开的同类 typed durable memory | CLI sessions、Chronicle | repo / path / user | `memories/`、`instructions/` Markdown | Official + Observed |
@@ -269,8 +269,20 @@ memory；不要让 session 数量直接污染“记忆”数量。
 Chat 与云端 Cowork 共享 memory；在本地运行的 Cowork session 不使用这套 memory。
 “每 24 小时更新 summary”只属于旧版 legacy memory 体验。
 
-这些是账号侧能力。dachshund 当前只能连接 Claude Desktop 的 MCP，不导入其账号
-memory。
+Claude Desktop 4.4212 的本地 Cowork Space memory 位于
+`~/Library/Application Support/Claude-3p/local-agent-mode-sessions/<account>/<org>/spaces/<space-id>/memory/`
+（legacy profile 使用 `Claude` 目录）。目录结构是：
+
+- `MEMORY.md`：只做索引，每行指向一个 topic file；
+- topic file：frontmatter 使用 `name`、`description` 和
+  `type: user | feedback | project | reference`，正文保存具体记忆；
+- Space 名称来自同级 org 目录的 `spaces.json`；
+- 本地账号级 topic 文件位于同级的 `memory/memory/`，本地 agent topic 文件
+  位于 `agent/memory/`。
+
+dachshund 导入这些本地 topic files，并把 Space 名称保留为项目标签。
+普通 Chat memory 和本地不存在的云端 Project memory 仍属于账号侧能力，当前
+不可从本地文件导入；Claude Desktop 通过 MCP 使用 dachshund 的共享记忆。
 
 ### 豆包
 

@@ -10,7 +10,7 @@
 dachshund 找到这些 Agent 已经写在本机的 Memory，把它们汇入一份 Markdown
 记忆库，再通过 MCP 提供给所有 Agent 使用。无需账号，无需上云，也不依赖模型
 
-[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.11/dachshund-0.1.11-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
+[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.12/dachshund-0.1.12-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -44,7 +44,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 
 | 平台 | 架构 | 安装包 | 大小 | 下载 |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.11](https://github.com/Ewen2015/dachshund/releases/download/v0.1.11/dachshund-0.1.11-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.12](https://github.com/Ewen2015/dachshund/releases/download/v0.1.12/dachshund-0.1.12-arm64.dmg)** |
 
 **系统要求：** Apple Silicon Mac
 
@@ -53,7 +53,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 > 选择“打开”
 
 [所有版本](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.11/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.12/SHA256SUMS)
 
 **安装**
 
@@ -72,7 +72,7 @@ SHA-256 用于确认下载的 DMG 与正式发布文件一致。它不是激活�
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.11/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.12/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -112,9 +112,10 @@ Claude Code · Codex · Cursor · Gemini CLI · GitHub Copilot · OpenCode · Wi
 </td></tr>
 </table>
 
-dachshund 只显示本机实际发现的 Agent。当前 15 个集成中有 14 个支持只读导入，
-Claude Desktop 作为 MCP 连接目标使用。Doubao 的自定义连接器保存在应用内，因此
-通过 STDIO 配置向导手动接入
+dachshund 只显示本机实际发现的 Agent。当前 15 个集成都支持只读导入。Claude
+Desktop 导入的是本地 Cowork Space memory；普通 Chat memory 仍保存在账号侧，
+Claude 通过 MCP 使用 dachshund 的共享记忆。Doubao 的自定义连接器保存在应用内，
+因此通过 STDIO 配置向导手动接入
 
 具体路径和格式见 [Agent 集成](docs/AGENTS.md)，图标来源与许可见
 [Agent 图标](docs/AGENT_ICONS.md)
@@ -159,7 +160,11 @@ SQLite 记录
 
 托盘图标、全局快捷键和 420 × 620 弹出面板让记忆库随手可用。面板会在你正在使用
 的屏幕上打开，并停留在当前全屏 Space 上方，不会切换屏幕。使用
-`Cmd+Shift+M` 最小化到菜单栏，使用 `Cmd+Shift+D` 打开或关闭紧凑面板
+`Cmd+Shift+M` 最小化到菜单栏，使用 `Cmd+Shift+D` 打开或关闭紧凑面板。完整应用
+可以在顶部 tab 与 Magpie 式侧边栏之间切换：点击窗口左上角控制按钮旁的侧栏按钮，
+或按 `Cmd+\`。侧栏模式下，Pulse 归入 Insights。dachshund 会记住你的选择
+
+<img src="docs/screenshots/12-sidebar.png" width="900" alt="dachshund 完整应用启用侧边栏导航，侧栏按钮后紧接 dachshund logo">
 
 ### Pulse：看清记忆的形状
 

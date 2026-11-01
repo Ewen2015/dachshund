@@ -17,10 +17,10 @@ discover existing agent memory
 
 - Electron, React, TypeScript, and Vite application.
 - Native macOS tray icon and 420 x 620 compact popover.
-- Full desktop library view, agent view, settings, detail inspector, and
+- Full desktop library view, agent view, connectors, detail inspector, and
   composer.
 - Local discovery for fifteen agent families.
-- Agent-specific read-only importers for fourteen of them.
+- Agent-specific read-only importers for all fifteen of them.
 - Markdown library with YAML frontmatter.
 - SQLite index with FTS5 and BM25 search.
 - Exact content deduplication with multiple source echoes.
@@ -46,7 +46,7 @@ The MVP is considered healthy when:
 6. `memory_context` returns a labeled prompt block.
 7. `memory_forget` archives the memory and removes it from default search.
 8. The compact panel remains usable at 420 x 620 logical pixels.
-9. The settings screen reports the correct MCP bridge path.
+9. The Connectors screen reports the correct MCP bridge path.
 10. `npm run dist:mac` produces a DMG.
 11. A packaged previous version can download a newer release, replace itself
     in place, pass code-signature verification, and reopen.
@@ -57,7 +57,7 @@ Verified in this repository:
 
 - TypeScript checks pass.
 - `npm run test:agents` passes fixture and config-writer checks for Hermes, Pi,
-  ZCode, and DeepSeek Harness.
+  ZCode, DeepSeek Harness, and Claude Desktop.
 - Production build passes.
 - Isolated MCP integration passes for search, context, remember, forget, and
   stats.
@@ -70,21 +70,24 @@ Verified in this repository:
   ordinary task prompts with no durable-memory signal.
 - An end-to-end MCP query against that imported library found a Trae-authored
   memory through `memory_search` and returned it through `memory_context`.
-- The development settings screen reports
+- The development Connectors screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.11-arm64.dmg` was produced on 2026-11-01.
+- `release/dachshund-0.1.12-arm64.dmg` was produced on 2026-11-01.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.11`.
+  healthy loopback service at version `0.1.12`.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.11` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.12` passed the same
   five-tool MCP smoke test.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
 - Main-window and compact-panel screenshots pass at 920 x 700 and 420 x 620
   with the larger typography and complete category labels.
+- The full app keeps one active view while switching between compact top tabs
+  and the optional Workspace / Insights / App sidebar layout; the same `Cmd+\`
+  shortcut toggles both modes.
 - A packaged Doubao setup session accepted a real
   `Doubao MCP Client` `2.33.5` stdio handshake and updated the UI to the
   verified connected state.
@@ -94,7 +97,7 @@ Verified in this repository:
 The DMG SHA-256 from this build is:
 
 ```text
-3f21098b8c84c16d040e3f96d9c0dbe9e20ad6c2b2b40236572da7419df6f935
+f920b3dd4cd60b730308e0da838e7f1d9480db0ff12a48ab55ca0e3354eb7f4c
 ```
 
 ## Known Limitations
@@ -206,9 +209,20 @@ token are not a defense against a compromised account.
 - the panel is anchored to the current display and clamped to its work area;
 - compact-panel typography is slightly tighter without reducing core body copy.
 
+#### 0.1.12: Local Memory Across A Wider Agent Set
+
+- added a read-only Claude Desktop importer for local Cowork Space memory,
+  account topic files, and agent topic files;
+- mapped Claude Desktop `user`, `feedback`, `project`, and `reference` topic
+  types into the shared memory taxonomy;
+- added a persistent top-tab / sidebar navigation switch with `Cmd+\`;
+- grouped Pulse under Insights and renamed Settings to Connectors;
+- kept the sidebar toggle clear of the macOS window controls at every supported
+  window width.
+
 ### Next
 
-#### 0.1.12: Trustworthy Incremental Import
+#### 0.1.13: Trustworthy Incremental Import
 
 - persist per-source mtime, size, and hash;
 - update an existing memory when its source changes;
@@ -216,7 +230,7 @@ token are not a defense against a compromised account.
 - expose source status in the detail view;
 - add importer fixtures and regression tests.
 
-#### 0.1.13: Reviewable Consolidation
+#### 0.1.14: Reviewable Consolidation
 
 - near-duplicate suggestions;
 - merge and split flows;
@@ -224,7 +238,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.14: Recall Quality
+#### 0.1.15: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -232,7 +246,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-### 0.1.15: Distribution
+### 0.1.16: Distribution
 
 - signed and notarized universal build;
 - update channel;

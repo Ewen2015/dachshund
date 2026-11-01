@@ -115,7 +115,7 @@ claiming that dachshund currently has access to that data.
 | Agent | Native organization | Imported now | Native but not imported |
 | --- | --- | --- | --- |
 | **Claude Code** | `user`, `feedback`, `project`, `reference`, plus written instructions | Typed auto memory maps to About me, Ways of working, Projects, and Facts & references; `CLAUDE.md` and rules map to Ways of working | Session transcripts |
-| **Claude Desktop** | Account topics and project memory | Nothing; MCP connection only | Account topics, preferences, and project memory |
+| **Claude Desktop** | Local Cowork Space and local account/agent topic files plus server-side Chat memory | Typed local topics map to About me, Ways of working, Projects, and Facts & references; `MEMORY.md` is only an index | Ordinary Chat memory and cloud Project memory that are not present locally |
 | **Codex** | Task groups, merged summaries, rollouts | Task groups to Projects, summary to About me, rollout summaries to History, raw memories without a summary to Ways of working | Nothing in the documented local store |
 | **Cursor** | Rules, `AGENTS.md`, automation memory | Local rules and agent definitions to Ways of working | Repository `AGENTS.md` and cloud automation `MEMORIES.md` |
 | **DeepSeek Harness** | Append-only session events; durable memory comes from plugins or MCP | Explicit durable preference and correction cues to About me or Ways of working | Raw session events, compaction records, and MCP memory stores |

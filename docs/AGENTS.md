@@ -16,7 +16,7 @@ and build-time fetching rules.
 | GitHub Copilot | Yes | `~/.copilot/mcp-config.json` | Memory and instruction Markdown |
 | OpenCode | Yes | `~/.config/opencode/opencode.json` | Global `AGENTS.md` and observed memory Markdown |
 | Windsurf | Yes | `~/.codeium/windsurf/mcp_config.json` | Windsurf memory Markdown |
-| Claude Desktop | Connect only | Claude Desktop MCP config | No importer in the current MVP |
+| Claude Desktop | Yes | `Claude(-3p)/claude_desktop_config.json` | Local Cowork Space `MEMORY.md` topic files |
 | WorkBuddy | Yes | `~/.workbuddy/mcp.json` | Identity, user memory, and workspace memory Markdown |
 | Doubao | Yes | Guided STDIO connector | Agent Mode global and session memory Markdown |
 | Trae | Yes | `~/Library/Application Support/TRAE SOLO CN/User/mcp.json` | User profile, project memory, topics, and session memory JSONL |
@@ -121,13 +121,33 @@ MCP target: `~/.codeium/windsurf/mcp_config.json`, under `mcpServers`.
 
 ## Claude Desktop
 
-Home: `~/Library/Application Support/Claude`
+Data home:
 
-No importer is currently registered. Claude Desktop can read the shared library
-after dachshund adds an MCP entry to:
+- `~/Library/Application Support/Claude-3p` for the current 3p deployment;
+- `~/Library/Application Support/Claude` for the legacy profile.
+
+dachshund prefers `Claude-3p` when present and scans both homes. The matching
+`claude_desktop_config.json` is the MCP target.
+
+Imported:
+
+- topic Markdown under
+  `local-agent-mode-sessions/<account>/<org>/spaces/<space-id>/memory/`;
+- topic Markdown under
+  `local-agent-mode-sessions/<account>/<org>/memory/memory/` and
+  `local-agent-mode-sessions/<account>/<org>/agent/memory/`;
+- `user`, `feedback`, `project`, and `reference` frontmatter types through the
+  shared taxonomy.
+
+`MEMORY.md` is an index, not a memory body, and is skipped. The Space name in
+the sibling `spaces.json` becomes the memory's project label.
+
+Not imported: server-side ordinary Chat memory and cloud Project memory that
+are not present as local topic files. Those remain account-side. Claude
+Desktop can still read dachshund's shared library through:
 
 ```text
-~/Library/Application Support/Claude/claude_desktop_config.json
+~/Library/Application Support/Claude-3p/claude_desktop_config.json
 ```
 
 ## WorkBuddy

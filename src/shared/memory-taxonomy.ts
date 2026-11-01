@@ -154,14 +154,20 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
     ]
   },
   'claude-desktop': {
-    title: 'Account topics + project memory',
+    title: 'Local Space memory + account topics',
     summary:
-      'Claude Desktop stores individual topics and project memory on the account. dachshund connects over MCP but does not import that account memory.',
-    path: 'Account memory + claude_desktop_config.json',
+      'Claude Desktop keeps Cowork Space memory in local Markdown topic files. Account and ordinary Chat memory remain server-side; dachshund reads the local Space files and connects the rest over MCP.',
+    path: '~/Library/Application Support/Claude-3p/local-agent-mode-sessions/.../spaces/<id>/memory',
     mappings: [
-      { native: 'topic', description: 'A remembered subject from chat', category: 'knowledge', kinds: ['fact'], imported: false },
-      { native: 'preference', description: 'Stable user expectations', category: 'about', kinds: ['preference'], imported: false },
-      { native: 'project memory', description: 'Context scoped to one project', category: 'projects', kinds: ['project'], imported: false }
+      { native: 'user topic', description: 'Role, goals, preferences, and knowledge', category: 'about', kinds: ['profile'], imported: true },
+      { native: 'feedback topic', description: 'Corrections and confirmed working methods', category: 'working', kinds: ['feedback'], imported: true },
+      { native: 'project topic', description: 'Ongoing work, decisions, and deadlines', category: 'projects', kinds: ['project'], imported: true },
+      { native: 'reference topic', description: 'Where external information lives', category: 'knowledge', kinds: ['reference'], imported: true },
+      { native: 'local account topic', description: 'Topic files under the local account memory directory', category: 'knowledge', kinds: ['fact'], imported: true },
+      { native: 'local agent topic', description: 'Topic files under the local agent memory directory', category: 'knowledge', kinds: ['fact'], imported: true },
+      { native: 'MEMORY.md', description: 'Index only; topic files hold the memory bodies', category: 'knowledge', kinds: ['fact'], imported: false },
+      { native: 'server-side Chat memory', description: 'Ordinary Chat topics and preferences stored on the account', category: 'knowledge', kinds: ['fact'], imported: false },
+      { native: 'cloud project memory', description: 'Project memory that is not present as a local topic file', category: 'projects', kinds: ['project'], imported: false }
     ]
   },
   codex: {

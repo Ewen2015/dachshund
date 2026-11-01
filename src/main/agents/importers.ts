@@ -499,6 +499,73 @@ function importClaude(agent: AgentDefinition): ImportedMemory[] {
   )
 }
 
+function isClaudeDesktopMemoryFile(file: string): boolean {
+  const normalized = file.split(path.sep).join('/')
+  return (
+    /\/local-agent-mode-sessions\/[^/]+\/[^/]+\/(?:memory|agent\/memory|spaces\/[^/]+\/memory)\/.+\.md$/i.test(
+      normalized
+    ) && path.basename(file).toLowerCase() !== 'memory.md'
+  )
+}
+
+function claudeDesktopSpace(file: string): { id: string; name: string } | null {
+  const normalized = file.split(path.sep).join('/')
+  const match = normalized.match(
+    /\/local-agent-mode-sessions\/[^/]+\/[^/]+\/spaces\/([^/]+)\/memory\//i
+  )
+  if (!match) return null
+  const id = match[1]
+  const spacesMarker = `/spaces/${id}/memory/`
+  const markerIndex = normalized.indexOf(spacesMarker)
+  if (markerIndex < 0) return null
+  const spacesFile = path.join(
+    normalized.slice(0, markerIndex).split('/').join(path.sep),
+    'spaces.json'
+  )
+  const raw = readText(spacesFile)
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw) as { spaces?: unknown }
+      if (Array.isArray(parsed.spaces)) {
+        for (const item of parsed.spaces) {
+          if (!item || typeof item !== 'object' || Array.isArray(item)) continue
+          const space = item as Record<string, unknown>
+          if (space.id === id && typeof space.name === 'string' && space.name.trim()) {
+            return { id, name: space.name.trim() }
+          }
+        }
+      }
+    } catch {
+      // A malformed index should not prevent other local memory files being read.
+    }
+  }
+  return { id, name: `Claude Space ${id.slice(0, 8)}` }
+}
+
+function importClaudeDesktop(agent: AgentDefinition): ImportedMemory[] {
+  const homes = [...new Set([agent.home, ...(agent.homes ?? [])])]
+  const out: ImportedMemory[] = []
+  for (const home of homes) {
+    const sessionRoot = path.join(home, 'local-agent-mode-sessions')
+    for (const file of walk(sessionRoot, isClaudeDesktopMemoryFile)) {
+      const space = claudeDesktopSpace(file)
+      const memory = parseMarkdownFile(file, agent, {
+        kind: space ? 'project' : 'fact',
+        project: space?.name ?? null,
+        tags: [
+          'claude-desktop',
+          space ? 'space-memory' : 'local-memory',
+          ...(space ? [`space:${space.id}`] : [])
+        ]
+      })
+      if (!memory) continue
+      if (space) memory.sourceRef = `space:${space.id}`
+      out.push(memory)
+    }
+  }
+  return out
+}
+
 function codexTags(section: string): string[] {
   const match = section.match(/^## keywords\s*\n+([\s\S]*?)(?=\n## |\n*$)/m)
   if (!match) return []
@@ -1191,6 +1258,9 @@ export function importAgentMemories(agent: AgentDefinition): ImportedMemory[] {
   switch (agent.id) {
     case 'claude-code':
       memories = importClaude(agent)
+      break
+    case 'claude-desktop':
+      memories = importClaudeDesktop(agent)
       break
     case 'codex':
       memories = [...importCodexMarkdown(agent), ...importCodexSqlite(agent)]

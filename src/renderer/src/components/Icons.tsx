@@ -46,12 +46,11 @@ export function PulseIcon({ size = 18, className }: IconProps) {
   )
 }
 
-export function SettingsIcon({ size = 18, className }: IconProps) {
+export function ConnectorsIcon({ size = 18, className }: IconProps) {
   return (
     <svg {...base(size, className)}>
-      <path d="M4 7h8M16 7h4M4 17h4M12 17h8" />
-      <circle cx="14" cy="7" r="2" />
-      <circle cx="10" cy="17" r="2" />
+      <path d="M10 13a4 4 0 0 0 5.7.1l2.2-2.2a4 4 0 0 0-5.7-5.7L11 6.4" />
+      <path d="M14 11a4 4 0 0 0-5.7-.1l-2.2 2.2a4 4 0 0 0 5.7 5.7l1.2-1.2" />
     </svg>
   )
 }
@@ -190,6 +189,15 @@ export function MenuBarIcon({ size = 16, className }: IconProps) {
       <rect x="3" y="4.5" width="18" height="15" rx="2.5" />
       <path d="M3 8.5h18" />
       <circle cx="17.5" cy="6.5" r=".8" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+export function SidebarToggleIcon({ size = 17, className }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <rect x="3" y="4.5" width="18" height="15" rx="2.5" />
+      <path d="M9 4.5v15" />
     </svg>
   )
 }

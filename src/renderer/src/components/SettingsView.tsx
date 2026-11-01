@@ -26,58 +26,27 @@ export function SettingsView({
   onQuit: () => void
 }) {
   const installed = sortAgentsByMemory(state.agents.filter((agent) => agent.installed))
+  const connected = installed.filter((agent) => agent.mcpInstalled).length
   return (
     <div className="page settings-page">
       <section className="page-head">
         <p className="eyebrow">
           <span className="eyebrow-dot" />
-          Preferences
+          Connectors
         </p>
-        <h1>Quiet by default.</h1>
+        <h1>Connect every agent.</h1>
         <p className="page-copy">
-          dachshund has no account, no telemetry, and no opinion about where your memories should
-          live. They live with you.
+          Give each local agent one path to the same memory library over MCP. Connections stay on
+          this Mac, and dachshund never rewrites the memory files an agent already keeps.
         </p>
       </section>
 
       <section className="settings-section">
         <div className="settings-heading">
-          <h2>Library</h2>
-          <span>Plain Markdown</span>
-        </div>
-        <div className="settings-card">
-          <div className="settings-row">
-            <div className="settings-icon">
-              <FolderIcon size={18} />
-            </div>
-            <div className="settings-copy">
-              <strong>Memory library</strong>
-              <code>{state.libraryPath}</code>
-            </div>
-            <button className="ghost-button small" type="button" onClick={() => onReveal(state.libraryPath)}>
-              Reveal
-            </button>
-          </div>
-          <div className="settings-row">
-            <div className="settings-icon">
-              <FileIcon size={18} />
-            </div>
-            <div className="settings-copy">
-              <strong>Every memory is a file</strong>
-              <span>Readable, editable, diffable, and yours. SQLite is only the index.</span>
-            </div>
-            <button className="ghost-button small" type="button" onClick={onScan}>
-              <RefreshIcon size={13} />
-              Rebuild index
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section className="settings-section">
-        <div className="settings-heading">
-          <h2>Sharing</h2>
-          <span>MCP</span>
+          <h2>Agent connectors</h2>
+          <span>
+            {connected} of {installed.length} connected
+          </span>
         </div>
         <div className="settings-card">
           <div className="settings-row mcp-intro">
@@ -85,7 +54,7 @@ export function SettingsView({
               <ArrowUpRightIcon size={18} />
             </div>
             <div className="settings-copy">
-              <strong>One memory, every agent</strong>
+              <strong>Shared memory over MCP</strong>
               <span>
                 Most agents receive a small MCP entry automatically. App-managed connectors open a
                 guided setup instead. No memory files are touched.
@@ -127,6 +96,40 @@ export function SettingsView({
               </button>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <div className="settings-heading">
+          <h2>Library</h2>
+          <span>Plain Markdown</span>
+        </div>
+        <div className="settings-card">
+          <div className="settings-row">
+            <div className="settings-icon">
+              <FolderIcon size={18} />
+            </div>
+            <div className="settings-copy">
+              <strong>Memory library</strong>
+              <code>{state.libraryPath}</code>
+            </div>
+            <button className="ghost-button small" type="button" onClick={() => onReveal(state.libraryPath)}>
+              Reveal
+            </button>
+          </div>
+          <div className="settings-row">
+            <div className="settings-icon">
+              <FileIcon size={18} />
+            </div>
+            <div className="settings-copy">
+              <strong>Every memory is a file</strong>
+              <span>Readable, editable, diffable, and yours. SQLite is only the index.</span>
+            </div>
+            <button className="ghost-button small" type="button" onClick={onScan}>
+              <RefreshIcon size={13} />
+              Rebuild index
+            </button>
+          </div>
         </div>
       </section>
 

@@ -51,7 +51,8 @@ gradients, glass effects inside content areas, and decorative blobs.
 - UI stack: SF Pro on macOS, with Instrument Sans Variable as a bundled
   cross-platform fallback.
 - Monospace: SF Mono or Menlo for paths and memory IDs.
-- Page headline: large, tight tracking, around 40 to 58 px in the full app.
+- Page headline: large, tight tracking, around 38 px at the default window
+  size in the full app.
 - Section title: 16 to 20 px, semibold.
 - Body: 12 to 15 px depending on surface.
 - Metadata: 9 to 11 px, often uppercase with letter spacing.
@@ -66,14 +67,18 @@ the collar accent, not from decorative typography.
 
 ### Full App
 
-- 62 px top chrome with brand, segmented navigation, search, menu bar action,
-  and one primary button.
+- 62 px top chrome with a sidebar toggle, brand, search, menu bar action, and
+  one primary button.
+- Navigation has two layouts that share the same active view: compact segmented
+  tabs in the top chrome, or a 204 px sidebar. The toggle sits between the macOS
+  window controls and the brand mark with a 16 px safety gap; the preference
+  persists.
 - Centered content with a maximum readable width.
 - Feed rows use a left rail and a high-density text block.
 - Pulse uses a range filter, a four-cell summary strip, one stacked bar chart and
   two compact memory-specific detail cards. See [PULSE.md](PULSE.md).
 - Memory detail opens as a right-side inspector rather than replacing the feed.
-- Settings use grouped white cards separated by generous vertical space.
+- Connectors use grouped white cards separated by generous vertical space.
 
 ### Menu Bar
 
@@ -92,7 +97,9 @@ full-screen Space without switching away from it, and hides on blur.
 - **Cards:** 1 px `--line`, white fill, 8 to 14 px radius, no heavy shadow.
 - **Primary button:** black fill, white text, 32 px height, short label.
 - **Ghost button:** white fill, 1 px border, black text.
-- **Tabs:** compact segmented control on `rgba(17,17,18,0.035)`.
+- **Tabs:** compact segmented control on `rgba(17,17,18,0.035)`. The optional
+  sidebar groups the same destinations into Workspace, Insights and App
+  sections. Pulse belongs under Insights.
 - **Agent identity:** real product marks in restrained white tiles; never used
   for large background fills.
 - **Echo stack:** overlapping product marks plus a count when one memory came
@@ -143,8 +150,9 @@ The menu bar panel should appear immediately. Do not animate window position.
 - Body text and controls meet readable contrast against white and `#fafafa`.
 - Color is never the only label: state also appears as text such as "MCP on",
   "Local only", or "2 agents".
-- Keyboard shortcuts: `Cmd+K` search, `Cmd+N` new memory, `Cmd+Shift+M`
-  minimize to menu bar, `Cmd+Shift+D` toggle compact panel, `Escape` close.
+- Keyboard shortcuts: `Cmd+K` search, `Cmd+N` new memory, `Cmd+\` toggle
+  top tabs/sidebar, `Cmd+Shift+M` minimize to menu bar, `Cmd+Shift+D` toggle
+  compact panel, `Escape` close.
 
 ## Verification
 

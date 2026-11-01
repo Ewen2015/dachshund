@@ -1,91 +1,72 @@
 import type { Counts } from '../../../shared/types'
-import { AgentsIcon, MemoryIcon, PlusIcon, PulseIcon, SettingsIcon } from './Icons'
-import { Mark } from './Mark'
-import { LockIcon } from './Icons'
+import { AgentsIcon, ConnectorsIcon, MemoryIcon, PulseIcon } from './Icons'
 
-type View = 'memory' | 'pulse' | 'agents' | 'settings'
+type View = 'memory' | 'pulse' | 'agents' | 'connectors'
 
 export function Sidebar({
   view,
   onChange,
-  counts,
-  onNew
+  counts
 }: {
   view: View
   onChange: (view: View) => void
   counts: Counts
-  onNew: () => void
 }) {
   return (
-    <aside className="sidebar">
-      <div className="brand">
-        <Mark size={27} className="brand-mark" />
-        <span className="brand-word">dachshund</span>
-      </div>
-
-      <button className="new-memory" onClick={onNew} type="button">
-        <PlusIcon size={15} />
-        <span>New memory</span>
-        <kbd>⌘N</kbd>
-      </button>
-
-      <nav className="nav" aria-label="Primary">
+    <aside className="app-sidebar" aria-label="Sidebar navigation">
+      <div className="app-sidebar-group">
+        <p className="app-sidebar-label">Workspace</p>
         <button
-          className={`nav-item ${view === 'memory' ? 'active' : ''}`}
+          className={`app-sidebar-item ${view === 'memory' ? 'active' : ''}`}
           onClick={() => onChange('memory')}
           type="button"
-          aria-label="Memory"
+          aria-current={view === 'memory' ? 'page' : undefined}
         >
           <MemoryIcon size={17} />
           <span>Memory</span>
-          <span className="nav-count">{counts.memories}</span>
+          <small>{counts.memories}</small>
         </button>
         <button
-          className={`nav-item ${view === 'pulse' ? 'active' : ''}`}
+          className={`app-sidebar-item ${view === 'agents' ? 'active' : ''}`}
+          onClick={() => onChange('agents')}
+          type="button"
+          aria-current={view === 'agents' ? 'page' : undefined}
+        >
+          <AgentsIcon size={17} />
+          <span>Agents</span>
+          <small>{counts.agents}</small>
+        </button>
+      </div>
+
+      <div className="app-sidebar-group">
+        <p className="app-sidebar-label">Insights</p>
+        <button
+          className={`app-sidebar-item ${view === 'pulse' ? 'active' : ''}`}
           onClick={() => onChange('pulse')}
           type="button"
-          aria-label="Pulse"
+          aria-current={view === 'pulse' ? 'page' : undefined}
         >
           <PulseIcon size={17} />
           <span>Pulse</span>
         </button>
-        <button
-          className={`nav-item ${view === 'agents' ? 'active' : ''}`}
-          onClick={() => onChange('agents')}
-          type="button"
-          aria-label="Agents"
-        >
-          <AgentsIcon size={17} />
-          <span>Agents</span>
-          <span className="nav-count">{counts.agents}</span>
-        </button>
-        <button
-          className={`nav-item ${view === 'settings' ? 'active' : ''}`}
-          onClick={() => onChange('settings')}
-          type="button"
-          aria-label="Settings"
-        >
-          <SettingsIcon size={17} />
-          <span>Settings</span>
-        </button>
-      </nav>
-
-      <div className="sidebar-spacer" />
-
-      <div className="local-note">
-        <div className="local-pill">
-          <LockIcon size={12} />
-          <span>Local only</span>
-        </div>
-        <p>
-          {counts.memories} memories from {counts.agents} agents.
-          <br />
-          Nothing leaves this Mac.
-        </p>
       </div>
-      <div className="sidebar-foot">
-        <span>dachshund</span>
-        <span>v0.1</span>
+
+      <div className="app-sidebar-group app-sidebar-system">
+        <p className="app-sidebar-label">App</p>
+        <button
+          className={`app-sidebar-item ${view === 'connectors' ? 'active' : ''}`}
+          onClick={() => onChange('connectors')}
+          type="button"
+          aria-current={view === 'connectors' ? 'page' : undefined}
+        >
+          <ConnectorsIcon size={17} />
+          <span>Connectors</span>
+        </button>
+      </div>
+
+      <div className="app-sidebar-foot">
+        <span className="app-sidebar-status" />
+        <span>Local only</span>
       </div>
     </aside>
   )

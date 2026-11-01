@@ -77,7 +77,7 @@ the wider library view. It is the library and control surface:
 - Pulse: growth, agent contribution, overlap, category mix and freshness.
 - New-memory composer.
 - Agent discovery, sharing toggles, and MCP connection controls.
-- Settings, library path, privacy model, and index rebuild.
+- Connectors, library path, privacy model, and index rebuild.
 
 ### Menu Bar Popover
 

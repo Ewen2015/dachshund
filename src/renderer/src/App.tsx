@@ -16,12 +16,13 @@ import { McpSetupDialog } from './components/McpSetupDialog'
 import { Onboarding } from './components/Onboarding'
 import { PulseView } from './components/PulseView'
 import { SettingsView } from './components/SettingsView'
+import { Sidebar } from './components/Sidebar'
 import { Toast } from './components/Toast'
 import { UpdateNotice } from './components/UpdateNotice'
 import { useUpdater } from './lib/useUpdater'
 import type { MemoryCategoryId } from '../../shared/memory-taxonomy'
 
-type View = 'memory' | 'pulse' | 'agents' | 'settings'
+type View = 'memory' | 'pulse' | 'agents' | 'connectors'
 
 export default function App() {
   const [state, setState] = useState<AppState | null>(null)
@@ -38,6 +39,13 @@ export default function App() {
   const [progress, setProgress] = useState<Record<string, ScanProgress>>({})
   const [toast, setToast] = useState<{ message: string; error?: boolean } | null>(null)
   const [bridgePath, setBridgePath] = useState('')
+  const [sidebarMode, setSidebarMode] = useState(() => {
+    try {
+      return window.localStorage.getItem('dachshund.sidebar-navigation') === '1'
+    } catch {
+      return false
+    }
+  })
   const updater = useUpdater()
   const searchRef = useRef<HTMLInputElement>(null)
   const toastTimer = useRef<number | null>(null)
@@ -65,6 +73,14 @@ export default function App() {
     },
     [activeAgentId, query]
   )
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('dachshund.sidebar-navigation', sidebarMode ? '1' : '0')
+    } catch {
+      // Navigation still works if storage is unavailable.
+    }
+  }, [sidebarMode])
 
   useEffect(() => {
     void (async () => {
@@ -119,6 +135,10 @@ export default function App() {
       if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'm') {
         event.preventDefault()
         void window.dachshund.minimizeToTray()
+      }
+      if ((event.metaKey || event.ctrlKey) && event.key === '\\') {
+        event.preventDefault()
+        setSidebarMode((current) => !current)
       }
       if (event.key === 'Escape') {
         if (mcpSetupAgentId) setMcpSetupAgentId(null)
@@ -251,7 +271,7 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${sidebarMode ? 'has-sidebar' : ''}`}>
       <Header
         view={view}
         onView={setView}
@@ -260,102 +280,109 @@ export default function App() {
         searchRef={searchRef}
         onNew={() => setComposerOpen(true)}
         onMinimize={() => void window.dachshund.minimizeToTray()}
+        sidebarMode={sidebarMode}
+        onToggleSidebar={() => setSidebarMode((current) => !current)}
         agents={state.counts.agents}
       />
-      <main className="main">
-        {updater.visible && updater.state && (
-          <UpdateNotice
-            update={updater.state}
-            onDownload={() => void updater.download()}
-            onOpenDownloaded={() => void updater.openDownloaded()}
-            onDismiss={updater.dismiss}
-          />
+      <div className="app-body">
+        {sidebarMode && (
+          <Sidebar view={view} onChange={setView} counts={state.counts} />
         )}
-        <div className="content-scroll">
-          {view === 'memory' &&
-            (activeAgent ? (
-              <AgentMemoryView
-                key={activeAgent.id}
-                agent={activeAgent}
-                agents={state.agents}
-                memories={memories}
-                selectedId={selectedId}
-                onSelect={(id) => void select(id)}
-                onBack={closeAgentMemory}
-                onOpenAgent={openAgentMemory}
-                onScan={() => void scan()}
-                scanning={scanning || state.scanning}
-              />
-            ) : (
-              <MemoryFeed
-                memories={memories}
+        <main className="main">
+          {updater.visible && updater.state && (
+            <UpdateNotice
+              update={updater.state}
+              onDownload={() => void updater.download()}
+              onOpenDownloaded={() => void updater.openDownloaded()}
+              onDismiss={updater.dismiss}
+            />
+          )}
+          <div className="content-scroll">
+            {view === 'memory' &&
+              (activeAgent ? (
+                <AgentMemoryView
+                  key={activeAgent.id}
+                  agent={activeAgent}
+                  agents={state.agents}
+                  memories={memories}
+                  selectedId={selectedId}
+                  onSelect={(id) => void select(id)}
+                  onBack={closeAgentMemory}
+                  onOpenAgent={openAgentMemory}
+                  onScan={() => void scan()}
+                  scanning={scanning || state.scanning}
+                />
+              ) : (
+                <MemoryFeed
+                  memories={memories}
+                  agents={state.agents}
+                  counts={state.counts}
+                  activeAgentId={null}
+                  activeCategory={memoryCategory}
+                  onCategory={setMemoryCategory}
+                  onOpenAgent={openAgentMemory}
+                  onOpenAllAgents={closeAgentMemory}
+                  selectedId={selectedId}
+                  onSelect={(id) => void select(id)}
+                  onNew={() => setComposerOpen(true)}
+                  onScan={() => void scan()}
+                  scanning={scanning || state.scanning}
+                  query={query}
+                  onClearQuery={() => setQuery('')}
+                />
+              ))}
+            {view === 'pulse' && (
+              <PulseView
+                memories={state.memories}
                 agents={state.agents}
                 counts={state.counts}
-                activeAgentId={null}
-                activeCategory={memoryCategory}
-                onCategory={setMemoryCategory}
-                onOpenAgent={openAgentMemory}
-                onOpenAllAgents={closeAgentMemory}
-                selectedId={selectedId}
-                onSelect={(id) => void select(id)}
-                onNew={() => setComposerOpen(true)}
-                onScan={() => void scan()}
                 scanning={scanning || state.scanning}
-                query={query}
-                onClearQuery={() => setQuery('')}
+                onScan={() => void scan()}
+                onOpenCategory={(category) => {
+                  setActiveAgentId(null)
+                  setMemoryCategory(category)
+                  setQuery('')
+                  setMemories(state.memories)
+                  setView('memory')
+                }}
+                onOpenAgent={(id) => {
+                  setView('memory')
+                  openAgentMemory(id)
+                }}
+                onOpenMemory={(id) => {
+                  setActiveAgentId(null)
+                  setMemoryCategory(null)
+                  setQuery('')
+                  setView('memory')
+                  void select(id)
+                }}
               />
-            ))}
-          {view === 'pulse' && (
-            <PulseView
-              memories={state.memories}
-              agents={state.agents}
-              counts={state.counts}
-              scanning={scanning || state.scanning}
-              onScan={() => void scan()}
-              onOpenCategory={(category) => {
-                setActiveAgentId(null)
-                setMemoryCategory(category)
-                setQuery('')
-                setMemories(state.memories)
-                setView('memory')
-              }}
-              onOpenAgent={(id) => {
-                setView('memory')
-                openAgentMemory(id)
-              }}
-              onOpenMemory={(id) => {
-                setActiveAgentId(null)
-                setMemoryCategory(null)
-                setQuery('')
-                setView('memory')
-                void select(id)
-              }}
-            />
-          )}
-          {view === 'agents' && (
-            <AgentsView
-              agents={state.agents}
-              counts={state.counts}
-              scanning={scanning}
-              progress={progress}
-              onScan={() => void scan()}
-              onToggleShared={(id, shared) => void toggleShared(id, shared)}
-              onInstallMcp={(id) => void installMcp(id)}
-              onReveal={(path) => void window.dachshund.reveal(path)}
-            />
-          )}
-          {view === 'settings' && (
-            <SettingsView
-              state={state}
-              bridgePath={bridgePath}
-              onScan={() => void scan()}
-              onReveal={(path) => void window.dachshund.reveal(path)}
-              onInstallMcp={(id) => void installMcp(id)}
-              onQuit={() => void window.dachshund.quit()}
-            />
-          )}
-        </div>
-      </main>
+            )}
+            {view === 'agents' && (
+              <AgentsView
+                agents={state.agents}
+                counts={state.counts}
+                scanning={scanning}
+                progress={progress}
+                onScan={() => void scan()}
+                onToggleShared={(id, shared) => void toggleShared(id, shared)}
+                onInstallMcp={(id) => void installMcp(id)}
+                onReveal={(path) => void window.dachshund.reveal(path)}
+              />
+            )}
+            {view === 'connectors' && (
+              <SettingsView
+                state={state}
+                bridgePath={bridgePath}
+                onScan={() => void scan()}
+                onReveal={(path) => void window.dachshund.reveal(path)}
+                onInstallMcp={(id) => void installMcp(id)}
+                onQuit={() => void window.dachshund.quit()}
+              />
+            )}
+          </div>
+        </main>
+      </div>
 
       {detail && (
         <MemoryDetail

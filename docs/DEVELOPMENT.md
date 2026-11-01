@@ -174,9 +174,9 @@ and notarized.
 
 Verified build:
 
-- output: `release/dachshund-0.1.11-arm64.dmg`
+- output: `release/dachshund-0.1.12-arm64.dmg`
 - SHA-256:
-  `3f21098b8c84c16d040e3f96d9c0dbe9e20ad6c2b2b40236572da7419df6f935`
+  `f920b3dd4cd60b730308e0da838e7f1d9480db0ff12a48ab55ca0e3354eb7f4c`
 - packaged app launch and packaged MCP bridge smoke test pass
 - automatic in-place update, signature verification and relaunch pass
 - code signing: ad-hoc only
@@ -225,7 +225,7 @@ single banner line.
 Open the app once, then retry. In development, start the app with the same
 `DACHSHUND_HOME` used by the agent configuration.
 
-### The settings screen shows the wrong bridge path
+### The Connectors screen shows the wrong bridge path
 
 Development should show `<repo>/out/mcp/index.cjs`. A packaged build should show
 `<app>/Contents/Resources/mcp/index.cjs`.

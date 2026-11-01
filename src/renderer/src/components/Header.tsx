@@ -1,8 +1,15 @@
 import type { RefObject } from 'react'
-import { MenuBarIcon, PlusIcon, SearchIcon } from './Icons'
+import { MenuBarIcon, PlusIcon, SearchIcon, SidebarToggleIcon } from './Icons'
 import { Mark } from './Mark'
 
-type View = 'memory' | 'pulse' | 'agents' | 'settings'
+type View = 'memory' | 'pulse' | 'agents' | 'connectors'
+
+const tabs: Array<{ id: View; label: string }> = [
+  { id: 'memory', label: 'Memory' },
+  { id: 'pulse', label: 'Pulse' },
+  { id: 'agents', label: 'Agents' },
+  { id: 'connectors', label: 'Connectors' }
+]
 
 export function Header({
   view,
@@ -12,6 +19,8 @@ export function Header({
   searchRef,
   onNew,
   onMinimize,
+  sidebarMode,
+  onToggleSidebar,
   agents
 }: {
   view: View
@@ -21,26 +30,42 @@ export function Header({
   searchRef: RefObject<HTMLInputElement | null>
   onNew: () => void
   onMinimize: () => void
+  sidebarMode: boolean
+  onToggleSidebar: () => void
   agents: number
 }) {
   return (
     <header className="topbar">
+      <button
+        className="sidebar-toggle"
+        type="button"
+        onClick={onToggleSidebar}
+        aria-label={sidebarMode ? 'Use top tab navigation' : 'Use sidebar navigation'}
+        aria-pressed={sidebarMode}
+        aria-keyshortcuts="Meta+\\"
+        title={sidebarMode ? 'Use top tab navigation (⌘\\)' : 'Use sidebar navigation (⌘\\)'}
+      >
+        <SidebarToggleIcon size={17} />
+      </button>
       <div className="topbar-brand">
         <Mark size={20} />
         <span>dachshund</span>
       </div>
-      <nav className="topbar-nav" aria-label="Primary">
-        {(['memory', 'pulse', 'agents', 'settings'] as const).map((item) => (
-          <button
-            key={item}
-            className={`topbar-tab ${view === item ? 'active' : ''}`}
-            type="button"
-            onClick={() => onView(item)}
-          >
-            {item[0].toUpperCase() + item.slice(1)}
-          </button>
-        ))}
-      </nav>
+      {!sidebarMode && (
+        <nav className="topbar-nav" aria-label="Primary">
+          {tabs.map((item) => (
+            <button
+              key={item.id}
+              className={`topbar-tab ${view === item.id ? 'active' : ''}`}
+              type="button"
+              onClick={() => onView(item.id)}
+              aria-current={view === item.id ? 'page' : undefined}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
+      )}
       <div className="topbar-grow" />
       <div className={`search-box ${view !== 'memory' ? 'quiet' : ''}`}>
         <SearchIcon size={14} />

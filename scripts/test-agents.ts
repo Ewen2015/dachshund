@@ -223,6 +223,149 @@ function testClaudeTaxonomy(): void {
   assert.ok(!memories.some((memory) => memory.content.includes('Memory Index')))
 }
 
+function testClaudeDesktopTaxonomy(): void {
+  const home = path.join(root, 'claude-desktop')
+  const legacyHome = path.join(root, 'claude-desktop-legacy')
+  const agent: AgentDefinition = {
+    ...definition(
+      'claude-desktop',
+      'Claude Desktop',
+      home,
+      path.join(home, 'claude_desktop_config.json')
+    ),
+    homes: [legacyHome]
+  }
+  const organization = path.join(
+    home,
+    'local-agent-mode-sessions',
+    'account',
+    'org'
+  )
+  const spaceId = 'ef7098ea-92cb-4490-b119-484d8a338116'
+  const memoryDir = path.join(organization, 'spaces', spaceId, 'memory')
+  write(
+    path.join(organization, 'spaces.json'),
+    JSON.stringify({
+      spaces: [{ id: spaceId, name: 'Memory research' }]
+    })
+  )
+  write(
+    path.join(memoryDir, 'MEMORY.md'),
+    '# Memory index\n\n- [Delivery](feedback_delivery.md) — verified local evidence'
+  )
+  write(
+    path.join(memoryDir, 'feedback_delivery.md'),
+    [
+      '---',
+      'name: delivery',
+      'description: Verified local evidence before release',
+      'type: feedback',
+      '---',
+      '',
+      'Report exact local verification evidence before claiming a release is complete.'
+    ].join('\n')
+  )
+  write(
+    path.join(memoryDir, 'project_context.md'),
+    [
+      '---',
+      'name: project-context',
+      'description: Local memory migration',
+      'type: project',
+      '---',
+      '',
+      'The local memory migration stays on version 0.1.x.'
+    ].join('\n')
+  )
+  write(
+    path.join(
+      organization,
+      'memory',
+      'memory',
+      'reference_dashboard.md'
+    ),
+    [
+      '---',
+      'name: dashboard',
+      'description: Release dashboard',
+      'type: reference',
+      '---',
+      '',
+      'The release dashboard is the source of truth for shipped artifacts.'
+    ].join('\n')
+  )
+  write(
+    path.join(organization, 'agent', 'memory', 'user_role.md'),
+    [
+      '---',
+      'name: user-role',
+      'description: Product context',
+      'type: user',
+      '---',
+      '',
+      'The user is responsible for product direction and release quality.'
+    ].join('\n')
+  )
+  const legacyOrganization = path.join(
+    legacyHome,
+    'local-agent-mode-sessions',
+    'legacy-account',
+    'legacy-org'
+  )
+  write(
+    path.join(legacyOrganization, 'memory', 'memory', 'reference_legacy.md'),
+    [
+      '---',
+      'name: legacy-reference',
+      'description: Legacy profile memory',
+      'type: reference',
+      '---',
+      '',
+      'The legacy Claude profile keeps its own local memory files.'
+    ].join('\n')
+  )
+
+  const memories = importAgentMemories(agent)
+  assert.equal(memories.length, 5)
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'feedback' &&
+        memory.project === 'Memory research' &&
+        memory.sourceRef === `space:${spaceId}`
+    )
+  )
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'project' && memory.project === 'Memory research'
+    )
+  )
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'reference' &&
+        memory.tags.includes('claude-desktop') &&
+        memory.tags.includes('local-memory')
+    )
+  )
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'profile' &&
+        memory.sourcePath.includes(`${path.sep}agent${path.sep}memory${path.sep}`)
+    )
+  )
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'reference' &&
+        memory.sourcePath.startsWith(legacyHome)
+    )
+  )
+  assert.ok(!memories.some((memory) => memory.content.includes('Memory index')))
+}
+
 function testCodexRolloutTaxonomy(): void {
   const home = path.join(root, 'codex')
   const agent = definition('codex', 'Codex', home, path.join(home, 'config.toml'))
@@ -722,6 +865,7 @@ try {
   testDoubaoTaxonomy()
   testInstructionsAndObservedMemory()
   testClaudeTaxonomy()
+  testClaudeDesktopTaxonomy()
   testCodexRolloutTaxonomy()
   testGeminiTaxonomy()
   testKindNormalization()
