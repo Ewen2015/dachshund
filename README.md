@@ -191,9 +191,9 @@ The tray icon, global shortcuts and 420 × 620 popover make the library ambient.
 The panel opens on the display you are using and stays above the current
 full-screen Space without switching screens. Use `Cmd+Shift+M` to minimize to
 the menu bar or `Cmd+Shift+D` to toggle the compact panel. The full app can use
-compact top tabs or a Magpie-style sidebar; switch with the control beside the
-window buttons or `Cmd+\`. In sidebar mode, Pulse sits under Insights. dachshund
-remembers the choice.
+compact top tabs or an optional sidebar navigation inspired by Magpie's product
+design; switch with the control beside the window buttons or `Cmd+\`. In sidebar
+mode, Pulse sits under Insights. dachshund remembers the choice.
 
 <img src="docs/screenshots/12-sidebar.png" width="900" alt="dachshund full app using the optional sidebar navigation, with the logo after the sidebar toggle">
 
@@ -303,4 +303,7 @@ directories. They never modify a real user agent configuration.
 [MIT](LICENSE)
 
 dachshund is an independent project. Product names and logos belong to their
-respective owners; Magpie is referenced only as a product-design inspiration.
+respective owners. dachshund's menu bar, compact panel, and some interaction
+patterns are inspired by [Magpie](https://github.com/yetone/magpie); we are
+grateful for that work. dachshund is not affiliated with Magpie and does not
+reuse its brand assets.

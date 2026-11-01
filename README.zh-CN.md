@@ -167,8 +167,9 @@ SQLite 记录
 托盘图标、全局快捷键和 420 × 620 弹出面板让记忆库随手可用。面板会在你正在使用
 的屏幕上打开，并停留在当前全屏 Space 上方，不会切换屏幕。使用
 `Cmd+Shift+M` 最小化到菜单栏，使用 `Cmd+Shift+D` 打开或关闭紧凑面板。完整应用
-可以在顶部 tab 与 Magpie 式侧边栏之间切换：点击窗口左上角控制按钮旁的侧栏按钮，
-或按 `Cmd+\`。侧栏模式下，Pulse 归入 Insights。dachshund 会记住你的选择
+可以在顶部 tab 与受 Magpie 产品设计启发的可选侧边栏之间切换：点击窗口左上角
+控制按钮旁的侧栏按钮，或按 `Cmd+\`。侧栏模式下，Pulse 归入 Insights。
+dachshund 会记住你的选择
 
 <img src="docs/screenshots/12-sidebar.png" width="900" alt="dachshund 完整应用启用侧边栏导航，侧栏按钮后紧接 dachshund logo">
 
@@ -274,4 +275,7 @@ npm run screenshot
 
 [MIT](LICENSE)
 
-dachshund 是独立项目。产品名称和图标归各自所有者；Magpie 仅作为产品设计参考
+dachshund 是独立项目，产品名称和图标归各自所有者。dachshund 的菜单栏、紧凑面板
+和部分交互设计受到
+[Magpie](https://github.com/yetone/magpie) 启发，在此致谢。dachshund 与 Magpie
+团队没有隶属关系，也不复用其品牌资产。
