@@ -124,6 +124,10 @@ them.
 The `imports` table exists in the schema but incremental source-change tracking
 is not yet implemented. A changed source can currently appear as a new memory
 while the prior version remains active. See [MVP](MVP.md#known-limitations).
+The proposed watcher, source-revision, supersession, and conflict-review design
+is documented as future product planning in
+[Product](PRODUCT.md#memory-synchronization-direction); none of it is active in
+the current importer.
 
 ## Deduplication
 
@@ -231,10 +235,14 @@ config. Doubao is shown as connected only when the newest matching receipt in
 - Main window opens at 920 x 700, can shrink to 800 x 600, and remains freely
   resizable and maximizable for the wide library view.
 - Main window hides instead of closing unless the user quits.
-- Tray click toggles a frameless always-on-top panel.
+- Tray click toggles a non-activating macOS `panel` window, so opening it does
+  not activate the main app or switch the active Space.
 - Panel hides on blur.
-- Panel is positioned relative to tray bounds and clamped to the display work
-  area.
+- Panel uses the cursor's current display. Tray bounds are used only when they
+  belong to that display; otherwise the cursor position is the anchor. The
+  result is clamped to the display work area.
+- The panel joins full-screen Spaces and remains above them without moving the
+  user away from the current desktop.
 - Global shortcuts register while the app is running.
 
 ## Security Boundary

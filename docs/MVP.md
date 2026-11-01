@@ -72,14 +72,14 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development settings screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.10-arm64.dmg` was produced on 2026-10-31.
+- `release/dachshund-0.1.11-arm64.dmg` was produced on 2026-11-01.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.10`.
+  healthy loopback service at version `0.1.11`.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.10` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.11` passed the same
   five-tool MCP smoke test.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
@@ -94,7 +94,7 @@ Verified in this repository:
 The DMG SHA-256 from this build is:
 
 ```text
-96e01af94544e9a11afb1dab441c79c44c405e6fabcbe68f2649a2725d2ad6a1
+3f21098b8c84c16d040e3f96d9c0dbe9e20ad6c2b2b40236572da7419df6f935
 ```
 
 ## Known Limitations
@@ -114,7 +114,9 @@ non-identical knowledge is not merged.
 ### File Watching
 
 There is no live filesystem watcher. Scans run on startup and on explicit user
-action.
+action. A future watcher and source-revision model is described in
+[Product](PRODUCT.md#memory-synchronization-direction), but it is not
+implemented.
 
 ### Local Search Model
 
@@ -197,9 +199,16 @@ token are not a defense against a compromised account.
 - removed truncation from the compact panel's category filters;
 - regenerated the product screenshots at the default window sizes.
 
+#### 0.1.11: Stay On The Current Screen
+
+- the menu bar panel now opens as a non-activating macOS panel and stays on the
+  current Space;
+- the panel is anchored to the current display and clamped to its work area;
+- compact-panel typography is slightly tighter without reducing core body copy.
+
 ### Next
 
-#### 0.1.11: Trustworthy Incremental Import
+#### 0.1.12: Trustworthy Incremental Import
 
 - persist per-source mtime, size, and hash;
 - update an existing memory when its source changes;
@@ -207,7 +216,7 @@ token are not a defense against a compromised account.
 - expose source status in the detail view;
 - add importer fixtures and regression tests.
 
-#### 0.1.12: Reviewable Consolidation
+#### 0.1.13: Reviewable Consolidation
 
 - near-duplicate suggestions;
 - merge and split flows;
@@ -215,7 +224,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.13: Recall Quality
+#### 0.1.14: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -223,7 +232,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-### 0.1.14: Distribution
+### 0.1.15: Distribution
 
 - signed and notarized universal build;
 - update channel;

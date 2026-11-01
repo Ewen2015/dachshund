@@ -26,8 +26,9 @@ npm install
 | `npm start` | Preview the production Electron build |
 | `npm run typecheck` | Type-check main and renderer projects |
 | `npm run test:agents` | Validate the Hermes, Pi, ZCode and DeepSeek Harness importers and MCP writers |
+| `npm run test:panel` | Validate menu bar placement across displays and stale tray bounds |
 | `npm run test:mcp` | Run isolated HTTP and MCP integration tests |
-| `npm run demo:seed` | Seed twelve demo memories |
+| `npm run demo:seed` | Seed the stable demo memory library |
 | `npm run screenshot` | Capture the documented app screenshots |
 | `npm run dist:mac` | Build an Apple Silicon DMG |
 
@@ -140,8 +141,8 @@ Output: `docs/screenshots/`
 
 Expected capture sizes:
 
-- full app window: configured at 1380 x 900; the current 2x capture is
-  2760 x 1722 device pixels after native window chrome;
+- full app window: configured at 920 x 700; the current 2x capture is
+  1840 x 1400 device pixels including native window chrome;
 - compact panel: 420 x 620 logical, 840 x 1240 device pixels on a 2x display.
 
 Review both information hierarchy and legibility. Do not judge card quality from
@@ -173,9 +174,9 @@ and notarized.
 
 Verified build:
 
-- output: `release/dachshund-0.1.10-arm64.dmg`
+- output: `release/dachshund-0.1.11-arm64.dmg`
 - SHA-256:
-  `96e01af94544e9a11afb1dab441c79c44c405e6fabcbe68f2649a2725d2ad6a1`
+  `3f21098b8c84c16d040e3f96d9c0dbe9e20ad6c2b2b40236572da7419df6f935`
 - packaged app launch and packaged MCP bridge smoke test pass
 - automatic in-place update, signature verification and relaunch pass
 - code signing: ad-hoc only

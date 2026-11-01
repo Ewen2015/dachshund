@@ -13,15 +13,15 @@ fs.writeFileSync(
   updateManifest,
   JSON.stringify(
     {
-      tag_name: 'v0.1.10',
-      name: 'dachshund v0.1.10',
-      body: 'Larger, calmer typography across the app and menu bar.',
-      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.10',
+      tag_name: 'v0.1.11',
+      name: 'dachshund v0.1.11',
+      body: 'The menu bar panel now stays on the current screen.',
+      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.11',
       assets: [
         {
-          name: 'dachshund-0.1.10-arm64.dmg',
+          name: 'dachshund-0.1.11-arm64.dmg',
           browser_download_url:
-            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.10/dachshund-0.1.10-arm64.dmg'
+            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.11/dachshund-0.1.11-arm64.dmg'
         }
       ]
     },

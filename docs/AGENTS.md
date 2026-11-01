@@ -393,3 +393,6 @@ file.
 - Agent-specific formats may change upstream and require importer updates.
 - A source file is copied into the dachshund library; the source path is
   retained as provenance but the source itself remains immutable.
+- Watcher, source-revision, conflict-review, and native writeback behavior is
+  future planning only; see
+  [Product](PRODUCT.md#memory-synchronization-direction).

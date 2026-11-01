@@ -1,6 +1,6 @@
 {
   "name": "dachshund",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "One memory across all your agents.",
   "main": "./out/main/index.js",
   "author": "Ewen Wang",
@@ -12,6 +12,7 @@
     "build": "node scripts/fetch-agent-icons.mjs && node scripts/make-icons.mjs && electron-vite build && node scripts/build-mcp.mjs",
     "start": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "test:panel": "node --experimental-strip-types scripts/test-panel-placement.mjs",
     "dist:mac": "npm run build && electron-builder --mac dmg --arm64",
     "mcp": "node out/mcp/index.cjs",
     "test:agents": "node scripts/test-agents.mjs",

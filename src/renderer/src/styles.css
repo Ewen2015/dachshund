@@ -3632,11 +3632,11 @@ body.panel-mode {
 }
 
 .update-notice.compact .update-copy strong {
-  font-size: 12.5px;
+  font-size: 12px;
 }
 
 .update-notice.compact .update-copy > span {
-  font-size: 11px;
+  font-size: 10.5px;
 }
 
 .update-notice.compact .update-actions {
@@ -3646,7 +3646,7 @@ body.panel-mode {
 .update-notice.compact .update-primary {
   height: 27px;
   padding: 0 8px;
-  font-size: 11px;
+  font-size: 10.5px;
 }
 
 .update-notice.compact .update-link,
@@ -3665,7 +3665,7 @@ body.panel-mode {
   align-items: center;
   gap: 7px;
   color: var(--ink);
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 630;
   letter-spacing: -0.02em;
 }
@@ -3718,7 +3718,7 @@ body.panel-mode {
   border: 0;
   background: transparent;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 520;
 }
 
@@ -3746,7 +3746,7 @@ body.panel-mode {
   margin-left: auto;
   align-self: center;
   color: var(--faint);
-  font-size: 11.5px;
+  font-size: 11px;
 }
 
 .panel-search-row {
@@ -3778,7 +3778,7 @@ body.panel-mode {
   border: 0;
   outline: 0;
   background: transparent;
-  font-size: 13px;
+  font-size: 12.5px;
 }
 
 .panel-search input::placeholder {
@@ -3815,7 +3815,7 @@ body.panel-mode {
   border-radius: 6px;
   background: transparent;
   color: var(--faint);
-  font-size: 10.5px;
+  font-size: 10px;
 }
 
 .panel-category:hover {
@@ -3869,7 +3869,7 @@ body.panel-mode {
   border-radius: 6px;
   background: transparent;
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 11px;
 }
 
 .panel-pulse-range button.active {
@@ -3883,7 +3883,7 @@ body.panel-mode {
   margin-left: auto;
   padding-right: 5px;
   color: var(--faint);
-  font-size: 11px;
+  font-size: 10.5px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -3918,14 +3918,14 @@ body.panel-mode {
 
 .panel-pulse-stats span {
   color: var(--faint);
-  font-size: 11px;
+  font-size: 10.5px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .panel-pulse-stats strong {
   color: var(--ink);
-  font-size: 17px;
+  font-size: 16.5px;
   font-weight: 625;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -3949,13 +3949,13 @@ body.panel-mode {
 
 .panel-pulse-card-head strong {
   color: var(--ink-soft);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 610;
 }
 
 .panel-pulse-card-head span {
   color: var(--faint);
-  font-size: 11px;
+  font-size: 10.5px;
 }
 
 .panel-pulse-chart {
@@ -4006,7 +4006,7 @@ body.panel-mode {
   padding-top: 3px;
   overflow: hidden;
   color: var(--faint);
-  font-size: 9.5px;
+  font-size: 9px;
   line-height: 1;
   white-space: nowrap;
 }
@@ -4017,7 +4017,7 @@ body.panel-mode {
   gap: 12px;
   margin-top: 5px;
   color: var(--faint);
-  font-size: 11px;
+  font-size: 10.5px;
 }
 
 .panel-pulse-legend span {
@@ -4039,7 +4039,7 @@ body.panel-mode {
   gap: 7px;
   margin-top: 8px;
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 11px;
 }
 
 .panel-pulse-agent > span {
@@ -4064,7 +4064,7 @@ body.panel-mode {
 
 .panel-pulse-agent > strong {
   color: var(--ink-soft);
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 610;
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -4073,14 +4073,14 @@ body.panel-mode {
 .panel-pulse-note {
   margin: 9px 2px 0;
   color: var(--faint);
-  font-size: 11px;
+  font-size: 10.5px;
   text-align: center;
 }
 
 .panel-pulse-empty {
   margin: 12px 0 3px;
   color: var(--faint);
-  font-size: 11.5px;
+  font-size: 11px;
 }
 
 .panel-pulse-category-bar {
@@ -4116,7 +4116,7 @@ body.panel-mode {
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.76);
   color: var(--muted);
-  font-size: 11px;
+  font-size: 10.5px;
   text-align: left;
 }
 
@@ -4139,7 +4139,7 @@ body.panel-mode {
 
 .panel-pulse-category-list strong {
   color: var(--ink-soft);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 610;
   font-variant-numeric: tabular-nums;
 }
@@ -4167,7 +4167,7 @@ body.panel-mode {
   align-items: center;
   gap: 6px;
   color: var(--faint);
-  font-size: 11px;
+  font-size: 10.5px;
   letter-spacing: 0.055em;
   text-transform: uppercase;
 }
@@ -4175,7 +4175,7 @@ body.panel-mode {
 .pm-echo {
   margin-left: auto;
   color: var(--faint);
-  font-size: 11px;
+  font-size: 10.5px;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -4195,7 +4195,7 @@ body.panel-mode {
 
 .panel-memory h3 {
   margin: 5px 0 2px;
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 610;
   line-height: 1.3;
   letter-spacing: -0.012em;
@@ -4206,7 +4206,7 @@ body.panel-mode {
   overflow: hidden;
   margin: 0;
   color: var(--muted);
-  font-size: 12.5px;
+  font-size: 12px;
   line-height: 1.5;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -4231,12 +4231,12 @@ body.panel-mode {
 
 .panel-empty strong {
   color: var(--ink-soft);
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 610;
 }
 
 .panel-empty span {
-  font-size: 12.5px;
+  font-size: 12px;
 }
 
 .panel-agents {
@@ -4265,13 +4265,13 @@ body.panel-mode {
 }
 
 .panel-agent-copy strong {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 610;
 }
 
 .panel-agent-copy small {
   color: var(--faint);
-  font-size: 11.5px;
+  font-size: 11px;
 }
 
 .panel-agent .switch {
@@ -4287,7 +4287,7 @@ body.panel-mode {
   border-radius: 7px;
   background: rgba(255, 255, 255, 0.72);
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 11px;
 }
 
 .panel-agent-more:hover {
@@ -4305,7 +4305,7 @@ body.panel-mode {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.62);
   color: var(--faint);
-  font-size: 11.5px;
+  font-size: 11px;
   line-height: 1.48;
 }
 
@@ -4330,7 +4330,7 @@ body.panel-mode {
   align-items: center;
   gap: 5px;
   color: var(--faint);
-  font-size: 11px;
+  font-size: 10.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -4345,7 +4345,7 @@ body.panel-mode {
   border-radius: 6px;
   background: var(--ink);
   color: #fff;
-  font-size: 11.5px;
+  font-size: 11px;
 }
 
 .panel-new:hover {

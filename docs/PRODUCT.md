@@ -153,6 +153,49 @@ dachshund is not currently:
 ## Current Product Boundary
 
 The current repository is an MVP prototype. It proves the local discovery,
-library, search, tray, and MCP loop. It does not yet provide production-grade
-incremental source synchronization, conflict review, signed distribution, or
-automated update delivery.
+library, search, tray, MCP, and in-place update loop. It does not yet provide
+production-grade incremental source synchronization, conflict review, or
+notarized distribution.
+
+## Memory Synchronization Direction
+
+This section is future product planning, not a description of shipped behavior.
+It exists so later work can build on a precise boundary.
+
+### Current behavior
+
+- Import runs at app startup and on an explicit scan. There is no continuous
+  filesystem watcher.
+- Agent-owned source files are opened read-only. dachshund copies their content
+  into its own Markdown library and keeps the source path as provenance.
+- Exact normalized-content duplicates become multiple source echoes on one
+  dachshund memory.
+- If a native source changes, the next scan can create a new memory, but the
+  previous version is not reconciled, superseded, or marked stale automatically.
+- Memory written through dachshund's MCP `memory_remember` tool goes directly
+  into the dachshund library and is immediately available to agents connected
+  to that MCP service. It is not written back into an agent's private memory.
+- Memory that exists only in a cloud account is outside the local scanner's
+  reach unless the agent also maintains a supported local artifact.
+
+### Future discussion
+
+Any stronger synchronization model should preserve the local-only boundary and
+make every automated change reviewable.
+
+- Add debounced file watching with a bounded rescan on wake or reconnect.
+- Persist stable source identity, modification time, size, and content hash in
+  the existing `imports` records.
+- Define update, supersede, and archive semantics for changed source records,
+  including removal tombstones.
+- Keep revision history and provenance so a user can compare the old and new
+  source records before accepting a change.
+- Add explicit conflict review when both dachshund and a native source changed
+  the same memory.
+- Treat native-source writeback as a separate, opt-in capability. It requires
+  per-agent adapters, backups, and explicit approval before changing files.
+- Do not infer cloud-account memory or add a hosted synchronization service as
+  part of this work.
+
+This direction is not scheduled and does not change the importer contract in
+the current release.

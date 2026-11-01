@@ -24,6 +24,7 @@ import { LIBRARY_DIR, expandHome } from './paths'
 import { UpdateService } from './updater'
 import { findDefinition } from './agents/discovery'
 import { buildMcpSetup, getMcpConnectionStatus } from './agents/mcp-connection'
+import { panelPlacement } from './panel-placement'
 import {
   currentAppBundlePath,
   installerLogPath,
@@ -157,6 +158,7 @@ function createPanelWindow(): void {
     fullscreenable: false,
     skipTaskbar: true,
     alwaysOnTop: true,
+    type: 'panel',
     hasShadow: true,
     roundedCorners: true,
     vibrancy: 'popover',
@@ -169,7 +171,6 @@ function createPanelWindow(): void {
       sandbox: false
     }
   })
-  panelWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
   panelWindow.on('blur', () => {
     if (!panelWindow?.isVisible()) return
     setTimeout(() => {
@@ -195,15 +196,23 @@ function showWindow(): void {
 
 function positionPanel(): void {
   if (!panelWindow || !tray) return
+  const cursor = screen.getCursorScreenPoint()
+  const display = screen.getDisplayNearestPoint(cursor)
   const trayBounds = tray.getBounds()
-  const display = screen.getDisplayNearestPoint({ x: trayBounds.x, y: trayBounds.y })
-  const bounds = panelWindow.getBounds()
-  const x = Math.min(
-    Math.max(Math.round(trayBounds.x + trayBounds.width / 2 - bounds.width / 2), display.workArea.x + 8),
-    display.workArea.x + display.workArea.width - bounds.width - 8
-  )
-  const y = Math.min(trayBounds.y + trayBounds.height + 6, display.workArea.y + display.workArea.height - bounds.height - 8)
-  panelWindow.setPosition(x, Math.max(y, display.workArea.y + 6), false)
+  const trayCenter = {
+    x: trayBounds.x + trayBounds.width / 2,
+    y: trayBounds.y + trayBounds.height / 2
+  }
+  const trayDisplay = screen.getDisplayNearestPoint(trayCenter)
+  const position = panelPlacement({
+    cursor,
+    cursorDisplayId: display.id,
+    trayBounds,
+    trayDisplayId: trayDisplay.id,
+    panelSize: panelWindow.getBounds(),
+    workArea: display.workArea
+  })
+  panelWindow.setPosition(position.x, position.y, false)
 }
 
 function showPanel(): void {

@@ -56,6 +56,8 @@ gradients, glass effects inside content areas, and decorative blobs.
 - Body: 12 to 15 px depending on surface.
 - Metadata: 9 to 11 px, often uppercase with letter spacing.
 - The compact panel never drops core body copy below 12 px.
+- Compact-panel type runs about half a pixel tighter than the full app at each
+  level. The adjustment should be felt rather than read as a separate scale.
 
 Avoid serif display type. The brand character comes from the dachshund mark and
 the collar accent, not from decorative typography.
@@ -82,7 +84,8 @@ the collar accent, not from decorative typography.
 - Footer always shows local-only status and the primary new-memory action.
 
 The window uses native vibrancy, rounded corners, and a transparent background.
-It is positioned relative to the tray icon and hidden on blur.
+It opens on the display where the tray icon was clicked, joins the current
+full-screen Space without switching away from it, and hides on blur.
 
 ## Components
 
