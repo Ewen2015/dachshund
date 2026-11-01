@@ -353,9 +353,19 @@ button {
   display: grid;
   min-height: 780px;
   padding-block: 84px 72px;
+  overflow: hidden;
   grid-template-columns: minmax(0, 0.92fr) minmax(500px, 1.08fr);
   align-items: center;
   gap: clamp(28px, 4vw, 72px);
+}
+
+@media (min-width: 1289px) {
+  .hero {
+    width: auto;
+    max-width: none;
+    margin-right: 0;
+    margin-left: calc((100vw - 1240px) / 2);
+  }
 }
 
 .hero-copy {
@@ -468,7 +478,7 @@ button {
   z-index: 1;
   top: 52px;
   right: 20px;
-  width: 108%;
+  width: 100%;
   overflow: hidden;
   transform: rotateY(-5deg) rotateX(1.4deg);
   transform-origin: left center;
@@ -536,6 +546,28 @@ button {
   height: auto;
 }
 
+.hero-memory-card {
+  position: absolute;
+  z-index: 3;
+  bottom: 24px;
+  left: -6%;
+  width: 284px;
+  padding: 20px;
+  transform: rotate(-2deg);
+  border: 1px solid var(--line-strong);
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--surface) 95%, transparent);
+  box-shadow: 0 30px 60px -28px rgb(37 29 20 / 40%);
+  transition: transform 240ms ease-out;
+  will-change: transform;
+}
+
+.memory-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .agent-stack {
   display: flex;
 }
@@ -560,6 +592,102 @@ button {
 .agent-stack img {
   width: 17px;
   height: 17px;
+}
+
+.mini-label {
+  color: var(--faint);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.memory-kind {
+  margin: 16px 0 5px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.hero-memory-card strong {
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.hero-memory-card > p:last-child {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.local-ticket {
+  position: absolute;
+  z-index: 4;
+  right: 20px;
+  bottom: -8px;
+  display: flex;
+  padding: 12px 15px;
+  align-items: center;
+  gap: 11px;
+  transform: rotate(1deg);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 15px 35px -20px rgb(30 25 17 / 35%);
+}
+
+.pulse-ring {
+  position: relative;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--signal) 35%, transparent);
+  border-radius: 50%;
+}
+
+.pulse-ring::after {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--signal);
+  border-radius: 50%;
+  content: "";
+  animation: ring 2.8s ease-out infinite;
+}
+
+.pulse-ring i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--signal);
+}
+
+.local-ticket > span:last-child {
+  display: grid;
+}
+
+.local-ticket b {
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.local-ticket small {
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 8px;
+}
+
+@keyframes ring {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.8;
+  }
+  78%,
+  100% {
+    transform: scale(1.65);
+    opacity: 0;
+  }
 }
 
 .agent-marquee {
@@ -1898,6 +2026,11 @@ button {
     top: 62px;
   }
 
+  .hero-memory-card {
+    bottom: 20px;
+    width: 252px;
+  }
+
   .section-heading-split {
     gap: 54px;
   }
@@ -2037,8 +2170,18 @@ button {
   }
 
   .window-frame {
-    right: 8px;
-    width: 100%;
+    right: 20px;
+    width: 96%;
+  }
+
+  .hero-memory-card {
+    bottom: 54px;
+    left: 1%;
+  }
+
+  .local-ticket {
+    right: 20px;
+    bottom: 18px;
   }
 
   .agent-marquee-inner {
@@ -2287,8 +2430,8 @@ button {
 
   .window-frame {
     top: 28px;
-    right: 4px;
-    width: 98%;
+    right: 12px;
+    width: 95%;
     border-radius: 12px;
   }
 
@@ -2316,6 +2459,31 @@ button {
     width: 42%;
     height: 19px;
     font-size: 6px;
+  }
+
+  .hero-memory-card {
+    bottom: 53px;
+    left: 5px;
+    width: 225px;
+    padding: 15px;
+  }
+
+  .hero-memory-card strong {
+    font-size: 16px;
+  }
+
+  .hero-memory-card > p:last-child {
+    font-size: 10px;
+  }
+
+  .memory-kind {
+    margin-top: 12px;
+  }
+
+  .local-ticket {
+    right: 12px;
+    bottom: 14px;
+    padding: 9px 11px;
   }
 
   .agent-marquee p {
