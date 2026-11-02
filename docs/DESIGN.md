@@ -26,6 +26,13 @@ The result should read as a calm instrument, not an AI dashboard.
 5. **Compact does not mean cramped.** The menu bar panel keeps the same type
    hierarchy with fewer columns and larger touch targets.
 
+## Voice
+
+- The product slogan is **"All your agents. One memory."** Use it on the
+  landing view and website hero.
+- Lead with the resolved state and the product promise. Do not make the headline
+  a question or a restatement of the problem.
+
 ## Visual Tokens
 
 | Token | Value | Use |
@@ -73,6 +80,13 @@ the collar accent, not from decorative typography.
   tabs in the top chrome, or a 204 px sidebar. The toggle sits between the macOS
   window controls and the brand mark with a 16 px safety gap; the preference
   persists.
+- The landing view keeps the brand mark on the same title-bar line as the native
+  traffic lights and starts it at least 104 px from the window edge, leaving a
+  34 px gap after the system controls. The red, yellow and green controls are
+  always rendered by macOS; dachshund does not draw replacement buttons.
+- The landing illustration around the dachshund mark uses representative agent
+  chips for Claude, Codex, Gemini, Cursor, WorkBuddy, Hermes, Pi, and DeepSeek
+  Harness. Keep the illustration unlabeled rather than adding a figure index.
 - Centered content with a maximum readable width.
 - Feed rows use a left rail and a high-density text block.
 - Pulse uses a range filter, a four-cell summary strip, one stacked bar chart and

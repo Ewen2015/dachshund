@@ -1,7 +1,7 @@
 {
   "name": "dachshund",
-  "version": "0.1.15",
-  "description": "One memory across all your agents.",
+  "version": "0.1.16",
+  "description": "All your agents. One memory.",
   "main": "./out/main/index.js",
   "author": "Ewen Wang",
   "license": "MIT",

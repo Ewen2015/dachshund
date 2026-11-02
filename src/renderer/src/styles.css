@@ -3500,8 +3500,8 @@ button.pulse-series-item:focus-visible {
 
 .onboarding-brand {
   position: absolute;
-  top: 32px;
-  left: 7vw;
+  top: 15px;
+  left: max(7vw, 104px);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -3512,7 +3512,7 @@ button.pulse-series-item:focus-visible {
 
 .onboarding-close {
   position: absolute;
-  top: 31px;
+  top: 15px;
   right: 7vw;
   width: 30px;
   height: 30px;
@@ -3663,17 +3663,6 @@ button.pulse-series-item:focus-visible {
   mask-image: linear-gradient(to bottom, transparent, #000 45%, transparent);
 }
 
-.art-index {
-  position: absolute;
-  top: 16px;
-  left: 18px;
-  color: var(--faint);
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
 .art-mark {
   position: absolute;
   top: 48%;
@@ -3715,10 +3704,14 @@ button.pulse-series-item:focus-visible {
   flex: 0 0 auto;
 }
 
-.chip-claude { left: 5%; top: 24%; animation-delay: -1s; }
-.chip-codex { right: 4%; top: 17%; animation-delay: -2.5s; }
-.chip-gemini { left: 8%; bottom: 22%; animation-delay: -3.4s; }
-.chip-cursor { right: 8%; bottom: 15%; animation-delay: -0.7s; }
+.chip-claude { left: 3%; top: 5%; animation-delay: -1s; }
+.chip-codex { right: 3%; top: 5%; animation-delay: -2.5s; }
+.chip-hermes { left: 3%; top: 18%; animation-delay: -4.2s; }
+.chip-workbuddy { right: 3%; top: 17%; animation-delay: -1.7s; }
+.chip-pi { left: 3%; top: 45%; animation-delay: -2.1s; }
+.chip-cursor { right: 3%; top: 44%; animation-delay: -0.7s; }
+.chip-gemini { left: 5%; top: 75%; animation-delay: -3.4s; }
+.chip-deepseek { right: 4%; top: 75%; animation-delay: -3.8s; }
 
 .art-caption {
   position: absolute;
@@ -4026,7 +4019,7 @@ button.pulse-series-item:focus-visible {
   }
 
   .onboarding-brand {
-    left: 6vw;
+    left: max(6vw, 104px);
   }
 }
 

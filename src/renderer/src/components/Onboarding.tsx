@@ -40,12 +40,17 @@ export function Onboarding({
         <div className="onboarding-copy">
           <p className="eyebrow">
             <span className="eyebrow-dot" />
-            One memory across all agents
+            Local memory infrastructure for agents
           </p>
-          <h1>Your agents forget each other.</h1>
+          <h1>
+            All your agents.
+            <br />
+            One memory.
+          </h1>
           <p className="onboarding-lede">
-            Claude Code knows one thing. Codex knows another. dachshund gives them one quiet,
-            shared memory — stored as plain files on this Mac.
+            dachshund finds the memory Claude Code, Codex, Cursor and the other agents already
+            keep on this Mac. It turns scattered context into one portable Markdown library,
+            then serves it back through MCP.
           </p>
 
           <div className="found-block">
@@ -92,7 +97,6 @@ export function Onboarding({
 
       <div className="onboarding-art">
         <div className="art-paper">
-          <span className="art-index">fig. 01</span>
           <div className="art-mark" aria-hidden="true">
             <Mark size={88} className="art-mark-svg" />
           </div>
@@ -112,6 +116,27 @@ export function Onboarding({
           <span className="orbit-chip chip-cursor">
             <AgentLogo agentId="cursor" agentName="Cursor" size={18} shape="circle" />
             Cursor
+          </span>
+          <span className="orbit-chip chip-workbuddy">
+            <AgentLogo agentId="workbuddy" agentName="WorkBuddy" size={18} shape="circle" />
+            WorkBuddy
+          </span>
+          <span className="orbit-chip chip-hermes">
+            <AgentLogo agentId="hermes" agentName="Hermes" size={18} shape="circle" />
+            Hermes
+          </span>
+          <span className="orbit-chip chip-pi">
+            <AgentLogo agentId="pi" agentName="Pi" size={18} shape="circle" />
+            Pi
+          </span>
+          <span className="orbit-chip chip-deepseek">
+            <AgentLogo
+              agentId="deepseek-harness"
+              agentName="DeepSeek Harness"
+              size={18}
+              shape="circle"
+            />
+            DeepSeek Harness
           </span>
 
           <div className="art-caption">

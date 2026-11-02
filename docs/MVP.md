@@ -76,16 +76,16 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development Connectors screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.15-arm64.dmg` was produced on 2026-11-02.
+- `release/dachshund-0.1.16-arm64.dmg` was produced on 2026-11-02.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.15`.
-- The `0.1.15` DMG mounted read-only, contained a valid ad-hoc-signed app at
-  version `0.1.15`, and included an executable MCP bridge.
+  healthy loopback service at version `0.1.16`.
+- The `0.1.16` DMG mounted read-only, contained a valid ad-hoc-signed app at
+  version `0.1.16`, and included an executable MCP bridge.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.15` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.16` passed the same
   five-tool MCP smoke test.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
@@ -121,7 +121,7 @@ Verified in this repository:
 The DMG SHA-256 from this build is:
 
 ```text
-fcb66dc38e95c849f5239ab9b19881abdceef9d5431c8fe4c26d103936cea654
+7f42f9b992f47bd152282b4389b0cd273e876b14844292c726dafcfc43b527e9
 ```
 
 ## Known Limitations
@@ -273,9 +273,19 @@ token are not a defense against a compromised account.
 - rebalanced the landing layout so agent tags and the CTA footer have stable
   spacing at the default 920 x 700 window.
 
+#### 0.1.16: One Promise Across The Product
+
+- unified the app, English site, Chinese site, and README around “All your
+  agents. One memory.”;
+- expanded the landing constellation to Claude, Codex, Gemini, Cursor,
+  WorkBuddy, Hermes, Pi, and DeepSeek Harness;
+- removed the decorative figure index from the landing illustration;
+- aligned the landing brand with the native macOS title bar and kept the system
+  traffic lights clear at supported window widths.
+
 ### Next
 
-#### 0.1.16: Trustworthy Incremental Import
+#### 0.1.17: Trustworthy Incremental Import
 
 - persist per-source mtime, size, and hash;
 - update an existing memory when its source changes;
@@ -283,7 +293,7 @@ token are not a defense against a compromised account.
 - expose source status in the detail view;
 - add importer fixtures and regression tests.
 
-#### 0.1.17: Reviewable Consolidation
+#### 0.1.18: Reviewable Consolidation
 
 - near-duplicate suggestions;
 - merge and split flows;
@@ -291,7 +301,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.18: Recall Quality
+#### 0.1.19: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -299,7 +309,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-#### 0.1.19: Distribution
+#### 0.1.20: Distribution
 
 - signed and notarized universal build;
 - update channel;
