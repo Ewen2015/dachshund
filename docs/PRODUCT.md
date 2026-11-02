@@ -75,6 +75,10 @@ the wider library view. It is the library and control surface:
 - Search and agent filters.
 - Memory detail with Markdown rendering and source provenance, as a right-side
   inspector that can expand into a full-window reading view.
+- Agent memory views that explain each native model, show its storage path,
+  map it into the shared taxonomy, and expose an expandable mechanism diagram.
+- A clickable brand mark that returns to the first-run landing view without
+  resetting onboarding or local data.
 - Pulse: growth, agent contribution, overlap, category mix and freshness.
 - New-memory composer.
 - Agent discovery, sharing toggles, and MCP connection controls.

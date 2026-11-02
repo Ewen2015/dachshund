@@ -14,6 +14,7 @@ const tabs: Array<{ id: View; label: string }> = [
 export function Header({
   view,
   onView,
+  onLanding,
   query,
   onQuery,
   searchRef,
@@ -25,6 +26,7 @@ export function Header({
 }: {
   view: View
   onView: (view: View) => void
+  onLanding: () => void
   query: string
   onQuery: (value: string) => void
   searchRef: RefObject<HTMLInputElement | null>
@@ -47,10 +49,16 @@ export function Header({
       >
         <SidebarToggleIcon size={17} />
       </button>
-      <div className="topbar-brand">
+      <button
+        className="topbar-brand"
+        type="button"
+        onClick={onLanding}
+        aria-label="Open dachshund landing"
+        title="Open dachshund landing"
+      >
         <Mark size={20} />
         <span>dachshund</span>
-      </div>
+      </button>
       {!sidebarMode && (
         <nav className="topbar-nav" aria-label="Primary">
           {tabs.map((item) => (

@@ -110,10 +110,16 @@ export default function PanelApp() {
   return (
     <div className="panel-shell">
       <header className="panel-head">
-        <div className="panel-brand">
+        <button
+          className="panel-brand"
+          type="button"
+          aria-label="Open dachshund landing"
+          title="Open dachshund landing"
+          onClick={() => void window.dachshund.openMain({ action: 'landing' })}
+        >
           <Mark size={18} />
           <span>dachshund</span>
-        </div>
+        </button>
         <div className="panel-tools">
           <button
             className={`panel-icon-button ${scanning ? 'spinning' : ''}`}

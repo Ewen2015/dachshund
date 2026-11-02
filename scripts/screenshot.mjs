@@ -13,15 +13,15 @@ fs.writeFileSync(
   updateManifest,
   JSON.stringify(
     {
-      tag_name: 'v0.1.14',
-      name: 'dachshund v0.1.14',
+      tag_name: 'v0.1.15',
+      name: 'dachshund v0.1.15',
       body: 'Claude Desktop local memory, sidebar navigation, Insights, and Connectors.',
-      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.14',
+      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.15',
       assets: [
         {
-          name: 'dachshund-0.1.14-arm64.dmg',
+          name: 'dachshund-0.1.15-arm64.dmg',
           browser_download_url:
-            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.14/dachshund-0.1.14-arm64.dmg'
+            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.15/dachshund-0.1.15-arm64.dmg'
         }
       ]
     },
@@ -71,6 +71,16 @@ if (await page.locator('.onboarding').isVisible().catch(() => false)) {
   await page.getByRole('button', { name: 'Enter dachshund' }).click()
   await page.waitForTimeout(700)
 }
+
+await page.getByRole('button', { name: 'Open dachshund landing' }).click()
+await page.locator('.onboarding').waitFor({ state: 'visible' })
+await page.getByRole('button', { name: 'Close landing' }).click()
+await page.locator('.onboarding').waitFor({ state: 'hidden' })
+
+await page.getByRole('button', { name: 'Open dachshund landing' }).click()
+await page.locator('.onboarding').waitFor({ state: 'visible' })
+await page.getByRole('button', { name: 'Enter dachshund' }).click()
+await page.locator('.onboarding').waitFor({ state: 'hidden' })
 
 await page.screenshot({ path: path.join(shots, '01-memory.png') })
 

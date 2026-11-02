@@ -19,7 +19,7 @@ const api = {
   markOnboarded: (): Promise<AppState> => ipcRenderer.invoke('app:onboarded'),
   bridgePath: (): Promise<string> => ipcRenderer.invoke('app:bridge-path'),
   libraryPath: (): Promise<string> => ipcRenderer.invoke('app:library-path'),
-  openMain: (payload?: { memoryId?: string; action?: 'new' }): Promise<boolean> =>
+  openMain: (payload?: { memoryId?: string; action?: 'new' | 'landing' }): Promise<boolean> =>
     ipcRenderer.invoke('app:open-main', payload),
   minimizeToTray: (): Promise<boolean> => ipcRenderer.invoke('app:minimize-to-tray'),
   hidePanel: (): Promise<boolean> => ipcRenderer.invoke('app:hide-panel'),
@@ -75,6 +75,11 @@ const api = {
     const listener = (_event: Electron.IpcRendererEvent, id: string): void => callback(id)
     ipcRenderer.on('ui:open-memory', listener)
     return () => ipcRenderer.removeListener('ui:open-memory', listener)
+  },
+  onLanding: (callback: () => void): (() => void) => {
+    const listener = (): void => callback()
+    ipcRenderer.on('ui:landing', listener)
+    return () => ipcRenderer.removeListener('ui:landing', listener)
   }
 }
 

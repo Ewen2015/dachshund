@@ -489,12 +489,16 @@ function registerIpc(): void {
   ipcMain.handle('app:onboarded', () => store.markOnboarded())
   ipcMain.handle('app:bridge-path', () => bridgePath())
   ipcMain.handle('app:library-path', () => LIBRARY_DIR)
-  ipcMain.handle('app:open-main', (_event, payload?: { memoryId?: string; action?: 'new' }) => {
-    showWindow()
-    if (payload?.action === 'new') mainWindow?.webContents.send('ui:new-memory')
-    if (payload?.memoryId) mainWindow?.webContents.send('ui:open-memory', payload.memoryId)
-    return true
-  })
+  ipcMain.handle(
+    'app:open-main',
+    (_event, payload?: { memoryId?: string; action?: 'new' | 'landing' }) => {
+      showWindow()
+      if (payload?.action === 'new') mainWindow?.webContents.send('ui:new-memory')
+      if (payload?.action === 'landing') mainWindow?.webContents.send('ui:landing')
+      if (payload?.memoryId) mainWindow?.webContents.send('ui:open-memory', payload.memoryId)
+      return true
+    }
+  )
   ipcMain.handle('app:minimize-to-tray', () => {
     hideMainWindow(showPanel)
     return true

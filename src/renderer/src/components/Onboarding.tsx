@@ -1,6 +1,6 @@
 import type { AgentSummary, Counts } from '../../../shared/types'
 import { AgentLogo } from './AgentLogo'
-import { LockIcon, RefreshIcon } from './Icons'
+import { CloseIcon, LockIcon, RefreshIcon } from './Icons'
 import { Mark } from './Mark'
 
 export function Onboarding({
@@ -8,13 +8,15 @@ export function Onboarding({
   counts,
   scanning,
   onScan,
-  onEnter
+  onEnter,
+  onClose
 }: {
   agents: AgentSummary[]
   counts: Counts
   scanning: boolean
   onScan: () => void
   onEnter: () => void
+  onClose?: () => void
 }) {
   const found = agents.filter((agent) => agent.installed)
   return (
@@ -24,6 +26,17 @@ export function Onboarding({
           <Mark size={30} />
           <span>dachshund</span>
         </div>
+        {onClose && (
+          <button
+            className="onboarding-close"
+            type="button"
+            aria-label="Close landing"
+            title="Close landing"
+            onClick={onClose}
+          >
+            <CloseIcon size={15} />
+          </button>
+        )}
         <div className="onboarding-copy">
           <p className="eyebrow">
             <span className="eyebrow-dot" />

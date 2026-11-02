@@ -38,6 +38,7 @@ export default function App() {
   const [mcpSetupAgentId, setMcpSetupAgentId] = useState<string | null>(null)
   const [scanning, setScanning] = useState(false)
   const [progress, setProgress] = useState<Record<string, ScanProgress>>({})
+  const [landingOpen, setLandingOpen] = useState(false)
   const [toast, setToast] = useState<{ message: string; error?: boolean } | null>(null)
   const [bridgePath, setBridgePath] = useState('')
   const [sidebarMode, setSidebarMode] = useState(() => {
@@ -56,6 +57,13 @@ export default function App() {
     setSelectedId(null)
     setDetailExpanded(false)
   }, [])
+
+  const openLanding = useCallback(() => {
+    setComposerOpen(false)
+    setMcpSetupAgentId(null)
+    closeDetail()
+    setLandingOpen(true)
+  }, [closeDetail])
 
   const notify = useCallback((message: string, error = false) => {
     setToast({ message, error })
@@ -114,13 +122,15 @@ export default function App() {
         setDetailExpanded(false)
       })()
     })
+    const offLanding = window.dachshund.onLanding(openLanding)
     return () => {
       offProgress()
       offState()
       offNew()
       offOpen()
+      offLanding()
     }
-  }, [])
+  }, [openLanding])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -151,6 +161,7 @@ export default function App() {
       if (event.key === 'Escape') {
         if (mcpSetupAgentId) setMcpSetupAgentId(null)
         else if (composerOpen) setComposerOpen(false)
+        else if (landingOpen) setLandingOpen(false)
         else if (detail) {
           if (detailExpanded) setDetailExpanded(false)
           else closeDetail()
@@ -159,7 +170,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [closeDetail, composerOpen, detail, detailExpanded, mcpSetupAgentId])
+  }, [closeDetail, composerOpen, detail, detailExpanded, landingOpen, mcpSetupAgentId])
 
   const scan = async () => {
     if (scanning) return
@@ -247,6 +258,7 @@ export default function App() {
   const enter = async () => {
     const next = await window.dachshund.markOnboarded()
     setState(next)
+    setLandingOpen(false)
   }
 
   if (!state) {
@@ -257,7 +269,7 @@ export default function App() {
     )
   }
 
-  const showOnboarding = !state.onboarded
+  const showLanding = !state.onboarded || landingOpen
   const activeAgent = activeAgentId
     ? state.agents.find((agent) => agent.id === activeAgentId) ?? null
     : null
@@ -284,6 +296,7 @@ export default function App() {
       <Header
         view={view}
         onView={setView}
+        onLanding={openLanding}
         query={query}
         onQuery={setQuery}
         searchRef={searchRef}
@@ -414,13 +427,14 @@ export default function App() {
           onToast={notify}
         />
       )}
-      {showOnboarding && (
+      {showLanding && (
         <Onboarding
           agents={state.agents}
           counts={state.counts}
           scanning={scanning || state.scanning}
           onScan={() => void scan()}
           onEnter={() => void enter()}
+          onClose={state.onboarded ? () => setLandingOpen(false) : undefined}
         />
       )}
       {toast && <Toast message={toast.message} error={toast.error} />}

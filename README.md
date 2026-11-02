@@ -11,7 +11,7 @@ dachshund finds the memory files your agents already keep, brings them into one
 Markdown library, and serves that library back through MCP. No account, no cloud,
 no model requirement.
 
-[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.14/dachshund-0.1.14-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
+[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.15/dachshund-0.1.15-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -36,6 +36,8 @@ surface:
 
 - **Discover what is already on your Mac.** Read known agent memory locations
   without rewriting the originals.
+- **See how each agent remembers.** Open an agent to compare its native memory
+  model with dachshund's shared taxonomy, with an expandable mechanism diagram.
 - **Keep one portable library.** Store the unified result as plain Markdown, with
   source provenance retained.
 - **See cross-agent echoes.** When two agents remember the same thing, keep one
@@ -52,7 +54,7 @@ already remembers everything you need, you probably do not need dachshund.
 
 | Platform | Architecture | Package | Size | Download |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.14](https://github.com/Ewen2015/dachshund/releases/download/v0.1.14/dachshund-0.1.14-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.15](https://github.com/Ewen2015/dachshund/releases/download/v0.1.15/dachshund-0.1.15-arm64.dmg)** |
 
 **System requirement:** macOS on Apple Silicon
 
@@ -61,7 +63,7 @@ already remembers everything you need, you probably do not need dachshund.
 > **Open** on first launch.
 
 [All releases](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.14/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.15/SHA256SUMS)
 
 **Install**
 
@@ -82,7 +84,7 @@ into the app.
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.14/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.15/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -179,6 +181,14 @@ agents already produce, including Markdown, WorkBuddy notes, Trae session JSONL,
 Hermes native memory entries, Pi summaries, ZCode SQLite rows, DeepSeek Harness
 Zstandard logs, Codex memory files and readable Codex SQLite rows.
 
+### See how every agent remembers
+
+Each supported agent view explains the native memory model, its storage path and
+how it maps into dachshund's shared categories. A compact mechanism diagram
+shows the write, persistence and recall path; open it for a larger reading view.
+
+<img src="docs/screenshots/09-agent-memory.png" width="900" alt="dachshund agent memory view with a native memory mechanism diagram and taxonomy mapping">
+
 ### One memory, visible echoes
 
 Identical memory from multiple agents becomes one item with every source shown.
@@ -193,7 +203,9 @@ full-screen Space without switching screens. Use `Cmd+Shift+M` to minimize to
 the menu bar or `Cmd+Shift+D` to toggle the compact panel. The full app can use
 compact top tabs or an optional sidebar navigation inspired by Magpie's product
 design; switch with the control beside the window buttons or `Cmd+\`. In sidebar
-mode, Pulse sits under Insights. dachshund remembers the choice.
+mode, Pulse sits under Insights. Clicking the dachshund logo from the full app
+or compact panel opens the landing view again. dachshund remembers the sidebar
+choice.
 
 <img src="docs/screenshots/12-sidebar.png" width="900" alt="dachshund full app using the optional sidebar navigation, with the logo after the sidebar toggle">
 
@@ -307,3 +319,7 @@ respective owners. dachshund's menu bar, compact panel, and some interaction
 patterns are inspired by [Magpie](https://github.com/yetone/magpie); we are
 grateful for that work. dachshund is not affiliated with Magpie and does not
 reuse its brand assets.
+
+The agent memory mechanism diagrams were made with the MIT-licensed
+[Anatomy](https://github.com/wheresryan22/anatomy) agent skill and SVG toolkit.
+Thanks to its author for making that tooling available.

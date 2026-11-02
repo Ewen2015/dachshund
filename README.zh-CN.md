@@ -10,7 +10,7 @@
 dachshund 找到这些 Agent 已经写在本机的 Memory，把它们汇入一份 Markdown
 记忆库，再通过 MCP 提供给所有 Agent 使用。无需账号，无需上云，也不依赖模型
 
-[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.14/dachshund-0.1.14-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
+[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.15/dachshund-0.1.15-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -32,6 +32,8 @@ dachshund 找到这些 Agent 已经写在本机的 Memory，把它们汇入一�
 dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 
 - **发现本机已有记忆**：读取 Agent 已知的 Memory 路径，不修改原始文件
+- **看懂每个 Agent 如何记忆**：进入 Agent 详情，对比原生 Memory 模型与 dachshund
+  的统一分类，并按需放大查看机制图
 - **维护统一记忆库**：把结果保存为普通 Markdown，同时保留来源信息
 - **合并跨 Agent 回声**：多个 Agent 记住同一件事时，只保留一份内容并展示全部来源
 - **让任意 Agent 召回**：通过仅绑定回环地址的 MCP Bridge 提供搜索、上下文、写入、归档和统计能力
@@ -44,7 +46,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 
 | 平台 | 架构 | 安装包 | 大小 | 下载 |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.14](https://github.com/Ewen2015/dachshund/releases/download/v0.1.14/dachshund-0.1.14-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.15](https://github.com/Ewen2015/dachshund/releases/download/v0.1.15/dachshund-0.1.15-arm64.dmg)** |
 
 **系统要求：** Apple Silicon Mac
 
@@ -53,7 +55,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 > 选择“打开”
 
 [所有版本](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.14/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.15/SHA256SUMS)
 
 **安装**
 
@@ -72,7 +74,7 @@ SHA-256 用于确认下载的 DMG 与正式发布文件一致。它不是激活�
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.14/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.15/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -157,6 +159,14 @@ WorkBuddy 笔记、Trae 会话 JSONL、Hermes 原生记忆条目、Pi 摘要、Z
 DeepSeek Harness Zstandard 会话日志、Codex Memory 文件，以及可读取的 Codex
 SQLite 记录
 
+### 看懂每个 Agent 如何记忆
+
+每个受支持 Agent 的详情页都会解释它的原生 Memory 模型、存储路径，以及它如何
+映射到 dachshund 的统一分类。紧凑机制图展示写入、持久化和召回路径，点击即可
+进入大图阅读视图
+
+<img src="docs/screenshots/09-agent-memory.png" width="900" alt="dachshund Agent Memory 详情页，展示原生 Memory 机制图和分类映射">
+
 ### 一份记忆，多个来源
 
 多个 Agent 写入相同内容时，dachshund 会合并为一条 Memory，并保留全部来源，方便
@@ -169,7 +179,8 @@ SQLite 记录
 `Cmd+Shift+M` 最小化到菜单栏，使用 `Cmd+Shift+D` 打开或关闭紧凑面板。完整应用
 可以在顶部 tab 与受 Magpie 产品设计启发的可选侧边栏之间切换：点击窗口左上角
 控制按钮旁的侧栏按钮，或按 `Cmd+\`。侧栏模式下，Pulse 归入 Insights。
-dachshund 会记住你的选择
+无论从完整应用还是菜单栏小窗，点击 dachshund logo 都可以重新进入 landing
+界面。侧边栏选择也会被记住
 
 <img src="docs/screenshots/12-sidebar.png" width="900" alt="dachshund 完整应用启用侧边栏导航，侧栏按钮后紧接 dachshund logo">
 
@@ -279,3 +290,7 @@ dachshund 是独立项目，产品名称和图标归各自所有者。dachshund 
 和部分交互设计受到
 [Magpie](https://github.com/yetone/magpie) 启发，在此致谢。dachshund 与 Magpie
 团队没有隶属关系，也不复用其品牌资产。
+
+Agent memory 机制图使用 MIT 许可的
+[Anatomy](https://github.com/wheresryan22/anatomy) agent skill 和 SVG 工具链制作，
+感谢工具作者公开这套能力。

@@ -19,6 +19,8 @@ discover existing agent memory
 - Native macOS tray icon and 420 x 620 compact popover.
 - Full desktop library view, agent view, connectors, detail inspector, and
   composer.
+- Per-agent memory mechanism diagrams with expandable full-window viewing.
+- A reusable landing view reachable from the brand mark in both app surfaces.
 - Local discovery for fifteen agent families.
 - Agent-specific read-only importers for all fifteen of them.
 - Markdown library with YAML frontmatter.
@@ -74,16 +76,16 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development Connectors screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.14-arm64.dmg` was produced on 2026-11-02.
+- `release/dachshund-0.1.15-arm64.dmg` was produced on 2026-11-02.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.14`.
-- The `0.1.14` DMG mounted read-only, contained a valid ad-hoc-signed app at
-  version `0.1.14`, and included an executable MCP bridge.
+  healthy loopback service at version `0.1.15`.
+- The `0.1.15` DMG mounted read-only, contained a valid ad-hoc-signed app at
+  version `0.1.15`, and included an executable MCP bridge.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.14` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.15` passed the same
   five-tool MCP smoke test.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
@@ -109,13 +111,17 @@ Verified in this repository:
   open the selected memory in the full window.
 - Development and packaged builds both report the macOS Dock icon hidden.
   The packaged app declares `LSUIElement=true`.
+- Agent details render native memory mechanism diagrams, and the enlarged
+  diagram dialog closes with `Escape` or its explicit close control.
+- The dachshund mark reopens the landing view from both the full app and compact
+  panel; landing spacing is stable at the default 920 x 700 window.
 - The packaged app is ad-hoc signed only; Gatekeeper assessment fails because it
   has no Developer ID signature or notarization.
 
 The DMG SHA-256 from this build is:
 
 ```text
-695cd56cb6c1295276708b1c44578273ea6c4b4c5c9598a4801eadcf23985319
+fcb66dc38e95c849f5239ab9b19881abdceef9d5431c8fe4c26d103936cea654
 ```
 
 ## Known Limitations
@@ -255,9 +261,21 @@ token are not a defense against a compromised account.
 - removed the macOS Dock icon from development and packaged builds;
 - restored and kept the site's floating hero cards fully visible.
 
+#### 0.1.15: Memory Mechanisms And A Reopenable Landing
+
+- added native memory mechanism diagrams for Codex, WorkBuddy, Claude Code,
+  Claude Desktop, OpenCode, Trae, Pi, and Hermes;
+- paired each diagram with the agent's storage path and dachshund taxonomy
+  mapping, with an accessible enlarged reading view;
+- made the dachshund mark reopen the landing view from the full app and compact
+  panel;
+- added explicit landing close behavior through the close button and `Escape`;
+- rebalanced the landing layout so agent tags and the CTA footer have stable
+  spacing at the default 920 x 700 window.
+
 ### Next
 
-#### 0.1.15: Trustworthy Incremental Import
+#### 0.1.16: Trustworthy Incremental Import
 
 - persist per-source mtime, size, and hash;
 - update an existing memory when its source changes;
@@ -265,7 +283,7 @@ token are not a defense against a compromised account.
 - expose source status in the detail view;
 - add importer fixtures and regression tests.
 
-#### 0.1.16: Reviewable Consolidation
+#### 0.1.17: Reviewable Consolidation
 
 - near-duplicate suggestions;
 - merge and split flows;
@@ -273,7 +291,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.17: Recall Quality
+#### 0.1.18: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -281,7 +299,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-### 0.1.18: Distribution
+#### 0.1.19: Distribution
 
 - signed and notarized universal build;
 - update channel;

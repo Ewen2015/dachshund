@@ -3481,8 +3481,8 @@ button.pulse-series-item:focus-visible {
   inset: 0;
   z-index: 300;
   display: grid;
-  grid-template-columns: 0.95fr 1.05fr;
-  gap: 52px;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 44px;
   padding: 82px 7vw 48px;
   background:
     radial-gradient(1000px 620px at 75% 25%, #ffffff 0, rgba(255, 255, 255, 0) 68%),
@@ -3616,15 +3616,14 @@ button.pulse-series-item:focus-visible {
 }
 
 .onboarding-count {
-  margin-top: 13px;
+  margin-top: 16px;
   color: var(--faint);
   font-size: 12px;
 }
 
 .onboarding-foot {
-  position: absolute;
-  bottom: 38px;
-  left: 7vw;
+  align-self: flex-start;
+  margin-top: 12px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -4026,8 +4025,7 @@ button.pulse-series-item:focus-visible {
     display: none;
   }
 
-  .onboarding-brand,
-  .onboarding-foot {
+  .onboarding-brand {
     left: 6vw;
   }
 }

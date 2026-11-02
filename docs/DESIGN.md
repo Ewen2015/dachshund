@@ -80,6 +80,10 @@ the collar accent, not from decorative typography.
 - Memory detail opens as a right-side inspector rather than replacing the feed.
   The inspector can expand into a full-window reading view; Escape collapses
   the reading view before closing the inspector.
+- Agent memory views pair the native classification with an expandable,
+  single-diagram explanation of the agent's write, persistence and recall path.
+- Clicking the dachshund mark opens the landing view from either app surface.
+  The returning landing keeps a close control and supports Escape.
 - Connectors use grouped white cards separated by generous vertical space.
 
 ### Menu Bar
@@ -107,6 +111,8 @@ full-screen Space without switching away from it, and hides on blur.
   sections. Pulse belongs under Insights.
 - **Agent identity:** real product marks in restrained white tiles; never used
   for large background fills.
+- **Memory mechanism:** one quiet diagram surface with a flow label and a
+  click-to-enlarge affordance; the expanded view uses an accessible dialog.
 - **Echo stack:** overlapping product marks plus a count when one memory came
   from multiple agents.
 - **Status dots:** green for local readiness, agent-specific accent for
