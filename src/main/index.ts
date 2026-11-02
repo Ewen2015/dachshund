@@ -574,10 +574,7 @@ if (!gotLock) {
   app.on('second-instance', showWindow)
 
   app.whenReady().then(async () => {
-    if (process.platform === 'darwin' && !app.isPackaged) {
-      const dockIcon = iconPath('icon.png')
-      if (fs.existsSync(dockIcon)) app.dock?.setIcon(dockIcon)
-    }
+    if (process.platform === 'darwin') app.dock?.hide()
 
     store = new Store(APP_VERSION)
     store.init()

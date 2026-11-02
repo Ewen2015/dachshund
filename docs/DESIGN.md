@@ -78,10 +78,15 @@ the collar accent, not from decorative typography.
 - Pulse uses a range filter, a four-cell summary strip, one stacked bar chart and
   two compact memory-specific detail cards. See [PULSE.md](PULSE.md).
 - Memory detail opens as a right-side inspector rather than replacing the feed.
+  The inspector can expand into a full-window reading view; Escape collapses
+  the reading view before closing the inspector.
 - Connectors use grouped white cards separated by generous vertical space.
 
 ### Menu Bar
 
+- The app runs as a macOS menu bar utility: no Dock icon and no app-switcher
+  entry. The packaged app declares `LSUIElement`; development builds hide the
+  Electron Dock icon at launch.
 - Fixed logical size: 420 x 620.
 - 24 px outer content inset.
 - 58 px header, 51 px tabs, 40 px search field.

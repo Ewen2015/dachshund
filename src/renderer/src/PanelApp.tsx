@@ -265,6 +265,8 @@ export default function PanelApp() {
                     className="panel-memory"
                     type="button"
                     key={memory.id}
+                    aria-label={`Open ${memory.title} in the full app`}
+                    title="Open in full app"
                     onClick={() => void window.dachshund.openMain({ memoryId: memory.id })}
                   >
                     <div className="pm-meta">
@@ -277,7 +279,12 @@ export default function PanelApp() {
                       <span className="pm-time">{relativeTime(memory.updatedAt)}</span>
                       {memory.echoCount > 1 && <span className="pm-echo">{memory.echoCount} agents</span>}
                     </div>
-                    <h3>{memory.title}</h3>
+                    <div className="pm-title">
+                      <h3>{memory.title}</h3>
+                      <span className="pm-open" aria-hidden="true">
+                        <ArrowUpRightIcon size={12} />
+                      </span>
+                    </div>
                     <p>{memory.excerpt}</p>
                   </button>
                 )

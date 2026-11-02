@@ -13,15 +13,15 @@ fs.writeFileSync(
   updateManifest,
   JSON.stringify(
     {
-      tag_name: 'v0.1.13',
-      name: 'dachshund v0.1.13',
+      tag_name: 'v0.1.14',
+      name: 'dachshund v0.1.14',
       body: 'Claude Desktop local memory, sidebar navigation, Insights, and Connectors.',
-      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.13',
+      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.14',
       assets: [
         {
-          name: 'dachshund-0.1.13-arm64.dmg',
+          name: 'dachshund-0.1.14-arm64.dmg',
           browser_download_url:
-            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.13/dachshund-0.1.13-arm64.dmg'
+            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.14/dachshund-0.1.14-arm64.dmg'
         }
       ]
     },
@@ -89,6 +89,12 @@ await page.waitForTimeout(400)
 await page.getByText('Paper before pixels', { exact: true }).first().click()
 await page.waitForTimeout(500)
 await page.screenshot({ path: path.join(shots, '03-detail.png') })
+
+await page.getByRole('button', { name: 'Expand memory' }).click()
+await page.waitForTimeout(350)
+await page.screenshot({ path: path.join(shots, '13-detail-expanded.png') })
+await page.getByRole('button', { name: 'Collapse memory' }).click()
+await page.waitForTimeout(250)
 
 await page.getByRole('button', { name: 'Close detail' }).click()
 await page.waitForTimeout(250)

@@ -1,6 +1,6 @@
 {
   "name": "dachshund",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "One memory across all your agents.",
   "main": "./out/main/index.js",
   "author": "Ewen Wang",
@@ -75,6 +75,9 @@
     "mac": {
       "category": "public.app-category.productivity",
       "icon": "resources/icon.icns",
+      "extendInfo": {
+        "LSUIElement": true
+      },
       "target": [
         "dmg"
       ],

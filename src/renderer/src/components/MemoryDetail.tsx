@@ -8,19 +8,25 @@ import { AgentLogo } from './AgentLogo'
 import {
   ArchiveIcon,
   ArrowUpRightIcon,
+  CollapseIcon,
   CloseIcon,
   CopyIcon,
+  ExpandIcon,
   FolderIcon
 } from './Icons'
 
 export function MemoryDetail({
   memory,
+  expanded,
+  onToggleExpanded,
   onClose,
   onArchive,
   onReveal,
   onToast
 }: {
   memory: MemoryDetailType
+  expanded: boolean
+  onToggleExpanded: () => void
   onClose: () => void
   onArchive: () => void
   onReveal: (path: string) => void
@@ -35,7 +41,7 @@ export function MemoryDetail({
   }
 
   return (
-    <aside className="detail" aria-label="Memory detail">
+    <aside className={`detail ${expanded ? 'is-expanded' : ''}`} aria-label="Memory detail">
       <div className="detail-top">
         <div className="detail-kicker">
           <span
@@ -49,9 +55,21 @@ export function MemoryDetail({
           <span className="kicker-sep" />
           <span>Updated {formatDate(memory.updatedAt)}</span>
         </div>
-        <button className="icon-button" type="button" onClick={onClose} aria-label="Close detail">
-          <CloseIcon size={16} />
-        </button>
+        <div className="detail-top-actions">
+          <button
+            className="icon-button"
+            type="button"
+            onClick={onToggleExpanded}
+            aria-label={expanded ? 'Collapse memory' : 'Expand memory'}
+            aria-pressed={expanded}
+            title={expanded ? 'Collapse memory' : 'Read in full view'}
+          >
+            {expanded ? <CollapseIcon size={15} /> : <ExpandIcon size={15} />}
+          </button>
+          <button className="icon-button" type="button" onClick={onClose} aria-label="Close detail">
+            <CloseIcon size={16} />
+          </button>
+        </div>
       </div>
 
       <div className="detail-scroll">

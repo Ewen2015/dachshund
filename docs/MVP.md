@@ -74,16 +74,16 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development Connectors screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.13-arm64.dmg` was produced on 2026-11-01.
+- `release/dachshund-0.1.14-arm64.dmg` was produced on 2026-11-02.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.13`.
-- The `0.1.13` DMG mounted read-only, contained a valid ad-hoc-signed app at
-  version `0.1.13`, and included an executable MCP bridge.
+  healthy loopback service at version `0.1.14`.
+- The `0.1.14` DMG mounted read-only, contained a valid ad-hoc-signed app at
+  version `0.1.14`, and included an executable MCP bridge.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.13` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.14` passed the same
   five-tool MCP smoke test.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
@@ -103,13 +103,19 @@ Verified in this repository:
 - DeepSeek Harness `0.2.1-rc.5` reloaded the managed Cordis row without exiting
   the app and spawned a dachshund MCP child. The bridge recorded a real
   `dsh-mcp-client` `0.0.1` receipt with `agentId=deepseek-harness`.
+- Memory details expand from the right inspector into a full-window reading
+  view; `Escape` collapses the reader before closing the inspector.
+- Compact-panel memory rows expose an explicit open-in-full-app affordance and
+  open the selected memory in the full window.
+- Development and packaged builds both report the macOS Dock icon hidden.
+  The packaged app declares `LSUIElement=true`.
 - The packaged app is ad-hoc signed only; Gatekeeper assessment fails because it
   has no Developer ID signature or notarization.
 
 The DMG SHA-256 from this build is:
 
 ```text
-353085de2a221d02d487c6e9cbd8f437a865057e88ab77fb55bf4d2d8171c4af
+695cd56cb6c1295276708b1c44578273ea6c4b4c5c9598a4801eadcf23985319
 ```
 
 ## Known Limitations
@@ -241,9 +247,17 @@ token are not a defense against a compromised account.
 - connected DeepSeek Harness through a managed Cordis MCP row;
 - added an idempotent shared-memory instruction block to `~/.dsh/AGENTS.md`.
 
+#### 0.1.14: Full-Window Reading And A Menu Bar Lifecycle
+
+- expanded memory details into a distraction-free full-window reader;
+- kept `Escape` progressive: collapse the reader, then close the inspector;
+- made compact-panel memory rows explicitly open in the full app;
+- removed the macOS Dock icon from development and packaged builds;
+- restored and kept the site's floating hero cards fully visible.
+
 ### Next
 
-#### 0.1.14: Trustworthy Incremental Import
+#### 0.1.15: Trustworthy Incremental Import
 
 - persist per-source mtime, size, and hash;
 - update an existing memory when its source changes;
@@ -251,7 +265,7 @@ token are not a defense against a compromised account.
 - expose source status in the detail view;
 - add importer fixtures and regression tests.
 
-#### 0.1.15: Reviewable Consolidation
+#### 0.1.16: Reviewable Consolidation
 
 - near-duplicate suggestions;
 - merge and split flows;
@@ -259,7 +273,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.16: Recall Quality
+#### 0.1.17: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -267,7 +281,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-### 0.1.17: Distribution
+### 0.1.18: Distribution
 
 - signed and notarized universal build;
 - update channel;

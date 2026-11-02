@@ -80,6 +80,22 @@ export function CloseIcon({ size = 16, className }: IconProps) {
   )
 }
 
+export function ExpandIcon({ size = 15, className }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5" />
+    </svg>
+  )
+}
+
+export function CollapseIcon({ size = 15, className }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M4 9h5V4M20 9h-5V4M4 15h5v5M20 15h-5v5" />
+    </svg>
+  )
+}
+
 export function ArrowUpRightIcon({ size = 15, className }: IconProps) {
   return (
     <svg {...base(size, className)}>

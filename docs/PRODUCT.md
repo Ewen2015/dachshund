@@ -73,7 +73,8 @@ the wider library view. It is the library and control surface:
 
 - Memory feed grouped by recency.
 - Search and agent filters.
-- Memory detail with Markdown rendering and source provenance.
+- Memory detail with Markdown rendering and source provenance, as a right-side
+  inspector that can expand into a full-window reading view.
 - Pulse: growth, agent contribution, overlap, category mix and freshness.
 - New-memory composer.
 - Agent discovery, sharing toggles, and MCP connection controls.

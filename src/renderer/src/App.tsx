@@ -33,6 +33,7 @@ export default function App() {
   const [memoryCategory, setMemoryCategory] = useState<MemoryCategoryId | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [detail, setDetail] = useState<MemoryDetailType | null>(null)
+  const [detailExpanded, setDetailExpanded] = useState(false)
   const [composerOpen, setComposerOpen] = useState(false)
   const [mcpSetupAgentId, setMcpSetupAgentId] = useState<string | null>(null)
   const [scanning, setScanning] = useState(false)
@@ -49,6 +50,12 @@ export default function App() {
   const updater = useUpdater()
   const searchRef = useRef<HTMLInputElement>(null)
   const toastTimer = useRef<number | null>(null)
+
+  const closeDetail = useCallback(() => {
+    setDetail(null)
+    setSelectedId(null)
+    setDetailExpanded(false)
+  }, [])
 
   const notify = useCallback((message: string, error = false) => {
     setToast({ message, error })
@@ -104,6 +111,7 @@ export default function App() {
         setComposerOpen(false)
         setSelectedId(id)
         setDetail(memory)
+        setDetailExpanded(false)
       })()
     })
     return () => {
@@ -144,14 +152,14 @@ export default function App() {
         if (mcpSetupAgentId) setMcpSetupAgentId(null)
         else if (composerOpen) setComposerOpen(false)
         else if (detail) {
-          setDetail(null)
-          setSelectedId(null)
+          if (detailExpanded) setDetailExpanded(false)
+          else closeDetail()
         }
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [composerOpen, detail, mcpSetupAgentId])
+  }, [closeDetail, composerOpen, detail, detailExpanded, mcpSetupAgentId])
 
   const scan = async () => {
     if (scanning) return
@@ -175,6 +183,7 @@ export default function App() {
 
   const select = async (id: string) => {
     setSelectedId(id)
+    setDetailExpanded(false)
     const memory = await window.dachshund.getMemory(id)
     setDetail(memory)
   }
@@ -191,6 +200,7 @@ export default function App() {
       setQuery('')
       setSelectedId(created.id)
       setDetail(created)
+      setDetailExpanded(false)
       notify('Memory saved to your library')
     } catch (error) {
       notify(error instanceof Error ? error.message : 'Could not save memory', true)
@@ -201,8 +211,7 @@ export default function App() {
     if (!detail) return
     const ok = await window.dachshund.archiveMemory(detail.id)
     if (ok) {
-      setDetail(null)
-      setSelectedId(null)
+      closeDetail()
       const next = await refreshState()
       setState(next)
       await loadMemories(query, activeAgentId)
@@ -387,10 +396,9 @@ export default function App() {
       {detail && (
         <MemoryDetail
           memory={detail}
-          onClose={() => {
-            setDetail(null)
-            setSelectedId(null)
-          }}
+          expanded={detailExpanded}
+          onToggleExpanded={() => setDetailExpanded((current) => !current)}
+          onClose={closeDetail}
           onArchive={() => void archive()}
           onReveal={(path) => void window.dachshund.reveal(path)}
           onToast={notify}
