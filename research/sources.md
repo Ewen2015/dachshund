@@ -1,91 +1,195 @@
-# Research Sources
+# Agent Memory Sources
 
-Research date: 2026-10-31
+Research date: **2026-11-02**
 
-## Official Sources
+This file accompanies [agent-memory-structures.md](agent-memory-structures.md).
+Links were checked against the product documentation or public repository named
+in each section. Local observations are evidence from this machine, not vendor
+contracts.
 
-| Source | URL | Used for |
+## Official Documentation
+
+| Agent | Source | URL | Used for |
+| --- | --- | --- | --- |
+| Codex | Memories | https://learn.chatgpt.com/docs/customization/memories?surface=app | Soft recall, separation from `AGENTS.md`, local memory enablement, extraction, local artifacts |
+| Claude Code | Memory | https://code.claude.com/docs/en/memory | `CLAUDE.md` vs Auto Memory, project identity, index limits, four native types, machine-local scope |
+| Claude Desktop | Desktop data storage | https://claude.com/docs/third-party/claude-desktop/data-storage | Local account/Cowork memory, local project memory, project boundary, local-only storage |
+| Claude Desktop | Chat search and memory | https://support.claude.com/en/articles/11817273-use-claude-s-chat-search-and-memory-to-build-on-previous-context | Account-side topics, cloud Chat/Cowork sharing, Project memory |
+| WorkBuddy | Desktop Memory | https://www.workbuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Memory | Nightly extraction, summary injection, session retrieval, edit/delete, drift warning |
+| OpenCode | Rules / instructions | https://opencode.ai/docs/rules/ | Project/global `AGENTS.md`, `CLAUDE.md` fallback, additional instructions |
+| Trae | Memories | https://docs.trae.ai/ide/memories | Global profile, project memory, local-only scope, proactive create/update/delete |
+| Trae | Rules | https://docs.trae.ai/ide/rules | Global/project rules and compatibility with `AGENTS.md` / `CLAUDE.md` |
+| Pi | Sessions | https://pi.dev/docs/latest/sessions | Session files, tree navigation, context building, compaction behavior |
+| Pi | Compaction | https://pi.dev/docs/latest/compaction | Compaction trigger, summary entry, retained context, branch summaries |
+| Pi | Session format | https://pi.dev/docs/latest/session-format | JSONL v3 header, entry types, `parentId`, `context_edit`, `branch_summary` |
+| Hermes | Persistent memory | https://hermes-agent.nousresearch.com/docs/user-guide/features/memory | `MEMORY.md`, `USER.md`, character limits, frozen prompt snapshot, tools, session DB |
+
+## Public Code
+
+### Codex
+
+Repository: `openai/codex`
+
+Commit: `ba0d0e1f74ee0f41c27ef24b37ed5fc030b487e7`
+
+| Path | URL | Used for |
 | --- | --- | --- |
-| OpenAI Codex Memories | https://developers.openai.com/codex/memories | Local Codex memory store, separation from `AGENTS.md`, stable context categories |
-| OpenAI Codex Customization | https://developers.openai.com/codex/customization/overview | Instructions, memories, skills and MCP as separate customization layers |
-| Claude Code Memory | https://code.claude.com/docs/en/memory | `CLAUDE.md` vs auto memory, four typed memory kinds, `MEMORY.md` and topic files |
-| Claude chat search and memory | https://support.claude.com/en/articles/11817273-use-claude-s-chat-search-and-memory-to-build-on-previous-context | Account topic memory, per-Project memory and legacy-summary distinction |
-| Gemini CLI memory tool | https://google-gemini.github.io/gemini-cli/docs/tools/memory.html | `save_memory` appends facts to `~/.gemini/GEMINI.md` |
-| Gemini CLI GEMINI.md | https://google-gemini.github.io/gemini-cli/docs/cli/gemini-md.html | Global, workspace and just-in-time context hierarchy |
-| Cursor Rules | https://cursor.com/docs/rules | Project/User/Team Rules, `.cursor/rules`, `AGENTS.md`, no memory between completions |
-| Cursor Automations memory | https://cursor.com/docs/cloud-agent/automations | Per-automation named `MEMORIES.md` |
-| GitHub Copilot custom instructions | https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions | Repository and path-specific instruction files |
-| GitHub Copilot CLI custom instructions | https://docs.github.com/en/copilot/how-tos/copilot-cli/add-custom-instructions | CLI instruction discovery and merge behavior |
-| GitHub Copilot CLI session data | https://docs.github.com/en/copilot/how-tos/copilot-cli/chronicle | Local session data, sync behavior and Chronicle |
-| Windsurf legacy Memories URL | https://docs.windsurf.com/windsurf/cascade/memories | Redirects through legacy Cascade documentation to Devin Local customizations; not a current standalone Memories contract |
-| Devin Local customizations | https://docs.devin.ai/desktop/devin-local/customizations | Current Rules, Skills, Plugins, MCP and Hooks surfaces |
-| OpenCode Rules | https://opencode.ai/docs/rules/ | Project/global `AGENTS.md`, CLAUDE fallback and additional instructions |
-| Trae Rules | https://docs.trae.ai/ide/rules | Global/project rules and AGENTS/CLAUDE compatibility |
-| Trae Memory | https://docs.trae.ai/ide/memories | Global `user_profile.md`, project `project_memory.md`, local-only scope |
-| WorkBuddy / CodeBuddy Memory | https://www.workbuddy.cn/docs/cli/memory | Typed `user` / `feedback` / `project` / `reference`, Markdown frontmatter, Auto Memory paths and `MEMORY.md` loading behavior |
-| Doubao memory help | https://helpdesk.bytedance.com/sites/standalone/helpcenter/question-detail/index.html?biz_id=65&question_id=13385 | Natural-language memory management, extraction, limits and overwrite behavior |
-| Doubao help manual | https://lf9-cdn-tos.draftstatic.com/obj/ies-hotsoon-draft/grace_legal/doubao_member_copywrite_for_ai.html | Settings memory controls, probabilistic recall and agent isolation |
-| Hermes persistent memory | https://hermes-agent.nousresearch.com/docs/user-guide/features/memory | `MEMORY.md`, `USER.md`, character limits and frozen prompt injection |
-| Pi compaction | https://pi.dev/docs/latest/compaction | Compaction and branch summarization |
-| Pi sessions | https://pi.dev/docs/latest/sessions | Tree-structured session history, `~/.pi/agent/sessions/` and compaction behavior |
-| Pi Durable | https://earendil.com/posts/pi-durable/ | Experimental durable agent runtime, not a long-term memory product |
-| ZCode Memory | https://zcode.z.ai/cn/docs/memory | Project-level Markdown memory, `MEMORY.md` index, topic files, default disabled and v3.6.4+ |
-| ZCode Agent instructions | https://zcode.z.ai/cn/newdocs/agents | Global and workspace `AGENTS.md` behavior |
-| DeepSeek Harness session system | https://deepseekdocs.com/en/docs/learn/core/session | Append-only session event log and context projection |
-| DeepSeek Harness MCP memory | https://deepseekdocs.com/en/docs/guides/mcp-memory | Official reference memory plus Memorix and Engram MCP examples |
+| `codex-rs/memories/README.md` | https://github.com/openai/codex/blob/ba0d0e1f74ee0f41c27ef24b37ed5fc030b487e7/codex-rs/memories/README.md | Phase 1/2, eligibility, leases, consolidation, no-network agent |
+| `codex-rs/memories/write/src/phase1.rs` | https://github.com/openai/codex/blob/ba0d0e1f74ee0f41c27ef24b37ed5fc030b487e7/codex-rs/memories/write/src/phase1.rs | Rollout extraction, structured output, secret redaction |
+| `codex-rs/memories/write/src/phase2.rs` | https://github.com/openai/codex/blob/ba0d0e1f74ee0f41c27ef24b37ed5fc030b487e7/codex-rs/memories/write/src/phase2.rs | Global lock, ranking, workspace diff, consolidation agent |
+| `codex-rs/memories/write/src/workspace.rs` | https://github.com/openai/codex/blob/ba0d0e1f74ee0f41c27ef24b37ed5fc030b487e7/codex-rs/memories/write/src/workspace.rs | Summary validation, required headings, 10,000-byte bound, git baseline |
+| `codex-rs/state/memory_migrations/0001_memories.sql` | https://github.com/openai/codex/blob/ba0d0e1f74ee0f41c27ef24b37ed5fc030b487e7/codex-rs/state/memory_migrations/0001_memories.sql | `stage1_outputs`, jobs, leases, retry and watermark schema |
 
-## Product Sources
+### OpenCode
 
-These repository READMEs and product pages were checked on 2026-10-31. They are
-product claims or implementation documentation, not independent benchmarks.
+Repository: `anomalyco/opencode` (the former `sst/opencode` URL redirects here)
 
-| Product | URL | Used for |
+Commit: `67139d6827af3a337c80472c33f9cb7c6c2ce500`
+
+| Path | URL | Used for |
 | --- | --- | --- |
-| Link | https://github.com/gowtham0992/link | Local Markdown memory, agent discovery, MCP, review-gated writes |
-| LinkBar | https://github.com/gowtham0992/link/tree/main/apps/LinkBar | macOS menu bar memory surface |
-| Memorix | https://github.com/AVIDS2/memorix | Local-first project memory, SQLite/Markdown, broad agent setup matrix |
-| agentmemory | https://github.com/rohitg00/agentmemory | Local memory server, hooks, MCP, viewer and session replay |
-| ai-memory | https://github.com/akitaonrails/ai-memory | Git-backed Markdown wiki, harness support, handoff and macOS companion |
-| EverOS | https://github.com/EverMind-AI/EverOS | Local Markdown + SQLite + LanceDB memory runtime |
-| projectmem | https://github.com/riponcm/projectmem | Repo-scoped event memory, MCP and local dashboards |
-| Basic Memory | https://github.com/basicmachines-co/basic-memory | Markdown knowledge graph, MCP and optional cloud |
-| Beacon | https://github.com/Asymptote-Labs/agent-beacon | Cross-harness session capture with optional local mode |
-| mcp-memory-service | https://github.com/doobidoo/mcp-memory-service | Local/self-hosted memory backend with MCP and dashboard |
-| Letta | https://github.com/letta-ai/letta | Stateful agent runtime with self-managed memory |
-| Cognee | https://github.com/topoteretes/cognee | Memory pipelines and knowledge graph infrastructure |
-| Mem0 | https://github.com/mem0ai/mem0 | Open-source library, self-hosted server and managed platform distinction |
-| Magpie | https://github.com/yetone/magpie | Product shape: menu bar, local gateway and agent discovery |
-| Magpie site | https://usemagpie.ai/ | Visual and interaction reference only |
+| `packages/core/src/instruction-discovery.ts` | https://github.com/anomalyco/opencode/blob/67139d6827af3a337c80472c33f9cb7c6c2ce500/packages/core/src/instruction-discovery.ts | Instruction source discovery and rendering |
+| `packages/core/src/instructions/index.ts` | https://github.com/anomalyco/opencode/blob/67139d6827af3a337c80472c33f9cb7c6c2ce500/packages/core/src/instructions/index.ts | Canonical JSON values, SHA-256 content addressing, deltas |
+| `specs/v2/session.md` | https://github.com/anomalyco/opencode/blob/67139d6827af3a337c80472c33f9cb7c6c2ce500/specs/v2/session.md | Durable session events, instruction deltas, compaction boundary |
+| `packages/core/src/session/sql.ts` | https://github.com/anomalyco/opencode/blob/67139d6827af3a337c80472c33f9cb7c6c2ce500/packages/core/src/session/sql.ts | SQLite projections and durable transcript storage |
 
-## dachshund Local Evidence
+### Pi
 
-These files are implementation evidence, not vendor standards:
+Repository: `earendil-works/pi` (the former `badlogic/pi-mono` URL redirects here)
 
-- `src/main/agents/registry.ts`: supported agent IDs, homes, app paths and MCP targets.
-- `src/main/agents/importers.ts`: exact paths, parsing rules and inferred kinds.
-- `src/main/agents/discovery.ts`: installation detection.
-- `src/main/store/db.ts`: current memory schema, sources and exact-content hash.
-- `src/main/store/library.ts`: Markdown frontmatter and file layout.
-- `docs/AGENTS.md`: current import support matrix.
-- `docs/ARCHITECTURE.md`: durable library and derived SQLite model.
+Commit: `3e0eec29f50e7861e9db91f2d12723267411b4f3`
+
+| Path | URL | Used for |
+| --- | --- | --- |
+| `packages/coding-agent/docs/session-format.md` | https://github.com/earendil-works/pi/blob/3e0eec29f50e7861e9db91f2d12723267411b4f3/packages/coding-agent/docs/session-format.md | JSONL v3, entry types, tree structure and context rebuilding |
+| `packages/coding-agent/docs/sessions.md` | https://github.com/earendil-works/pi/blob/3e0eec29f50e7861e9db91f2d12723267411b4f3/packages/coding-agent/docs/sessions.md | Session storage and navigation |
+| `packages/coding-agent/docs/compaction.md` | https://github.com/earendil-works/pi/blob/3e0eec29f50e7861e9db91f2d12723267411b4f3/packages/coding-agent/docs/compaction.md | Compaction, branch summaries, retained entries |
+
+### Hermes
+
+Repository: `NousResearch/hermes-agent`
+
+Commit: `2b31d7b283191b8069311fd3514ee89419f76516`
+
+| Path | URL | Used for |
+| --- | --- | --- |
+| `tools/memory_tool.py` | https://github.com/NousResearch/hermes-agent/blob/2b31d7b283191b8069311fd3514ee89419f76516/tools/memory_tool.py | Memory tool actions, frozen prompt contract, batch behavior, defaults |
+| `tools/memory_tool_store.py` | https://github.com/NousResearch/hermes-agent/blob/2b31d7b283191b8069311fd3514ee89419f76516/tools/memory_tool_store.py | File format, delimiter, character budgets, snapshots, threat scan, duplicate handling |
+
+## Local Evidence
+
+These observations were collected on **2026-11-02**. They are not public vendor
+schemas.
+
+### Codex
+
+- Installed CLI: `codex-cli 0.166.0`
+- Active database observed: `~/.codex/memories_v2_1.sqlite`
+- Tables observed: `stage1_outputs`, `jobs`, `consolidation_progress`
+- Documented artifacts observed under `~/.codex/memories/`
+
+### Claude Code
+
+- Installed version: `2.1.316`
+- Observed example:
+  `~/.claude/projects/-Users-ewen-Documents-trae-projects-group-debate-hub/memory/`
+- Topic frontmatter observed:
+  `metadata.type`, `metadata.originSessionId`, `modified`
+
+### Claude Desktop
+
+- Observed Space:
+  `.../spaces/ef7098ea-92cb-4490-b119-484d8a338116/memory/`
+- Files observed: `MEMORY.md`, `feedback_git_push_credentials.md`
+- Topic frontmatter observed: `name`, `description`, nested `metadata.type`,
+  `originSessionId`, `modified`
+
+### WorkBuddy desktop
+
+- Installed version: `5.9.3`
+- Observed:
+  `~/.workbuddy/IDENTITY.md`,
+  `~/.workbuddy/USER.md`,
+  `~/.workbuddy/memory/<uid>_memory.md`,
+  historical `~/.workbuddy/memery/`,
+  `~/.workbuddy/workbuddy.db`,
+  `<workspace>/.workbuddy/memory/YYYY-MM-DD.md`
+- `_memory.md` includes a hidden `RAW_JSON_START ... RAW_JSON_END` block.
+- `workbuddy.db` visible tables include `sessions`, `workspaces`, `buddy_snapshots`;
+  no dedicated memory table was observed.
+- Packaged prompt fragments under
+  `~/.workbuddy/plugins/cache/workbuddy-builtin/prompt-common/.../fragments/`
+  show older and newer memory surfaces, including `MemoryRecall` / `MemoryUpdate`.
+
+### OpenCode
+
+- Local storage observed at `~/.local/share/opencode/storage/`.
+- It contained older session JSON state, not a typed memory store.
+- Probed `~/.config/opencode/memory` and `~/.local/share/opencode/memory`; neither
+  was observed at research time.
+
+### Trae
+
+- Local CN layout observed:
+  `~/.trae-cn/memory/user_profile.md`,
+  encoded project directories,
+  `topics.md`,
+  `session_memory_*.jsonl`
+- Session JSONL keys observed:
+  `actions`, `compact_summary_meta`, `intent`, `learned`, `message_id`,
+  `message_summary_time`, `outcome`
+- `project_memory.md` was not found locally, although the official path remains
+  documented.
+
+### Pi
+
+- Installed version: `1.4.0`
+- Session path pattern observed:
+  `~/.pi/agent/sessions/--<encoded-path>--/<timestamp>_<session-id>.jsonl`
+
+### Hermes
+
+- Installed version: `0.16.0`
+- Local `MEMORY.md` and `USER.md` were present but small.
+- `~/.hermes/state.db` stores sessions with FTS5 search.
+
+## Individual Agent Diagrams
+
+The simplified per-agent figures are generated from:
+
+- `research/agent-memory-structures/figure/agents/build.mjs`
+- `research/agent-memory-structures/figure/agents/index.html`
+- `research/agent-memory-structures/assets/agents/*.png`
+
+These diagrams are static, labeled in English, and use only the official product
+contracts listed above. The longer report keeps public-code and local observations
+as separately labeled supporting evidence.
+
+## dachshund Source Evidence
+
+Implementation and product context, not vendor contracts:
+
+| File | Used for |
+| --- | --- |
+| `src/shared/memory-taxonomy.ts` | Five categories, eleven kinds, native mapping structure |
+| `src/main/store/library.ts` | Markdown library layout, frontmatter, path generation |
+| `src/main/store/db.ts` | SQLite schema, exact-content hash, FTS |
+| `src/main/agents/importers.ts` | Product-specific paths and parsing heuristics |
+| `docs/ARCHITECTURE.md` | Canonical Markdown and derived SQLite model |
+| `docs/MEMORY.md` | Current memory semantics and agent mapping |
 
 ## Evidence Notes
 
-- Product docs change frequently. Re-check official links before using a claim in
-  release notes or user-facing copy.
-- WorkBuddy documentation currently uses "CodeBuddy" terminology in places; this
-  research follows the product name used by dachshund. Its documented
-  `~/.codebuddy` Auto Memory paths must not be conflated with the observed
-  `~/.workbuddy` desktop-app layout.
-- The exact local schema for WorkBuddy, Doubao Agent Mode, Pi, ZCode and DeepSeek
-  Harness is partially observed by dachshund importers. Observations should not
-  be described as official API contracts.
-- Cursor Automations memory is not the same as a general editor-wide long-term
-  memory. It is scoped to repeated runs of one cloud automation.
-- Windsurf's documented memory behavior changed with the transition from legacy
-  Cascade to Devin Local. The old Memories URL redirects to the current
-  customizations page, so historical imported memories and current runtime
-  behavior must be described separately.
-- Pi Durable is an experimental durable-execution runtime. It is not a
-  cross-agent long-term memory format and should not be conflated with Pi
-  sessions, compaction, or a `MEMORY.md` store.
+- **Claude Desktop local memory and account memory are separate.** The official
+  third-party Desktop storage page scopes its local storage model to Claude
+  Desktop; it must not be generalized to every cloud configuration.
+- **OpenCode persistence is not typed auto memory.** Instructions, sessions,
+  compaction and transcript persistence are distinct concepts.
+- **Pi compaction is not durable person memory.** Raw session entries remain;
+  compaction changes model-visible history.
+- **Trae session JSONL is episode evidence.** It is not the same as the
+  officially documented `user_profile.md` / `project_memory.md`.
+- **Hermes writes can persist during a session while the prompt stays frozen.**
+  This distinction is the core of its behavior.
+- Product docs and packaged UI behavior change quickly. Re-check before turning
+  any observation into a public compatibility claim.

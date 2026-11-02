@@ -1,4 +1,5 @@
-import { useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
 import type { AgentSummary, MemorySummary } from '../../../shared/types'
 import {
   MEMORY_CATEGORIES,
@@ -13,6 +14,7 @@ import { AgentLogo } from './AgentLogo'
 import { CategoryLegend } from './CategoryLegend'
 import { FolderIcon } from './Icons'
 import { MemoryTimeline } from './MemoryTimeline'
+import { agentMemoryDiagram } from '../lib/agent-memory-diagrams'
 
 export function AgentMemoryView({
   agent,
@@ -36,7 +38,28 @@ export function AgentMemoryView({
   scanning: boolean
 }) {
   const [category, setCategory] = useState<MemoryCategoryId | null>(null)
+  const [diagramOpen, setDiagramOpen] = useState(false)
+  const closeDiagramRef = useRef<HTMLButtonElement>(null)
   const model = agentMemoryModel(agent.id)
+  const diagram = agentMemoryDiagram(agent.id)
+
+  useEffect(() => {
+    if (!diagramOpen) return
+
+    const previousOverflow = document.body.style.overflow
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setDiagramOpen(false)
+    }
+
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', closeOnEscape)
+    closeDiagramRef.current?.focus()
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [diagramOpen])
 
   const categoryCounts = Object.fromEntries(
     MEMORY_CATEGORIES.map((item) => [
@@ -71,14 +94,43 @@ export function AgentMemoryView({
         </div>
       </div>
 
-      <section className="native-model">
-        <div className="native-model-intro">
-          <small>Native classification</small>
-          <h2>{model.title}</h2>
-          <p>{model.summary}</p>
-          <div className="native-path">
-            <FolderIcon size={13} />
-            <span>{model.path}</span>
+      <section
+        className={`native-model ${diagram ? 'has-diagram' : ''} ${
+          model.mappings.length > 6 ? 'has-long-mappings' : ''
+        }`}
+      >
+        <div className="native-model-overview">
+          {diagram && (
+            <figure className="native-model-diagram">
+              <div className="native-model-diagram-head">
+                <span className="native-model-diagram-label">Memory mechanism</span>
+                <span className="native-model-diagram-flow">{diagram.flow}</span>
+              </div>
+              <button
+                className="native-model-diagram-trigger"
+                type="button"
+                onClick={() => setDiagramOpen(true)}
+                aria-label={`Enlarge ${agent.name} memory mechanism`}
+              >
+                <img src={diagram.src} alt="" draggable={false} />
+                <span className="native-model-zoom-hint" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="m20 20-4-4M11 8v6M8 11h6" />
+                  </svg>
+                  View larger
+                </span>
+              </button>
+            </figure>
+          )}
+          <div className="native-model-intro">
+            <small>Native classification</small>
+            <h2>{model.title}</h2>
+            <p>{model.summary}</p>
+            <div className="native-path">
+              <FolderIcon size={13} />
+              <span>{model.path}</span>
+            </div>
           </div>
         </div>
         <div className="mapping-list">
@@ -113,6 +165,45 @@ export function AgentMemoryView({
           })}
         </div>
       </section>
+
+      {diagram &&
+        diagramOpen &&
+        createPortal(
+          <div
+            className="diagram-lightbox"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setDiagramOpen(false)
+            }}
+          >
+            <div
+              className="diagram-lightbox-panel"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="diagram-lightbox-title"
+            >
+              <div className="diagram-lightbox-head">
+                <div>
+                  <span className="native-model-diagram-label">Memory mechanism</span>
+                  <h2 id="diagram-lightbox-title">{agent.name}</h2>
+                </div>
+                <button
+                  ref={closeDiagramRef}
+                  className="diagram-lightbox-close"
+                  type="button"
+                  onClick={() => setDiagramOpen(false)}
+                  aria-label="Close enlarged diagram"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <path d="M6 6l12 12M18 6 6 18" />
+                  </svg>
+                </button>
+              </div>
+              <p className="diagram-lightbox-flow">{diagram.flow}</p>
+              <img src={diagram.src} alt={diagram.alt} draggable={false} />
+            </div>
+          </div>,
+          document.body
+        )}
 
       <div className="memory-section-label">
         <span>Category legend</span>

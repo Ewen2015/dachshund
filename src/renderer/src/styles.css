@@ -133,16 +133,27 @@ kbd {
 }
 
 .topbar-brand {
+  height: 34px;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding-right: 4px;
+  margin-left: -6px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
   color: var(--ink);
   font-size: 14.5px;
   font-weight: 630;
   letter-spacing: -0.02em;
   white-space: nowrap;
   -webkit-app-region: no-drag;
+}
+
+.topbar-brand:hover {
+  border-color: var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .topbar-nav {
@@ -1231,9 +1242,132 @@ kbd {
   animation: rise 0.4s var(--ease) both;
 }
 
+.native-model-overview {
+  min-width: 0;
+  border-right: 1px solid var(--line);
+}
+
+.native-model.has-long-mappings .native-model-overview {
+  align-self: start;
+  border-right: 0;
+  background: linear-gradient(180deg, var(--surface-soft), var(--surface) 58%);
+}
+
+.native-model.has-long-mappings .native-model-intro {
+  border-bottom: 1px solid var(--line);
+  border-radius: 0 0 10px 10px;
+}
+
+.native-model-diagram {
+  margin: 0;
+  padding: 12px 14px 14px;
+  border-bottom: 1px solid var(--line);
+  background:
+    radial-gradient(720px 190px at 50% -20%, #ffffff 0, rgba(255, 255, 255, 0) 78%),
+    var(--surface-soft);
+}
+
+.native-model-diagram-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 0 2px 10px;
+}
+
+.native-model-diagram-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.native-model-diagram-label::before {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 3px rgba(37, 132, 95, 0.08);
+  content: '';
+}
+
+.native-model-diagram-flow {
+  min-width: 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.4;
+  text-align: right;
+}
+
+.native-model-diagram-trigger {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.native-model-diagram-trigger:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.native-model-diagram-trigger img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 760 / 300;
+  display: block;
+  object-fit: contain;
+  user-select: none;
+  transition: transform 180ms var(--ease);
+}
+
+.native-model-diagram-trigger:hover img {
+  transform: scale(1.012);
+}
+
+.native-model-zoom-hint {
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 7px;
+  border: 1px solid rgba(17, 17, 18, 0.1);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(3px);
+  transition:
+    opacity 160ms var(--ease),
+    transform 160ms var(--ease);
+}
+
+.native-model-diagram-trigger:hover .native-model-zoom-hint,
+.native-model-diagram-trigger:focus-visible .native-model-zoom-hint {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .native-model-intro {
   padding: 20px 22px;
-  border-right: 1px solid var(--line);
 }
 
 .native-model-intro small {
@@ -1279,15 +1413,90 @@ kbd {
   white-space: nowrap;
 }
 
+.diagram-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 240;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background: rgba(17, 17, 18, 0.36);
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.16s ease both;
+  -webkit-app-region: no-drag;
+}
+
+.diagram-lightbox-panel {
+  width: min(1240px, calc(100vw - 56px));
+  max-height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 18px 20px 20px;
+  border: 1px solid rgba(17, 17, 18, 0.13);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 30px 100px rgba(17, 17, 18, 0.3);
+  animation: rise 0.22s var(--ease) both;
+}
+
+.diagram-lightbox-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.diagram-lightbox-head h2 {
+  margin: 7px 0 0;
+  font-size: 23px;
+  font-weight: 640;
+  letter-spacing: -0.035em;
+}
+
+.diagram-lightbox-flow {
+  margin: 11px 0 15px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.diagram-lightbox-panel img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: calc(100vh - 190px);
+  object-fit: contain;
+  border-radius: 10px;
+  background: var(--surface-soft);
+  user-select: none;
+}
+
+.diagram-lightbox-close {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.diagram-lightbox-close:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
 .mapping-list {
   display: grid;
 }
 
 .mapping-row {
   display: grid;
-  grid-template-columns: minmax(120px, 0.8fr) 27px minmax(0, 1.2fr);
+  grid-template-columns: minmax(150px, 1.25fr) 24px minmax(120px, 0.75fr);
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   min-height: 61px;
   padding: 9px 18px;
   border-bottom: 1px solid var(--line);
@@ -1318,6 +1527,7 @@ kbd {
   color: var(--muted);
   font-family: var(--mono);
   font-size: 11px;
+  white-space: nowrap;
 }
 
 .native-kind::before {
@@ -3290,7 +3500,7 @@ button.pulse-series-item:focus-visible {
 
 .onboarding-brand {
   position: absolute;
-  top: 62px;
+  top: 32px;
   left: 7vw;
   display: flex;
   align-items: center;
@@ -3298,6 +3508,26 @@ button.pulse-series-item:focus-visible {
   font-size: 17px;
   font-weight: 630;
   letter-spacing: -0.025em;
+}
+
+.onboarding-close {
+  position: absolute;
+  top: 31px;
+  right: 7vw;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.onboarding-close:hover {
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
 }
 
 .onboarding h1 {
@@ -3745,9 +3975,45 @@ button.pulse-series-item:focus-visible {
     grid-template-columns: 1fr;
   }
 
-  .native-model-intro {
+  .native-model-overview {
     border-right: 0;
+  }
+
+  .native-model.has-long-mappings .native-model-overview {
+    background: transparent;
+  }
+
+  .native-model-intro {
     border-bottom: 1px solid var(--line);
+  }
+
+  .native-model-diagram {
+    padding: 10px;
+  }
+
+  .native-model-diagram-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+    padding: 1px 2px 9px;
+  }
+
+  .native-model-diagram-flow {
+    text-align: left;
+  }
+
+  .diagram-lightbox {
+    padding: 12px;
+  }
+
+  .diagram-lightbox-panel {
+    width: calc(100vw - 24px);
+    max-height: calc(100vh - 24px);
+    padding: 13px;
+  }
+
+  .diagram-lightbox-panel img {
+    max-height: calc(100vh - 165px);
   }
 
   .onboarding {
@@ -3868,6 +4134,11 @@ body.panel-mode {
 }
 
 .panel-brand {
+  margin-left: -5px;
+  padding: 3px 5px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -3875,6 +4146,11 @@ body.panel-mode {
   font-size: 14.5px;
   font-weight: 630;
   letter-spacing: -0.02em;
+}
+
+.panel-brand:hover {
+  border-color: var(--line);
+  background: var(--surface);
 }
 
 .panel-tools {
