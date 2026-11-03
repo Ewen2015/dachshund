@@ -53,11 +53,19 @@ Home: `~/.codex`
 
 Imported:
 
-- `~/.codex/memories/MEMORY.md`, split by `## Task Group:`;
+- `~/.codex/memories/MEMORY.md`, split by `# Task Group:` or
+  `## Task Group:`;
 - `~/.codex/memories/raw_memories.md`, split by `## Thread`;
 - `~/.codex/memories/memory_summary.md`;
 - read-only query of `~/.codex/sqlite/memories_1.sqlite` when the expected
   `stage1_outputs` schema is present.
+
+Task-group summaries and raw threads are chronological evidence, so they import
+as `episode` under History rather than automatically becoming current project
+state. `cwd:` or `cwd=` is extracted as the project scope and displayed
+separately from the category. A `task_group:` value is used only when no cwd is
+available. Explicit `Reusable knowledge` sections are imported as separate
+lessons under Ways of working; the surrounding thread remains History.
 
 MCP target: `~/.codex/config.toml`, as a managed
 `[mcp_servers.dachshund]` block.
@@ -165,8 +173,15 @@ Imported:
 The importer strips WorkBuddy's trailing raw JSON metadata block before creating
 the shared memory. A typed memory file keeps its native `user`, `feedback`,
 `project`, or `reference` kind. `IDENTITY.md` is treated as assistant behavior
-and maps to Rules; `USER.md` maps to Profile. MCP target: `~/.workbuddy/mcp.json`,
-under `mcpServers`.
+and maps to Rules; `USER.md` maps to Profile.
+
+Workspace files named `YYYY-MM-DD.md` are dated logs, so they import as History
+episodes even when they are found in a project workspace. The workspace name is
+retained as the separate project scope. A purely date/time-named workspace is
+shown as `Session YYYY-MM-DD HH:mm` instead of being presented as a fabricated
+project name. Only explicitly typed `project` memory enters Projects.
+
+MCP target: `~/.workbuddy/mcp.json`, under `mcpServers`.
 
 ## Doubao
 

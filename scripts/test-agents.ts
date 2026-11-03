@@ -389,7 +389,13 @@ function testCodexRolloutTaxonomy(): void {
     'INSERT INTO stage1_outputs(thread_id, raw_memory, rollout_summary, rollout_slug, generated_at) VALUES(?, ?, ?, ?, ?)'
   ).run(
     'thread-summary',
-    'Raw task evidence for the completed rollout.',
+    [
+      'cwd: /Users/example/Documents/dachshun',
+      'Raw task evidence for the completed rollout.',
+      '',
+      'Reusable knowledge:',
+      '- Keep source identity stable when re-scanning an imported memory.'
+    ].join('\n'),
     'The completed rollout shipped the compact panel and verified its category counts.',
     'compact-panel-release',
     1793404800000
@@ -398,7 +404,7 @@ function testCodexRolloutTaxonomy(): void {
     'INSERT INTO stage1_outputs(thread_id, raw_memory, rollout_summary, rollout_slug, generated_at) VALUES(?, ?, ?, ?, ?)'
   ).run(
     'thread-raw',
-    'A durable lesson without a rollout summary.',
+    'cwd: /Users/example/Documents/CodeHub\nA raw thread without a rollout summary.',
     '',
     'raw-lesson',
     1793404801000
@@ -406,10 +412,114 @@ function testCodexRolloutTaxonomy(): void {
   db.close()
 
   const memories = importAgentMemories(agent)
-  assert.equal(memories.length, 2)
-  assert.ok(memories.some((memory) => memory.kind === 'episode'))
-  assert.ok(memories.some((memory) => memory.kind === 'lesson'))
+  assert.equal(memories.length, 3)
+  assert.equal(
+    memories.filter((memory) => memory.kind === 'episode').length,
+    2
+  )
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'episode' &&
+        memory.project === 'dachshun' &&
+        categoryForKind(memory.kind) === 'episodes'
+    )
+  )
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'lesson' &&
+        memory.project === 'dachshun' &&
+        memory.tags.includes('reusable-knowledge')
+    )
+  )
+  assert.ok(!memories.some((memory) => memory.content.includes('raw thread without') && memory.kind === 'lesson'))
   assert.equal(categoryForKind('episode'), 'episodes')
+}
+
+function testCodexMarkdownScope(): void {
+  const home = path.join(root, 'codex-markdown-scope')
+  const agent = definition('codex', 'Codex', home, path.join(home, 'config.toml'))
+  write(
+    path.join(home, 'memories', 'MEMORY.md'),
+    [
+      '# Task Group: Dachsund delivery',
+      '',
+      'scope: Keep the issue implementation and verification in one source-controlled flow.',
+      'applies_to: cwd=/Users/example/Documents/dachshun; reuse_rule=verify every release.',
+      '',
+      '## Task 1: Ship the implementation',
+      '',
+      '### keywords',
+      '',
+      '- release, verification',
+      '',
+      '## Reusable knowledge',
+      '',
+      '- Run the importer fixture suite before closing an agent compatibility issue.',
+      '',
+      '# Task Group: Keep memory local',
+      '',
+      'kind: decision',
+      'cwd: /Users/example/Documents/dachshun',
+      '',
+      'Keep the shared library local instead of adding a hosted dependency.'
+    ].join('\n')
+  )
+  write(
+    path.join(home, 'memories', 'raw_memories.md'),
+    [
+      '# Raw Memories',
+      '',
+      '## Thread `codex-scope-thread`',
+      'updated_at: 2026-11-03T00:00:00.000Z',
+      'cwd: /Users/example/Documents/dachshun',
+      '',
+      '---',
+      'description: Validate Codex project scope extraction',
+      'keywords: scope, history',
+      '---',
+      '',
+      'Reusable knowledge:',
+      '- History remains the knowledge type while cwd becomes the project scope.',
+      '',
+      'References:',
+      '- `scripts/test-agents.ts`'
+    ].join('\n')
+  )
+
+  const memories = importAgentMemories(agent)
+  assert.equal(memories.length, 5)
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'episode' &&
+        memory.project === 'dachshun' &&
+        memory.title === 'Dachsund delivery'
+    )
+  )
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'episode' &&
+        memory.project === 'dachshun' &&
+        memory.title === 'Validate Codex project scope extraction'
+    )
+  )
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'decision' &&
+        memory.project === 'dachshun' &&
+        memory.title === 'Keep memory local' &&
+        categoryForKind(memory.kind) === 'projects'
+    )
+  )
+  assert.equal(
+    memories.filter((memory) => memory.kind === 'lesson' && memory.project === 'dachshun')
+      .length,
+    2
+  )
 }
 
 function testGeminiTaxonomy(): void {
@@ -717,9 +827,30 @@ function testWorkBuddyTaxonomy(): void {
     '---\ntype: reference\ntitle: Design source\n---\n\nThe current design source lives in the team Figma workspace.'
   )
   write(path.join(home, 'memory', 'MEMORY.md'), '# Memory Index\n\n- [Identity](identity.md)')
+  const datedWorkspace = path.join(root, 'workbuddy-workspaces', '2026-11-03-15-20-00')
+  const namedWorkspace = path.join(root, 'workbuddy-workspaces', 'Budget Planning')
+  write(
+    path.join(datedWorkspace, '.workbuddy', 'memory', '2026-11-03.md'),
+    '# Daily workspace log\n\nReviewed the release checklist and captured the remaining verification steps.'
+  )
+  write(
+    path.join(namedWorkspace, '.workbuddy', 'memory', 'project.md'),
+    '---\ntype: project\ntitle: Budget planning\n---\n\nThe budget project is active and the next decision is due Friday.'
+  )
+  const db = new DatabaseSync(path.join(home, 'workbuddy.db'))
+  db.exec('CREATE TABLE workspaces(path TEXT, last_opened_at INTEGER);')
+  db.prepare('INSERT INTO workspaces(path, last_opened_at) VALUES(?, ?)').run(
+    datedWorkspace,
+    2
+  )
+  db.prepare('INSERT INTO workspaces(path, last_opened_at) VALUES(?, ?)').run(
+    namedWorkspace,
+    1
+  )
+  db.close()
 
   const memories = importAgentMemories(agent)
-  assert.equal(memories.length, 6)
+  assert.equal(memories.length, 8)
   assert.ok(
     memories.some(
       (memory) => memory.kind === 'rule' && memory.tags.includes('assistant-identity')
@@ -729,6 +860,29 @@ function testWorkBuddyTaxonomy(): void {
   assert.ok(memories.some((memory) => memory.kind === 'feedback'))
   assert.ok(memories.some((memory) => memory.kind === 'project'))
   assert.ok(memories.some((memory) => memory.kind === 'reference'))
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'episode' &&
+        memory.project === 'Session 2026-11-03 15:20' &&
+        memory.tags.includes('daily-log')
+    )
+  )
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'project' &&
+        memory.project === 'Budget Planning' &&
+        categoryForKind(memory.kind) === 'projects'
+    )
+  )
+  assert.ok(
+    !memories.some(
+      (memory) =>
+        memory.project === 'Session 2026-11-03 15:20' &&
+        categoryForKind(memory.kind) === 'projects'
+    )
+  )
   assert.ok(!memories.some((memory) => memory.content.includes('Memory Index')))
 }
 
@@ -1177,6 +1331,7 @@ try {
   testClaudeTaxonomy()
   testClaudeDesktopTaxonomy()
   testCodexRolloutTaxonomy()
+  testCodexMarkdownScope()
   testGeminiTaxonomy()
   testKindNormalization()
   testAgentModelMappings()

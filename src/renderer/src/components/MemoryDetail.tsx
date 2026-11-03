@@ -48,6 +48,7 @@ export function MemoryDetail({
             className="detail-category"
             style={{ '--category-color': category.color } as CSSProperties}
           >
+            <span className="meta-key">Type</span>
             {category.label}
           </span>
           <span className="kicker-sep" />
@@ -78,6 +79,7 @@ export function MemoryDetail({
           {memory.project && (
             <span className="tag project-tag">
               <FolderIcon size={12} />
+              <span className="meta-key">Scope</span>
               {memory.project}
             </span>
           )}

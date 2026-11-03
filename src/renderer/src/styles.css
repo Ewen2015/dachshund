@@ -836,6 +836,40 @@ kbd {
   text-align: right;
 }
 
+.scope-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 620;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.scope-filter select {
+  height: 30px;
+  min-width: 150px;
+  padding: 0 28px 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  outline: 0;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 520;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.scope-filter select:focus {
+  border-color: var(--line-strong);
+  box-shadow: 0 0 0 3px rgba(17, 17, 18, 0.04);
+}
+
 .filter-row {
   display: flex;
   align-items: center;
@@ -1068,6 +1102,7 @@ kbd {
   font-weight: 610;
   letter-spacing: 0;
   text-transform: none;
+  white-space: nowrap;
 }
 
 .category-tag::before {
@@ -1076,6 +1111,14 @@ kbd {
   border-radius: 50%;
   background: currentColor;
   content: '';
+}
+
+.meta-key {
+  color: color-mix(in srgb, currentColor 62%, transparent);
+  font-size: 0.86em;
+  font-weight: 620;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .kicker-sep {
@@ -2831,6 +2874,7 @@ button.pulse-series-item:focus-visible {
   font-weight: 610;
   letter-spacing: 0;
   text-transform: none;
+  white-space: nowrap;
 }
 
 .detail-category::before {

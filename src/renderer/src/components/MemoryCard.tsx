@@ -44,7 +44,10 @@ export function MemoryCard({
         <div className="card-kicker">
           <AgentStack sources={sources} size={19} />
           <span className="kicker-sep" />
-          <span className="category-tag">{category.label}</span>
+          <span className="category-tag">
+            <span className="meta-key">Type</span>
+            {category.label}
+          </span>
           <span className="kicker-sep" />
           <span>{kindLabel(memory.kind)}</span>
           <span className="kicker-sep" />
@@ -54,7 +57,12 @@ export function MemoryCard({
         <p>{memory.excerpt}</p>
         <div className="card-foot">
           <div className="card-tags">
-            {memory.project && <span className="tag project-tag">{memory.project}</span>}
+            {memory.project && (
+              <span className="tag project-tag">
+                <span className="meta-key">Scope</span>
+                {memory.project}
+              </span>
+            )}
             {memory.tags.slice(0, 2).map((tag) => (
               <span className="tag" key={tag}>
                 {tag}

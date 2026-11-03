@@ -180,19 +180,39 @@ function workBuddyWorkspaces(agent: AgentDefinition): string[] {
   }
 }
 
+function workBuddyWorkspaceLabel(workspace: string): string {
+  const name = path.basename(workspace)
+  const match = name.match(
+    /^(\d{4})-(\d{2})-(\d{2})(?:[-_T ](\d{2})[-_:]?(\d{2})(?:[-_:]?(\d{2}))?)?$/
+  )
+  if (!match) return name
+  const date = `${match[1]}-${match[2]}-${match[3]}`
+  return match[4] ? `Session ${date} ${match[4]}:${match[5]}` : `Session ${date}`
+}
+
+function isWorkBuddyDailyLog(file: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}\.md$/.test(path.basename(file))
+}
+
 function importWorkBuddy(agent: AgentDefinition): ImportedMemory[] {
   const out: ImportedMemory[] = []
   const seen = new Set<string>()
 
   const addFile = (
     file: string,
-    defaults: { kind?: string; project?: string | null; tags?: string[] }
+    defaults: {
+      kind?: string
+      project?: string | null
+      tags?: string[]
+      forceKind?: string
+    }
   ): void => {
     if (seen.has(file)) return
     const raw = readText(file)
     if (!raw) return
     const memory = parseMarkdownRaw(file, agent, stripWorkBuddyMetadata(raw), defaults)
     if (!memory) return
+    if (defaults.forceKind) memory.kind = defaults.forceKind
     seen.add(file)
     out.push(memory)
   }
@@ -226,14 +246,20 @@ function importWorkBuddy(agent: AgentDefinition): ImportedMemory[] {
   }
 
   for (const workspace of workBuddyWorkspaces(agent)) {
-    const project = path.basename(workspace)
+    const project = workBuddyWorkspaceLabel(workspace)
     const memoryRoot = path.join(workspace, '.workbuddy', 'memory')
     for (const file of walk(
       memoryRoot,
       (item) => item.endsWith('.md') && path.basename(item) !== 'MEMORY.md',
       160
     )) {
-      addFile(file, { kind: 'project', project, tags: ['workbuddy', 'workspace-memory'] })
+      const dailyLog = isWorkBuddyDailyLog(file)
+      addFile(file, {
+        kind: 'episode',
+        project,
+        tags: ['workbuddy', 'workspace-memory', ...(dailyLog ? ['daily-log'] : [])],
+        ...(dailyLog ? { forceKind: 'episode' } : {})
+      })
     }
   }
 
@@ -593,9 +619,86 @@ function codexTags(section: string): string[] {
 }
 
 function codexProject(section: string): string | null {
-  const match = section.match(/cwd=([^;,\n]+)/)
-  if (!match) return null
-  return match[1].trim()
+  const cwd = section.match(/cwd\s*[:=]\s*([^;,\n]+)/i)?.[1]
+    .trim()
+    .replace(/^`|`$/g, '')
+  if (cwd && cwd.toLowerCase() !== 'any') {
+    const label = path.basename(cwd)
+    return label || cwd
+  }
+  return section.match(/^\s*task_group\s*:\s*(.+)$/m)?.[1]?.trim() ?? null
+}
+
+function codexReusableKnowledge(section: string): string[] {
+  const blocks: string[] = []
+  const lines = section.split('\n')
+  let current: string[] | null = null
+  const finish = (): void => {
+    if (!current) return
+    const content = current.join('\n').trim()
+    if (content) blocks.push(content)
+    current = null
+  }
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (/^#{0,4}\s*Reusable knowledge:?\s*$/i.test(trimmed)) {
+      finish()
+      current = []
+      continue
+    }
+    if (
+      current &&
+      (/^#{1,6}\s+/.test(trimmed) ||
+        /^(?:References|Preference signals|Key steps|Failures and how to do differently|Outcome|Task \d+):\s*$/i.test(
+          trimmed
+        ))
+    ) {
+      finish()
+      continue
+    }
+    if (current) current.push(line)
+  }
+  finish()
+  return blocks
+}
+
+function codexTaskGroupKind(section: string): string {
+  const explicit = section.match(/^(?:kind|type):\s*([a-z_-]+)\s*$/im)?.[1]
+  if (!explicit) return 'episode'
+  const kind = normalizeMemoryKind(explicit)
+  return ['project', 'decision', 'lesson', 'feedback', 'episode'].includes(kind)
+    ? kind
+    : 'episode'
+}
+
+function codexKnowledgeMemories(input: {
+  body: string
+  title: string
+  project: string | null
+  tags: string[]
+  file: string
+  sourceRef: string
+  createdAt: number
+  updatedAt: number
+  agent: AgentDefinition
+}): ImportedMemory[] {
+  return codexReusableKnowledge(input.body).map((content, index) => {
+    const title = `${input.title} · reusable knowledge`
+    return {
+      title: title.length > 110 ? `${title.slice(0, 107).trimEnd()}…` : title,
+      content,
+      kind: 'lesson',
+      project: input.project,
+      tags: [...new Set([...input.tags, 'codex', 'reusable-knowledge'])],
+      createdAt: input.createdAt,
+      updatedAt: input.updatedAt,
+      agentId: input.agent.id,
+      agentName: input.agent.name,
+      sourcePath: input.file,
+      sourceRef: `${input.sourceRef}:knowledge:${index + 1}`
+    }
+  })
 }
 
 function importCodexMarkdown(agent: AgentDefinition): ImportedMemory[] {
@@ -605,18 +708,20 @@ function importCodexMarkdown(agent: AgentDefinition): ImportedMemory[] {
   const rawMain = readText(mainFile)
   if (rawMain) {
     const { created, updated } = times(mainFile)
-    const groups = rawMain.split(/^## Task Group:\s*/m).slice(1)
+    const groups = rawMain.split(/^#{1,2}\s+Task Group:\s*/m).slice(1)
     for (const group of groups) {
       const lines = group.split('\n')
       const title = (lines.shift() ?? '').trim() || 'Codex task memory'
       const body = lines.join('\n').trim()
       if (!body) continue
+      const project = codexProject(group)
+      const tags = [...new Set(['codex', 'task-group', ...codexTags(group)])]
       out.push({
         title,
         content: body,
-        kind: 'project',
-        project: codexProject(group),
-        tags: codexTags(group),
+        kind: codexTaskGroupKind(body),
+        project,
+        tags,
         createdAt: created,
         updatedAt: updated,
         agentId: agent.id,
@@ -624,6 +729,19 @@ function importCodexMarkdown(agent: AgentDefinition): ImportedMemory[] {
         sourcePath: mainFile,
         sourceRef: `codex:group:${title}`
       })
+      out.push(
+        ...codexKnowledgeMemories({
+          body,
+          title,
+          project,
+          tags,
+          file: mainFile,
+          sourceRef: `codex:group:${title}`,
+          createdAt: created,
+          updatedAt: updated,
+          agent
+        })
+      )
     }
   }
 
@@ -638,12 +756,21 @@ function importCodexMarkdown(agent: AgentDefinition): ImportedMemory[] {
       const body = rest.join('\n').trim()
       if (!body) continue
       const description = body.match(/^description:\s*(.+)$/m)?.[1]?.trim()
+      const title = description ? description.slice(0, 110) : `Codex thread ${threadId.slice(0, 8)}`
+      const project = codexProject(body)
+      const tags = [
+        ...new Set([
+          'codex',
+          'thread',
+          ...(body.match(/^keywords:\s*(.+)$/m)?.[1]?.split(',').map((tag) => tag.trim()).filter(Boolean) ?? [])
+        ])
+      ]
       out.push({
-        title: description ? description.slice(0, 110) : `Codex thread ${threadId.slice(0, 8)}`,
+        title,
         content: body,
-        kind: 'lesson',
-        project: body.match(/^cwd:\s*(.+)$/m)?.[1]?.trim() ?? null,
-        tags: body.match(/^keywords:\s*(.+)$/m)?.[1]?.split(',').map((t) => t.trim()).filter(Boolean) ?? [],
+        kind: 'episode',
+        project,
+        tags,
         createdAt: created,
         updatedAt: updated,
         agentId: agent.id,
@@ -651,6 +778,19 @@ function importCodexMarkdown(agent: AgentDefinition): ImportedMemory[] {
         sourcePath: rawFile,
         sourceRef: threadId
       })
+      out.push(
+        ...codexKnowledgeMemories({
+          body,
+          title,
+          project,
+          tags,
+          file: rawFile,
+          sourceRef: threadId,
+          createdAt: created,
+          updatedAt: updated,
+          agent
+        })
+      )
     }
   }
 
@@ -698,12 +838,15 @@ function importCodexSqlite(agent: AgentDefinition): ImportedMemory[] {
         const threadId = String(row.thread_id ?? '')
         const slug = typeof row.rollout_slug === 'string' ? row.rollout_slug : ''
         const generated = toTime(row.generated_at, Date.now())
+        const title = slug ? humanize(slug) : `Codex thread ${threadId.slice(0, 8)}`
+        const project = codexProject(content)
+        const tags = ['codex', 'rollout']
         out.push({
-          title: slug ? humanize(slug) : `Codex thread ${threadId.slice(0, 8)}`,
+          title,
           content,
-          kind: summary ? 'episode' : 'lesson',
-          project: null,
-          tags: ['codex', 'rollout'],
+          kind: 'episode',
+          project,
+          tags,
           createdAt: generated,
           updatedAt: generated,
           agentId: agent.id,
@@ -711,6 +854,19 @@ function importCodexSqlite(agent: AgentDefinition): ImportedMemory[] {
           sourcePath: file,
           sourceRef: threadId
         })
+        out.push(
+          ...codexKnowledgeMemories({
+            body: content,
+            title,
+            project,
+            tags,
+            file,
+            sourceRef: threadId,
+            createdAt: generated,
+            updatedAt: generated,
+            agent
+          })
+        )
       }
     } catch {
       // Codex may be holding a write lock or the schema may be newer.

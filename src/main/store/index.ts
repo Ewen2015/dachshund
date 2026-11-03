@@ -213,7 +213,22 @@ export class Store {
     if (record?.contentHash === hash) {
       const current = this.db.getMemory(record.memoryId)
       if (current) {
+        const nextKind = normalizeMemoryKind(memory.kind)
+        const metadataChanged =
+          current.kind !== nextKind ||
+          current.project !== memory.project ||
+          current.title !== memory.title ||
+          JSON.stringify([...current.tags].sort()) !==
+            JSON.stringify([...memory.tags.slice(0, 12)].sort())
         this.attachImportedSource(current.id, memory)
+        if (metadataChanged) {
+          const updated = this.updateImportedMemory(current, memory, content, false)
+          this.recordSource(memory, sourceKey, current.id, hash, updated.title, record, now)
+          return {
+            status: 'updated',
+            change: changeFor(updated, memory, 'updated')
+          }
+        }
         this.recordSource(memory, sourceKey, current.id, hash, current.title, record, now)
         return { status: 'unchanged' }
       }
@@ -302,7 +317,8 @@ export class Store {
   private updateImportedMemory(
     previous: MemoryDetail,
     memory: ImportedMemory,
-    content: string
+    content: string,
+    touchUpdatedAt = true
   ): MemoryDetail {
     const sources = new Map(
       previous.sources.map((source) => [
@@ -327,7 +343,7 @@ export class Store {
       project: memory.project,
       tags: memory.tags.slice(0, 12),
       createdAt: previous.createdAt,
-      updatedAt: Math.max(memory.updatedAt, Date.now()),
+      updatedAt: touchUpdatedAt ? Math.max(memory.updatedAt, Date.now()) : previous.updatedAt,
       archived: previous.archived,
       pinned: previous.pinned,
       sources: [...sources.values()]

@@ -65,6 +65,31 @@ async function main(): Promise<void> {
   })
   assert.equal(duplicate.status, 'unchanged')
 
+  const reclassified = store.ingestImport({
+    ...base,
+    kind: 'episode',
+    project: 'dachshund',
+    tags: ['test', 'daily-log'],
+    title: 'Use pnpm for this repository',
+    content: 'Always use pnpm for package installation in this repository. Do not use npm.'
+  })
+  assert.equal(reclassified.status, 'updated')
+  const reclassifiedMemory = store.getMemory(memoryId)
+  assert.equal(reclassifiedMemory?.kind, 'episode')
+  assert.equal(reclassifiedMemory?.project, 'dachshund')
+  assert.equal(reclassifiedMemory?.updatedAt, base.updatedAt)
+  assert.equal(reclassifiedMemory?.sources.length, 1)
+
+  const reclassifiedAgain = store.ingestImport({
+    ...base,
+    kind: 'episode',
+    project: 'dachshund',
+    tags: ['test', 'daily-log'],
+    title: 'Use pnpm for this repository',
+    content: 'Always use pnpm for package installation in this repository. Do not use npm.'
+  })
+  assert.equal(reclassifiedAgain.status, 'unchanged')
+
   const changed = store.ingestImport({
     ...base,
     updatedAt: now,

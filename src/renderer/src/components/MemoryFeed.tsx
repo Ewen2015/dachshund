@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { AgentSummary, Counts, MemorySummary } from '../../../shared/types'
 import {
   MEMORY_CATEGORIES,
@@ -43,16 +44,26 @@ export function MemoryFeed({
   query: string
   onClearQuery: () => void
 }) {
+  const [activeProject, setActiveProject] = useState<string | null>(null)
   const categoryCounts = Object.fromEntries(
     MEMORY_CATEGORIES.map((item) => [
       item.id,
       memories.filter((memory) => categoryForKind(memory.kind) === item.id).length
     ])
   ) as Record<MemoryCategoryId, number>
+  const projects = [
+    ...new Set(
+      memories
+        .map((memory) => memory.project)
+        .filter((project): project is string => Boolean(project))
+    )
+  ]
+    .sort((left, right) => String(left).localeCompare(String(right)))
   const visible = [...memories]
     .filter(
       (memory) =>
-        activeCategory === null || categoryForKind(memory.kind) === activeCategory
+        (activeCategory === null || categoryForKind(memory.kind) === activeCategory) &&
+        (activeProject === null || memory.project === activeProject)
     )
     .sort((a, b) => b.updatedAt - a.updatedAt)
 
@@ -96,6 +107,24 @@ export function MemoryFeed({
         selected={activeCategory}
         onSelect={onCategory}
       />
+
+      {projects.length > 0 && (
+        <label className="scope-filter">
+          <span>Scope</span>
+          <select
+            aria-label="Filter by project scope"
+            value={activeProject ?? ''}
+            onChange={(event) => setActiveProject(event.target.value || null)}
+          >
+            <option value="">All scopes</option>
+            {projects.map((project) => (
+              <option key={project} value={project ?? ''}>
+                {project}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       <AgentFilterBar
         agents={agents}

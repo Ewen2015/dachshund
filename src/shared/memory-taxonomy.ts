@@ -62,7 +62,8 @@ export const MEMORY_CATEGORIES: MemoryCategoryDefinition[] = [
     id: 'episodes',
     label: 'History',
     shortLabel: 'History',
-    description: 'Session summaries and task episodes kept as evidence rather than durable facts.',
+    description:
+      'Chronological session summaries, task rollouts, and workspace logs kept as evidence rather than current project state.',
     color: '#8B6D76',
     kinds: ['episode']
   }
@@ -171,15 +172,15 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
     ]
   },
   codex: {
-    title: 'Task groups, summaries, rollouts',
+    title: 'Scoped task history + explicit lessons',
     summary:
-      'Codex is organized around work threads. dachshund reads merged summaries and rollout evidence as local files.',
+      'Codex task groups and rollouts stay in History while cwd or task-group metadata supplies their project scope. Only explicit reusable-knowledge sections become Ways of working.',
     path: '~/.codex/memories + rollouts',
     mappings: [
-      { native: 'task group', description: 'A durable project workstream', category: 'projects', kinds: ['project'], imported: true },
+      { native: 'task group', description: 'A workstream summary and project scope; not automatically current project state', category: 'episodes', kinds: ['episode'], imported: true },
       { native: 'summary', description: 'Merged user and workflow context', category: 'about', kinds: ['profile'], imported: true },
-      { native: 'rollout', description: 'Evidence from a completed task', category: 'episodes', kinds: ['episode'], imported: true },
-      { native: 'lesson', description: 'A reusable correction', category: 'working', kinds: ['lesson'], imported: true }
+      { native: 'rollout / raw thread', description: 'Evidence from a completed task with cwd scope', category: 'episodes', kinds: ['episode'], imported: true },
+      { native: 'Reusable knowledge', description: 'An explicitly extracted reusable lesson', category: 'working', kinds: ['lesson'], imported: true }
     ]
   },
   cursor: {
@@ -293,13 +294,14 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
   workbuddy: {
     title: 'Four typed memory kinds',
     summary:
-      'WorkBuddy chooses a native kind before dachshund files the entry into a broader memory category. Separate identity and user files are imported by their ownership.',
+      'WorkBuddy chooses a native kind before dachshund files the entry into a broader memory category. Dated workspace logs remain chronological History while the workspace name becomes their scope.',
     path: '~/.workbuddy/IDENTITY.md + USER.md + memory',
     mappings: [
       { native: 'user', description: 'Identity and stable preferences', category: 'about', kinds: ['profile'], imported: true },
       { native: 'feedback', description: 'Corrections and approved methods', category: 'working', kinds: ['feedback'], imported: true },
       { native: 'project', description: 'Goals, constraints, and active work', category: 'projects', kinds: ['project'], imported: true },
       { native: 'reference', description: 'Where to find external context', category: 'knowledge', kinds: ['reference'], imported: true },
+      { native: 'YYYY-MM-DD workspace log', description: 'Dated workspace evidence with a session scope', category: 'episodes', kinds: ['episode'], imported: true },
       { native: 'assistant identity', description: 'How the assistant presents itself', category: 'working', kinds: ['rule'], imported: true }
     ]
   },

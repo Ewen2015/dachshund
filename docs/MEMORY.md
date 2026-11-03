@@ -5,14 +5,17 @@ files, instruction documents, chronological session logs, account-level memory,
 and databases with their own schemas. It does not flatten those differences
 away.
 
-Every imported item keeps two levels of meaning:
+Every imported item keeps three dimensions:
 
 1. **Native model**: what the source agent calls the memory, where it came from,
    and why that agent stored it there.
-2. **dachshund category**: the stable, cross-agent grouping used to browse the
-   shared library.
+2. **dachshund category**: the stable knowledge type used to browse the shared
+   library.
+3. **Project scope**: the repository, workspace, or task range the memory
+   belongs to. Scope is an independent filter and does not decide the category.
 
-The native model is evidence. The dachshund category is an organizing layer.
+The native model is evidence. Category and project scope are separate
+organizing layers.
 
 ```text
 agent file or database
@@ -23,11 +26,12 @@ agent-specific importer
         v
 native kind / section / record type
         |
-        v
-kind normalization -> dachshund category
+        +--> kind normalization -> dachshund category
+        |
+        +--> cwd / workspace metadata -> project scope
         |
         v
-Markdown memory + SQLite index
+Markdown memory + SQLite index + independent filters
 ```
 
 Classification is deterministic. It does not call an LLM, generate embeddings,
@@ -36,8 +40,9 @@ or upload memory for inference.
 ## Categories and kinds
 
 There are five top-level categories and eleven concrete kinds. The category
-answers “where should I look for this?”, while the kind answers “what kind of
-knowledge is this?”
+answers “what kind of knowledge is this?”, the kind names the concrete type
+under that category, and the project scope answers “what work does it belong
+to?”.
 
 | Category | Kind | Use for | Not for |
 | --- | --- | --- | --- |
@@ -60,8 +65,9 @@ knowledge is this?”
 - **Ways of working** shapes behavior. Rules and feedback are separated
   because one is an instruction and the other is evidence that an instruction
   worked or failed.
-- **Projects** is scoped context. A project can be active for months without
-  becoming a personal preference.
+- **Projects** contains current project state. A record can belong to a project
+  scope without becoming current project state; in that case category and scope
+  deliberately differ.
 - The **Facts & references** category contains durable information that is not necessarily
   personal. It includes both facts and references to information kept elsewhere.
 - The **History** category is the historical-evidence layer. Session logs are deliberately not mixed
@@ -73,8 +79,9 @@ claim.
 
 The History filter is hidden while the library has no episode records, so an
 empty evidence layer does not add a permanent empty control to the interface.
-Codex records with a rollout summary become episodes; raw thread records without
-a summary remain lessons.
+Codex task-group and raw-thread records remain episodes even when they have a
+project scope. Only an explicit `Reusable knowledge` section is imported as a
+separate lesson.
 
 ## Normalization
 
@@ -87,11 +94,16 @@ one of the eleven kinds:
 | `preferences`, `preference` | `preference` |
 | `instruction`, `instructions`, `guideline`, `convention`, `policy` | `rule` |
 | `correction`, `feedback` | `feedback` |
-| `task`, `task-group`, `task_group`, `project_memory` | `project` |
+| `task`, `project_memory` | `project` |
 | `decision` | `decision` |
 | `link`, `doc`, `reference` | `reference` |
 | `session`, `session_memory`, `topic`, `rollout`, `compaction`, `history` | `episode` |
 | explicit `fact`, `lesson`, `workflow` | unchanged |
+
+Scope does not override knowledge type. A Codex `cwd`, `task_group`, WorkBuddy
+workspace, or other workstream identifier is stored as project scope while the
+record keeps the kind implied by its content and native structure. Codex task
+groups therefore default to `episode`, not `project`.
 
 If a source has no usable type metadata, the importer classifies by the role of
 the file. An empty or unknown kind falls back to `fact`; an unknown kind is not
@@ -116,7 +128,7 @@ claiming that dachshund currently has access to that data.
 | --- | --- | --- | --- |
 | **Claude Code** | `user`, `feedback`, `project`, `reference`, plus written instructions | Typed auto memory maps to About me, Ways of working, Projects, and Facts & references; `CLAUDE.md` and rules map to Ways of working | Session transcripts |
 | **Claude Desktop** | Local Cowork Space and local account/agent topic files plus server-side Chat memory | Typed local topics map to About me, Ways of working, Projects, and Facts & references; `MEMORY.md` is only an index | Ordinary Chat memory and cloud Project memory that are not present locally |
-| **Codex** | Task groups, merged summaries, rollouts | Task groups to Projects, summary to About me, rollout summaries to History, raw memories without a summary to Ways of working | Nothing in the documented local store |
+| **Codex** | Task groups, merged summaries, rollouts | Task groups and rollouts to History with cwd scope; summary to About me; only explicit `Reusable knowledge` to Ways of working | Nothing in the documented local store |
 | **Cursor** | Rules, `AGENTS.md`, automation memory | Local rules and agent definitions to Ways of working | Repository `AGENTS.md` and cloud automation `MEMORIES.md` |
 | **DeepSeek Harness** | Append-only session events; durable memory comes from plugins or MCP | Explicit durable cues to About me or Ways of working; compaction summaries to History; `~/.dsh/AGENTS.md` to Ways of working | Raw session events, tool output, `@session` snapshots, and native MCP memory stores |
 | **Doubao** | Account memory, assistant memory, Agent Mode workspace | Locally observable Agent Mode workspace and session memory to Projects | Account memory and per-assistant memory |
@@ -126,7 +138,7 @@ claiming that dachshund currently has access to that data.
 | **OpenCode** | Global and project `AGENTS.md`, observed memory Markdown, sessions | Global `AGENTS.md` to Ways of working; observed memory Markdown to Facts & references | Project `AGENTS.md` and session history |
 | **Pi** | Session tree, compaction, branch summaries | Compaction and branch summaries to History; explicit durable cues to About me or Ways of working | Raw session branches and ordinary messages |
 | **TRAE** | `user_profile.md`, `project_memory.md`, `topics.md`, session JSONL | Profile to About me; project memory to Projects; topics and session summaries to History | Rules and transient cache/log data |
-| **WorkBuddy** | Typed `user`, `feedback`, `project`, `reference` memory plus identity files | Typed memory maps to About me, Ways of working, Projects, and Facts & references; assistant identity maps to Ways of working | Sessions |
+| **WorkBuddy** | Typed `user`, `feedback`, `project`, `reference` memory, identity files, and dated workspace logs | Typed memory maps to About me, Ways of working, Projects, and Facts & references; `YYYY-MM-DD.md` workspace logs map to History with a session scope; assistant identity maps to Ways of working | Undated session internals |
 | **ZCode** | Project-scoped typed Markdown memory plus session evidence | Typed Markdown maps to About me, Ways of working, Projects, and Facts & references; explicit session cues map to About me or Ways of working | Global and project `AGENTS.md` |
 | **Windsurf** | Workspace memories, rules, `AGENTS.md` | Workspace memory Markdown to Projects | Rules and `AGENTS.md` |
 
@@ -149,6 +161,10 @@ The shared library and the per-agent view use the taxonomy differently:
 - **The category legend** filters the visible timeline without consuming the
   space of a dashboard. Every card still carries its category tag, kind, time,
   and sources.
+- **Type and scope are separate labels.** Cards and details show `Type` for the
+  knowledge category and `Scope` for the project or workspace, and the timeline
+  exposes an independent scope filter. A History episode may therefore have a
+  project scope without moving into Projects.
 - **An agent page** explains that agent's native model first, then shows the
   mapping into dachshund. Its timeline contains only memories with a source from
   that agent and remains sorted newest first.
