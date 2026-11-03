@@ -144,6 +144,35 @@ async function main(): Promise<void> {
   assert.ok(scan.state.sync.lastSuccessfulSyncAt)
   assert.equal(store.syncState().lastResult?.reason, 'automatic')
 
+  const olderTrae = store.ingestImport({
+    ...base,
+    agentId: 'trae',
+    agentName: 'TRAE',
+    sourcePath: '/tmp/fixture/trae-memory.md',
+    sourceRef: 'trae:older',
+    title: 'Older TRAE memory',
+    content: 'TRAE keeps this older memory even when newer cursor sources fill the global limit.',
+    updatedAt: now - 120_000
+  })
+  assert.equal(olderTrae.status, 'added')
+
+  for (let index = 0; index < 130; index += 1) {
+    store.ingestImport({
+      ...base,
+      agentId: 'cursor',
+      agentName: 'Cursor',
+      sourcePath: `/tmp/fixture/cursor-${index}.md`,
+      sourceRef: `cursor:${index}`,
+      title: `Cursor memory ${index}`,
+      content: `Cursor memory ${index} is newer than the TRAE record and should not hide it from an agent-scoped search.`,
+      updatedAt: now + index * 1_000
+    })
+  }
+
+  const traeOnly = store.search({ query: '', agentId: 'trae', limit: 120 })
+  assert.equal(traeOnly.length, 1)
+  assert.equal(traeOnly[0].id, olderTrae.change?.memoryId)
+
   store.db.close()
   fs.rmSync(root, { recursive: true, force: true })
   console.log('Sync source versioning fixtures passed')

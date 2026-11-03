@@ -391,21 +391,28 @@ export class Db {
     return this.getMemory(id)
   }
 
-  listMemories(limit = 100, includeArchived = false): MemorySummary[] {
+  listMemories(limit = 100, includeArchived = false, agentId?: string): MemorySummary[] {
+    const clauses = includeArchived ? [] : ['m.archived = 0']
+    const params: string[] = []
+    if (agentId) {
+      clauses.push(
+        'EXISTS (SELECT 1 FROM sources s WHERE s.memory_id = m.id AND s.agent_id = ?)'
+      )
+      params.push(agentId)
+    }
     const rows = this.db
       .prepare(
-        `SELECT * FROM memories ${includeArchived ? '' : 'WHERE archived = 0'}
-         ORDER BY updated_at DESC LIMIT ?`
+        `SELECT m.* FROM memories m ${clauses.length ? `WHERE ${clauses.join(' AND ')}` : ''}
+         ORDER BY m.updated_at DESC LIMIT ?`
       )
-      .all(limit) as Row[]
+      .all(...params, limit) as Row[]
     return this.rowsToSummaries(rows)
   }
 
   search(query: string, agentId?: string, limit = 60, includeArchived = false): MemorySummary[] {
     const trimmed = query.trim()
     if (!trimmed) {
-      const all = this.listMemories(limit, includeArchived)
-      return agentId ? all.filter((m) => m.sources.some((s) => s.agentId === agentId)) : all
+      return this.listMemories(limit, includeArchived, agentId)
     }
 
     const results = new Map<string, MemorySummary>()
@@ -421,9 +428,14 @@ export class Db {
           `SELECT m.*, bm25(memories_fts) AS score
            FROM memories_fts JOIN memories m ON m.id = memories_fts.id
            WHERE memories_fts MATCH ? ${includeArchived ? '' : 'AND m.archived = 0'}
+             ${
+               agentId
+                 ? 'AND EXISTS (SELECT 1 FROM sources s WHERE s.memory_id = m.id AND s.agent_id = ?)'
+                 : ''
+             }
            ORDER BY score LIMIT ?`
         )
-        .all(ftsQuery, limit * 2) as Row[]
+        .all(ftsQuery, ...(agentId ? [agentId] : []), limit * 2) as Row[]
       for (const memory of this.rowsToSummaries(rows, true)) {
         results.set(memory.id, memory)
       }
@@ -437,9 +449,14 @@ export class Db {
         `SELECT * FROM memories
          WHERE ${includeArchived ? '1 = 1' : 'archived = 0'}
            AND (title LIKE ? OR content LIKE ? OR tags LIKE ? OR project LIKE ?)
+           ${
+             agentId
+               ? 'AND EXISTS (SELECT 1 FROM sources s WHERE s.memory_id = memories.id AND s.agent_id = ?)'
+               : ''
+           }
          ORDER BY updated_at DESC LIMIT ?`
       )
-      .all(like, like, like, like, limit) as Row[]
+      .all(like, like, like, like, ...(agentId ? [agentId] : []), limit) as Row[]
     for (const memory of this.rowsToSummaries(rows)) {
       if (!results.has(memory.id)) results.set(memory.id, memory)
     }
