@@ -13,6 +13,8 @@ import {
 } from 'electron'
 import path from 'node:path'
 import fs from 'node:fs'
+import net from 'node:net'
+import { spawn } from 'node:child_process'
 import { Store } from './store'
 import { startHttpServer } from './server'
 import type {
@@ -49,6 +51,9 @@ let mainWindow: BrowserWindow | null = null
 let panelWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 let trayMenu: Menu | null = null
+let statusItemServer: net.Server | null = null
+let statusItemSocket: net.Socket | null = null
+let nativeTrayBounds: Electron.Rectangle | null = null
 let panelVisibleBeforeClick = false
 let store: Store
 let updateService: UpdateService | null = null
@@ -69,6 +74,17 @@ function bridgePath(): string {
 function iconPath(name: string): string {
   if (app.isPackaged) return path.join(process.resourcesPath, 'assets', name)
   return path.join(app.getAppPath(), 'resources', name)
+}
+
+function statusItemPath(): string {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, 'status-item', 'DachshundStatus.app')
+  }
+  return path.join(app.getAppPath(), 'resources', 'bin', 'DachshundStatus.app')
+}
+
+function statusItemSocketPath(): string {
+  return path.join(app.getPath('userData'), 'status-item.sock')
 }
 
 function hideMainWindow(afterHide?: () => void): void {
@@ -203,10 +219,11 @@ function showWindow(): void {
 }
 
 function positionPanel(): void {
-  if (!panelWindow || !tray) return
+  if (!panelWindow) return
+  const trayBounds = nativeTrayBounds ?? tray?.getBounds()
+  if (!trayBounds) return
   const cursor = screen.getCursorScreenPoint()
   const display = screen.getDisplayNearestPoint(cursor)
-  const trayBounds = tray.getBounds()
   const trayCenter = {
     x: trayBounds.x + trayBounds.width / 2,
     y: trayBounds.y + trayBounds.height / 2
@@ -239,23 +256,115 @@ function togglePanel(): void {
   else showPanel()
 }
 
-function rebuildTrayMenu(): void {
-  if (!tray) return
+function trayUpdate(): { label: string; enabled: boolean } | null {
   const update = latestUpdateState
+  if (!update || !['available', 'downloading', 'downloaded', 'installing'].includes(update.phase)) {
+    return null
+  }
+
+  return {
+    label:
+      update.phase === 'installing' || update.phase === 'downloaded'
+        ? `Installing dachshund ${update.latestVersion}...`
+        : update.phase === 'downloading'
+          ? `Downloading dachshund ${update.latestVersion}...`
+          : `Download dachshund ${update.latestVersion}`,
+    enabled: update.phase === 'available'
+  }
+}
+
+function sendNativeStatusState(): void {
+  if (!statusItemSocket?.writable) return
+  const update = trayUpdate()
+  statusItemSocket.write(
+    `${JSON.stringify({
+      type: 'update',
+      label: update?.label ?? null,
+      enabled: update?.enabled ?? false
+    })}\n`
+  )
+}
+
+function handleNativeStatusEvent(line: string): void {
+  if (!line) return
+
+  let payload: {
+    event?: string
+    command?: string
+    bounds?: { x?: number; y?: number; width?: number; height?: number }
+  }
+  try {
+    payload = JSON.parse(line)
+  } catch {
+    return
+  }
+
+  if (
+    payload.event === 'bounds' &&
+    Number.isFinite(payload.bounds?.x) &&
+    Number.isFinite(payload.bounds?.y) &&
+    Number.isFinite(payload.bounds?.width) &&
+    Number.isFinite(payload.bounds?.height)
+  ) {
+    nativeTrayBounds = {
+      x: payload.bounds!.x!,
+      y: payload.bounds!.y!,
+      width: payload.bounds!.width!,
+      height: payload.bounds!.height!
+    }
+    return
+  }
+
+  if (payload.event === 'toggle') {
+    togglePanel()
+    return
+  }
+
+  if (payload.event !== 'command') return
+  switch (payload.command) {
+    case 'show_panel':
+      showPanel()
+      break
+    case 'show_window':
+      showWindow()
+      break
+    case 'new_memory':
+      showWindow()
+      mainWindow?.webContents.send('ui:new-memory')
+      break
+    case 'scan_agents':
+      void scanAgents()
+      break
+    case 'check_updates':
+      void checkForUpdates(true)
+      break
+    case 'download_update':
+      showPanel()
+      if (latestUpdateState?.phase === 'available') void updateService?.downloadUpdate()
+      break
+    case 'quit':
+      quitting = true
+      app.quit()
+      break
+  }
+}
+
+function rebuildTrayMenu(): void {
+  if (statusItemSocket) {
+    sendNativeStatusState()
+    return
+  }
+  if (!tray) return
+  const update = trayUpdate()
   const updateItem =
-    update && ['available', 'downloading', 'downloaded', 'installing'].includes(update.phase)
+    update
       ? [
           {
-            label:
-              update.phase === 'installing' || update.phase === 'downloaded'
-                ? `Installing dachshund ${update.latestVersion}...`
-                : update.phase === 'downloading'
-                  ? `Downloading dachshund ${update.latestVersion}...`
-                  : `Download dachshund ${update.latestVersion}`,
-            enabled: update.phase === 'available',
+            label: update.label,
+            enabled: update.enabled,
             click: () => {
               showPanel()
-              if (update.phase === 'available') {
+              if (update.enabled) {
                 void updateService?.downloadUpdate()
               }
             }
@@ -297,13 +406,105 @@ function rebuildTrayMenu(): void {
     }
   ])
   tray.setToolTip(
-    update?.phase === 'available'
-      ? `dachshund · update ${update.latestVersion} available`
-      : 'dachshund'
+    update ? `dachshund · ${update.label}` : 'dachshund'
   )
 }
 
-function createTray(): void {
+async function createNativeStatusItem(): Promise<boolean> {
+  if (process.platform !== 'darwin') return false
+
+  const helperPath = statusItemPath()
+  const imagePath = iconPath('trayTemplateLarge.png')
+  if (!fs.existsSync(helperPath) || !fs.existsSync(imagePath)) {
+    console.warn('Native status item helper is unavailable; using Electron tray fallback')
+    return false
+  }
+
+  const socketPath = statusItemSocketPath()
+  fs.rmSync(socketPath, { force: true })
+
+  return new Promise((resolve) => {
+    let settled = false
+    let outputBuffer = ''
+    const server = net.createServer((socket) => {
+      if (settled) {
+        socket.destroy()
+        return
+      }
+
+      settled = true
+      server.close(() => fs.rmSync(socketPath, { force: true }))
+      statusItemServer = null
+      statusItemSocket = socket
+      socket.setEncoding('utf8')
+      socket.on('data', (chunk: string) => {
+        outputBuffer += chunk
+        while (outputBuffer.includes('\n')) {
+          const newline = outputBuffer.indexOf('\n')
+          const line = outputBuffer.slice(0, newline)
+          outputBuffer = outputBuffer.slice(newline + 1)
+          handleNativeStatusEvent(line)
+        }
+      })
+      socket.on('error', (error) => {
+        console.error('Native status item connection failed', error)
+      })
+      socket.on('close', () => {
+        if (statusItemSocket === socket) statusItemSocket = null
+        if (!quitting) {
+          console.error('Native status item disconnected; using tray fallback')
+          createElectronTray()
+        }
+      })
+
+      sendNativeStatusState()
+      resolve(true)
+    })
+    statusItemServer = server
+
+    const fail = (error?: unknown): void => {
+      if (settled) return
+      settled = true
+      if (error) console.error('Failed to start native status item', error)
+      if (server.listening) {
+        server.close(() => fs.rmSync(socketPath, { force: true }))
+      } else {
+        fs.rmSync(socketPath, { force: true })
+      }
+      statusItemServer = null
+      resolve(false)
+    }
+
+    server.once('error', fail)
+    server.listen(socketPath, () => {
+      const launcher = spawn(
+        'open',
+        [
+          '-n',
+          '-a',
+          helperPath,
+          '--args',
+          imagePath,
+          socketPath,
+          String(process.pid)
+        ],
+        { stdio: 'ignore' }
+      )
+      launcher.once('error', fail)
+      launcher.once('exit', (code) => {
+        if (code !== 0) fail(new Error(`open exited with code ${code}`))
+      })
+    })
+
+    setTimeout(() => {
+      if (!settled) fail(new Error('Timed out waiting for native status item'))
+    }, 10000)
+  })
+}
+
+function createElectronTray(): void {
+  if (tray) return
+  if (process.platform === 'darwin') app.dock?.show()
   const trayPath = iconPath('trayTemplate.png')
   const image = fs.existsSync(trayPath)
     ? nativeImage.createFromPath(trayPath)
@@ -322,6 +523,11 @@ function createTray(): void {
   tray.on('right-click', () => {
     if (trayMenu) tray?.popUpContextMenu(trayMenu)
   })
+}
+
+async function createTray(): Promise<void> {
+  if (await createNativeStatusItem()) return
+  createElectronTray()
 }
 
 function buildMenu(): void {
@@ -629,7 +835,7 @@ if (!gotLock) {
     registerIpc()
     buildMenu()
     createWindow()
-    createTray()
+    await createTray()
     createPanelWindow()
     updateService = new UpdateService(APP_VERSION, (state) => {
       latestUpdateState = state
@@ -670,6 +876,11 @@ if (!gotLock) {
     quitting = true
     clearSyncTimer()
     globalShortcut.unregisterAll()
+    statusItemSocket?.destroy()
+    statusItemSocket = null
+    statusItemServer?.close()
+    statusItemServer = null
+    fs.rmSync(statusItemSocketPath(), { force: true })
     updateService?.stop()
     closeServer?.()
     try {

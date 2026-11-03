@@ -7,9 +7,10 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "node scripts/build-mcp.mjs && electron-vite dev",
+    "dev": "node scripts/build-mcp.mjs && node scripts/make-icons.mjs && node scripts/build-status-helper.mjs && electron-vite dev",
     "icons:agents": "node scripts/fetch-agent-icons.mjs",
-    "build": "node scripts/fetch-agent-icons.mjs && node scripts/make-icons.mjs && electron-vite build && node scripts/build-mcp.mjs",
+    "build": "node scripts/fetch-agent-icons.mjs && node scripts/make-icons.mjs && node scripts/build-status-helper.mjs && electron-vite build && node scripts/build-mcp.mjs",
+    "status-item:build": "node scripts/build-status-helper.mjs",
     "start": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "test:panel": "node --experimental-strip-types scripts/test-panel-placement.mjs",
@@ -64,12 +65,18 @@
         "to": "mcp"
       },
       {
+        "from": "resources/bin/DachshundStatus.app",
+        "to": "status-item/DachshundStatus.app"
+      },
+      {
         "from": "resources",
         "to": "assets",
         "filter": [
           "icon.png",
           "trayTemplate.png",
-          "trayTemplate@2x.png"
+          "trayTemplate@2x.png",
+          "trayTemplateLarge.png",
+          "trayTemplateLarge@2x.png"
         ]
       }
     ],

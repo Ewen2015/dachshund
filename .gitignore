@@ -9,3 +9,6 @@ resources/icon.icns
 resources/icon.png
 resources/trayTemplate.png
 resources/trayTemplate@2x.png
+resources/trayTemplateLarge.png
+resources/trayTemplateLarge@2x.png
+resources/bin/

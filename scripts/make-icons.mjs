@@ -56,3 +56,32 @@ await renderTray(22, trayPath)
 await renderTray(44, trayRetinaPath)
 await assertTemplateHasMargins(trayPath)
 await assertTemplateHasMargins(trayRetinaPath)
+
+async function renderWideTray(width, height, file) {
+  const trimmed = await sharp(path.join(resources, 'trayTemplate.svg'), { density: 768 })
+    .trim()
+    .png()
+    .toBuffer()
+
+  await sharp(trimmed)
+    .resize(width - 2, height - 2, {
+      fit: 'contain',
+      background: { r: 0, g: 0, b: 0, alpha: 0 }
+    })
+    .extend({
+      top: 1,
+      bottom: 1,
+      left: 1,
+      right: 1,
+      background: { r: 0, g: 0, b: 0, alpha: 0 }
+    })
+    .png()
+    .toFile(file)
+}
+
+const wideTrayPath = path.join(resources, 'trayTemplateLarge.png')
+const wideTrayRetinaPath = path.join(resources, 'trayTemplateLarge@2x.png')
+await renderWideTray(25, 20, wideTrayPath)
+await renderWideTray(50, 40, wideTrayRetinaPath)
+await assertTemplateHasMargins(wideTrayPath)
+await assertTemplateHasMargins(wideTrayRetinaPath)
