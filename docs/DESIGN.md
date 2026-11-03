@@ -96,6 +96,10 @@ the collar accent, not from decorative typography.
   the reading view before closing the inspector.
 - Agent memory views pair the native classification with an expandable,
   single-diagram explanation of the agent's write, persistence and recall path.
+- Agent lists use memory count descending as the primary order. Installed state,
+  source count, and name only break ties.
+- Agent rows stay compact: the description and path remain single-line, with
+  reduced row padding and a smaller identity tile.
 - Clicking the dachshund mark opens the landing view from either app surface.
   The returning landing keeps a close control and supports Escape.
 - Connectors use grouped white cards separated by generous vertical space.

@@ -173,6 +173,20 @@ async function main(): Promise<void> {
   assert.equal(traeOnly.length, 1)
   assert.equal(traeOnly[0].id, olderTrae.change?.memoryId)
 
+  const state = store.state()
+  assert.equal(state.memories.length, 90)
+  assert.equal(state.pulseMemories.length, state.counts.memories)
+  assert.equal(state.pulseMemories.length, 132)
+  const pulseTrae = state.pulseMemories.find((memory) => memory.id === olderTrae.change?.memoryId)
+  assert.equal(pulseTrae?.sources[0]?.agentId, 'trae')
+  const installedAgents = state.agents.filter((agent) => agent.installed)
+  for (let index = 1; index < installedAgents.length; index += 1) {
+    assert.ok(
+      installedAgents[index - 1].memoryCount >= installedAgents[index].memoryCount,
+      'installed agents must be ordered by memory count'
+    )
+  }
+
   store.db.close()
   fs.rmSync(root, { recursive: true, force: true })
   console.log('Sync source versioning fixtures passed')

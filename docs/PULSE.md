@@ -69,11 +69,16 @@ dashboard.
 
 ## Data Boundary
 
-Pulse is computed from the active memory summaries already loaded into the app.
-It performs no network request, model call, or embedding search. The current
-state surface keeps the latest 90 memories, which is sufficient for the MVP.
-When the library routinely exceeds that limit, the backend should expose a
-dedicated aggregate query rather than increasing the full app-state payload.
+Pulse is computed from a dedicated, lightweight index of every active memory.
+That index includes only the fields needed for grouping and chart interaction:
+identity, title, kind, timestamps, sources, and echo count. It excludes memory
+content and excerpts, so the main app state can continue to keep only its latest
+90 full memory summaries without making Pulse disagree with the library totals.
+
+Pulse performs no network request, model call, or embedding search. If libraries
+grow large enough that even the lightweight index becomes expensive, the next
+step is a backend aggregate query rather than increasing the full app-state
+payload.
 
 ## Future Signals
 

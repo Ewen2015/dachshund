@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { AgentSummary, MemorySummary } from '../../../shared/types'
+import type { AgentSummary, PulseMemory } from '../../../shared/types'
 import {
   MEMORY_CATEGORIES,
   categoryForKind,
@@ -24,7 +24,7 @@ function niceMaximum(value: number): number {
   return Math.ceil(value / 5) * 5
 }
 
-function medianAge(memories: MemorySummary[]): string {
+function medianAge(memories: PulseMemory[]): string {
   if (!memories.length) return '0d'
   const ages = memories
     .map((memory) => Math.max(0, Date.now() - memory.updatedAt))
@@ -39,7 +39,7 @@ export function PanelPulse({
   agents,
   onOpenCategory
 }: {
-  memories: MemorySummary[]
+  memories: PulseMemory[]
   agents: AgentSummary[]
   onOpenCategory: (category: MemoryCategoryId) => void
 }) {

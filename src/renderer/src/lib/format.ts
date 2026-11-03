@@ -59,8 +59,8 @@ export function uniqueSources(sources: MemorySource[]): MemorySource[] {
 export function sortAgentsByMemory(agents: AgentSummary[]): AgentSummary[] {
   return [...agents].sort(
     (a, b) =>
-      Number(b.installed) - Number(a.installed) ||
       b.memoryCount - a.memoryCount ||
+      Number(b.installed) - Number(a.installed) ||
       b.sourceCount - a.sourceCount ||
       a.name.localeCompare(b.name)
   )

@@ -255,7 +255,7 @@ export default function PanelApp() {
       <div className="panel-body">
         {tab === 'pulse' && (
           <PanelPulse
-            memories={state.memories}
+            memories={state.pulseMemories}
             agents={state.agents}
             onOpenCategory={(nextCategory) => {
               setCategory(nextCategory)

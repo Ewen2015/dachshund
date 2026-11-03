@@ -2,6 +2,7 @@ import type { AgentSummary, Counts } from '../../../shared/types'
 import { AgentLogo } from './AgentLogo'
 import { CloseIcon, LockIcon, RefreshIcon } from './Icons'
 import { Mark } from './Mark'
+import { sortAgentsByMemory } from '../lib/format'
 
 export function Onboarding({
   agents,
@@ -18,7 +19,7 @@ export function Onboarding({
   onEnter: () => void
   onClose?: () => void
 }) {
-  const found = agents.filter((agent) => agent.installed)
+  const found = sortAgentsByMemory(agents.filter((agent) => agent.installed))
   return (
     <div className="onboarding">
       <div className="onboarding-left">

@@ -48,6 +48,16 @@ export interface MemoryDetail extends MemorySummary {
   content: string
 }
 
+export interface PulseMemory {
+  id: string
+  title: string
+  kind: string
+  createdAt: number
+  updatedAt: number
+  sources: MemorySource[]
+  echoCount: number
+}
+
 export interface Counts {
   memories: number
   agents: number
@@ -58,6 +68,7 @@ export interface Counts {
 export interface AppState {
   agents: AgentSummary[]
   memories: MemorySummary[]
+  pulseMemories: PulseMemory[]
   counts: Counts
   libraryPath: string
   onboarded: boolean

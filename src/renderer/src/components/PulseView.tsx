@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { AgentSummary, Counts, MemorySummary } from '../../../shared/types'
+import type { AgentSummary, Counts, PulseMemory } from '../../../shared/types'
 import {
   MEMORY_CATEGORIES,
   categoryForKind,
@@ -53,7 +53,7 @@ function startOfMonth(timestamp: number): number {
   return new Date(date.getFullYear(), date.getMonth(), 1).getTime()
 }
 
-function rangeStart(range: RangeKey, memories: MemorySummary[]): number {
+function rangeStart(range: RangeKey, memories: PulseMemory[]): number {
   if (range === 'all') {
     return memories.length
       ? Math.min(...memories.map((memory) => memory.createdAt))
@@ -88,7 +88,7 @@ function monthLabel(timestamp: number): string {
   }).format(timestamp)
 }
 
-function medianAge(memories: MemorySummary[]): number {
+function medianAge(memories: PulseMemory[]): number {
   if (!memories.length) return 0
   const ages = memories.map((memory) => Date.now() - memory.updatedAt).sort((a, b) => a - b)
   return ages[Math.floor(ages.length / 2)]
@@ -105,7 +105,7 @@ function ageLabel(timestamp: number): string {
 
 function buildBuckets(
   range: RangeKey,
-  memories: MemorySummary[],
+  memories: PulseMemory[],
   series: Series[],
   breakdown: Breakdown
 ): { buckets: Bucket[]; maximum: number } {
@@ -195,7 +195,7 @@ export function PulseView({
   onOpenAgent,
   onOpenMemory
 }: {
-  memories: MemorySummary[]
+  memories: PulseMemory[]
   agents: AgentSummary[]
   counts: Counts
   scanning: boolean

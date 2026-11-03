@@ -77,7 +77,7 @@ export function AgentsView({
                 <AgentLogo
                   agentId={agent.id}
                   agentName={agent.name}
-                  size={24}
+                  size={22}
                   muted={!agent.installed}
                 />
                 <span className={`agent-status ${agent.installed ? 'on' : ''}`} />

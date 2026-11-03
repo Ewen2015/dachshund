@@ -8,7 +8,8 @@ import type {
   MemoryDetail,
   MemoryFile,
   MemorySource,
-  MemorySummary
+  MemorySummary,
+  PulseMemory
 } from '../../shared/types'
 import { normalizeMemoryKind } from '../../shared/memory-taxonomy'
 import { DB_PATH } from '../paths'
@@ -244,7 +245,7 @@ export class Db {
     const countMap = new Map(
       counts.map((c) => [str(c.agent_id), { memories: num(c.memories), sources: num(c.sources) }])
     )
-    return rows.map((row) => {
+    const agents: AgentSummary[] = rows.map((row) => {
       const id = str(row.id)
       const count = countMap.get(id)
       return {
@@ -266,6 +267,13 @@ export class Db {
         note: null
       }
     })
+    return agents.sort(
+      (left, right) =>
+        Number(right.installed) - Number(left.installed) ||
+        right.memoryCount - left.memoryCount ||
+        right.sourceCount - left.sourceCount ||
+        left.name.localeCompare(right.name)
+    )
   }
 
   upsertMemory(input: UpsertMemoryInput): void {
@@ -407,6 +415,18 @@ export class Db {
       )
       .all(...params, limit) as Row[]
     return this.rowsToSummaries(rows)
+  }
+
+  listPulseMemories(): PulseMemory[] {
+    const rows = this.db
+      .prepare(
+        `SELECT id, title, kind, created_at, updated_at
+         FROM memories
+         WHERE archived = 0
+         ORDER BY updated_at DESC`
+      )
+      .all() as Row[]
+    return this.rowsToPulseMemories(rows)
   }
 
   search(query: string, agentId?: string, limit = 60, includeArchived = false): MemorySummary[] {
@@ -608,6 +628,24 @@ export class Db {
         sources,
         echoCount: new Set(sources.map((s) => s.agentId)).size,
         score: withScore && row.score !== undefined ? num(row.score) : undefined
+      }
+    })
+  }
+
+  private rowsToPulseMemories(rows: Row[]): PulseMemory[] {
+    if (!rows.length) return []
+    const sourceMap = this.sourcesFor(rows.map((row) => str(row.id)))
+    return rows.map((row) => {
+      const id = str(row.id)
+      const sources = sourceMap.get(id) ?? []
+      return {
+        id,
+        title: str(row.title),
+        kind: normalizeMemoryKind(str(row.kind, 'fact')),
+        createdAt: num(row.created_at),
+        updatedAt: num(row.updated_at),
+        sources,
+        echoCount: new Set(sources.map((source) => source.agentId)).size
       }
     })
   }

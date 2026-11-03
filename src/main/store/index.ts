@@ -57,6 +57,7 @@ export class Store {
     return {
       agents,
       memories: this.db.listMemories(90),
+      pulseMemories: this.db.listPulseMemories(),
       counts: this.db.counts(),
       libraryPath: LIBRARY_DIR,
       onboarded: this.db.getMeta('onboarded') === '1',

@@ -392,7 +392,7 @@ export default function App() {
               ))}
             {view === 'pulse' && (
               <PulseView
-                memories={state.memories}
+                memories={state.pulseMemories}
                 agents={state.agents}
                 counts={state.counts}
                 scanning={scanning || state.scanning}

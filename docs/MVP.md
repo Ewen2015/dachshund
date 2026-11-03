@@ -76,16 +76,16 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development Connectors screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.17-arm64.dmg` was produced on 2026-11-03.
+- `release/dachshund-0.1.18-arm64.dmg` was produced on 2026-11-03.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.17`.
-- The `0.1.17` DMG mounted read-only, contained a valid ad-hoc-signed app at
-  version `0.1.17`, and included an executable MCP bridge.
+  healthy loopback service at version `0.1.18`.
+- The `0.1.18` DMG mounted read-only, contained a valid ad-hoc-signed app at
+  version `0.1.18`, and included an executable MCP bridge.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.17` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.18` passed the same
   five-tool MCP smoke test.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
@@ -296,9 +296,20 @@ token are not a defense against a compromised account.
   their workspace or repository scope;
 - added regression fixtures, updated documentation, and refreshed screenshots.
 
+#### 0.1.18: Consistent Counts And Compact Agents
+
+- made Pulse read a lightweight all-active index so its charts and totals match
+  the complete memory library;
+- filtered agent-scoped memory queries before applying result limits, so agent
+  counts and opened lists agree;
+- sorted every agent list by memory count, with installed state, source count,
+  and name as tie breakers;
+- compacted Agents rows to a stable single-line description and path layout;
+- replaced the menu bar icon bridge with a native, template-faithful status item.
+
 ### Next
 
-#### 0.1.18: Reviewable Consolidation
+#### 0.1.19: Reviewable Consolidation
 
 - near-duplicate suggestions;
 - merge and split flows;
@@ -306,7 +317,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.19: Recall Quality
+#### 0.1.20: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -314,7 +325,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-#### 0.1.20: Distribution
+#### 0.1.21: Distribution
 
 - signed and notarized universal build;
 - update channel;
