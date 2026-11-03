@@ -1219,6 +1219,7 @@ kbd {
   position: absolute;
   top: 28px;
   right: 36px;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -3788,7 +3789,7 @@ button.pulse-series-item:focus-visible {
 .sync-notice {
   width: min(1020px, calc(100% - 72px));
   flex: 0 0 auto;
-  margin: 8px auto 0;
+  margin: 14px auto 0;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -3969,6 +3970,16 @@ button.pulse-series-item:focus-visible {
 
 .sync-notice.compact .sync-notice-copy span {
   font-size: 10.5px;
+}
+
+.main.has-sync-notice .feed,
+.main.has-sync-notice .page,
+.main.has-sync-notice .agent-memory-view {
+  padding-top: 14px;
+}
+
+.main.has-sync-notice .back-link {
+  top: 18px;
 }
 
 .sync-settings-status {

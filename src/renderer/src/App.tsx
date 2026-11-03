@@ -299,6 +299,7 @@ export default function App() {
   }
 
   const showLanding = !state.onboarded || landingOpen
+  const showSyncNotice = Boolean(syncNotice && !detail)
   const activeAgent = activeAgentId
     ? state.agents.find((agent) => agent.id === activeAgentId) ?? null
     : null
@@ -339,7 +340,7 @@ export default function App() {
         {sidebarMode && (
           <Sidebar view={view} onChange={setView} counts={state.counts} />
         )}
-        <main className="main">
+        <main className={`main ${showSyncNotice ? 'has-sync-notice' : ''}`}>
           {updater.visible && updater.state && (
             <UpdateNotice
               update={updater.state}
@@ -348,7 +349,7 @@ export default function App() {
               onDismiss={updater.dismiss}
             />
           )}
-          {syncNotice && !detail && (
+          {showSyncNotice && syncNotice && (
             <SyncNotice
               result={syncNotice}
               lastSuccessfulSyncAt={state.sync.lastSuccessfulSyncAt}
