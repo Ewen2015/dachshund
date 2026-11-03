@@ -10,7 +10,7 @@
 dachshund 找到这些 Agent 已经写在本机的 Memory，把它们汇入一份 Markdown
 记忆库，再通过 MCP 提供给所有 Agent 使用。无需账号，无需上云，也不依赖模型
 
-[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.16/dachshund-0.1.16-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
+[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.17/dachshund-0.1.17-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -36,6 +36,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
   的统一分类，并按需放大查看机制图
 - **维护统一记忆库**：把结果保存为普通 Markdown，同时保留来源信息
 - **合并跨 Agent 回声**：多个 Agent 记住同一件事时，只保留一份内容并展示全部来源
+- **保持记忆库更新**：可手动同步，也可每 60 分钟自动扫描；休眠时暂停，并根据来源版本稳定更新
 - **让任意 Agent 召回**：通过仅绑定回环地址的 MCP Bridge 提供搜索、上下文、写入、归档和统计能力
 - **常驻但不打扰**：以紧凑的 macOS 菜单栏面板运行，需要时再打开完整记忆库
 
@@ -46,7 +47,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 
 | 平台 | 架构 | 安装包 | 大小 | 下载 |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.16](https://github.com/Ewen2015/dachshund/releases/download/v0.1.16/dachshund-0.1.16-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.17](https://github.com/Ewen2015/dachshund/releases/download/v0.1.17/dachshund-0.1.17-arm64.dmg)** |
 
 **系统要求：** Apple Silicon Mac
 
@@ -55,7 +56,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 > 选择“打开”
 
 [所有版本](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.16/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.17/SHA256SUMS)
 
 **安装**
 
@@ -74,7 +75,7 @@ SHA-256 用于确认下载的 DMG 与正式发布文件一致。它不是激活�
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.16/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.17/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 

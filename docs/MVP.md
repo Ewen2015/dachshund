@@ -76,16 +76,16 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development Connectors screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.16-arm64.dmg` was produced on 2026-11-02.
+- `release/dachshund-0.1.17-arm64.dmg` was produced on 2026-11-03.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.16`.
-- The `0.1.16` DMG mounted read-only, contained a valid ad-hoc-signed app at
-  version `0.1.16`, and included an executable MCP bridge.
+  healthy loopback service at version `0.1.17`.
+- The `0.1.17` DMG mounted read-only, contained a valid ad-hoc-signed app at
+  version `0.1.17`, and included an executable MCP bridge.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.16` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.17` passed the same
   five-tool MCP smoke test.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
@@ -285,15 +285,18 @@ token are not a defense against a compromised account.
 - aligned the landing brand with the native macOS title bar and kept the system
   traffic lights clear at supported window widths.
 
-### Next
-
 #### 0.1.17: Trustworthy Incremental Import
 
-- persist per-source mtime, size, and hash;
-- update an existing memory when its source changes;
-- mark removed sources;
-- expose source status in the detail view;
-- add importer fixtures and regression tests.
+- added automatic sync every 60 minutes with sleep-aware pause and resume;
+- persisted per-source versions so changed files update existing memories;
+- reclassified unchanged sources in place without duplicates or timestamp churn;
+- unified current and legacy TRAE discovery, including `Trae CN.app`;
+- separated knowledge Type from project Scope in the taxonomy and interface;
+- moved WorkBuddy date logs and Codex task history into History while retaining
+  their workspace or repository scope;
+- added regression fixtures, updated documentation, and refreshed screenshots.
+
+### Next
 
 #### 0.1.18: Reviewable Consolidation
 

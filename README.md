@@ -11,7 +11,7 @@ dachshund finds the memory files your agents already keep, brings them into one
 Markdown library, and serves that library back through MCP. No account, no cloud,
 no model requirement.
 
-[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.16/dachshund-0.1.16-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
+[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.17/dachshund-0.1.17-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -42,6 +42,8 @@ surface:
   source provenance retained.
 - **See cross-agent echoes.** When two agents remember the same thing, keep one
   memory and show every source.
+- **Keep the library current.** Sync on demand or rescan every 60 minutes, with
+  sleep-aware pausing and stable source-version tracking.
 - **Recall from any connected agent.** A loopback-only MCP bridge exposes search,
   context, remember, forget and stats tools.
 - **Stay out of the way.** The whole utility lives in a compact macOS menu bar
@@ -54,7 +56,7 @@ already remembers everything you need, you probably do not need dachshund.
 
 | Platform | Architecture | Package | Size | Download |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.16](https://github.com/Ewen2015/dachshund/releases/download/v0.1.16/dachshund-0.1.16-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.17](https://github.com/Ewen2015/dachshund/releases/download/v0.1.17/dachshund-0.1.17-arm64.dmg)** |
 
 **System requirement:** macOS on Apple Silicon
 
@@ -63,7 +65,7 @@ already remembers everything you need, you probably do not need dachshund.
 > **Open** on first launch.
 
 [All releases](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.16/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.17/SHA256SUMS)
 
 **Install**
 
@@ -84,7 +86,7 @@ into the app.
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.16/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.17/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
