@@ -348,7 +348,7 @@ export default function App() {
               onDismiss={updater.dismiss}
             />
           )}
-          {syncNotice && (
+          {syncNotice && !detail && (
             <SyncNotice
               result={syncNotice}
               lastSuccessfulSyncAt={state.sync.lastSuccessfulSyncAt}
