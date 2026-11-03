@@ -191,7 +191,7 @@ const agentNames = {
   cursor: 'Cursor',
   workbuddy: 'WorkBuddy',
   doubao: 'Doubao',
-  trae: 'Trae',
+  trae: 'TRAE',
   hermes: 'Hermes',
   pi: 'Pi',
   zcode: 'ZCode',

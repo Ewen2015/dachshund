@@ -1,10 +1,12 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
+import { execFileSync } from 'node:child_process'
 import type { AgentKind } from '../../shared/types'
 
 export type McpTargetType =
   | 'json-mcpServers'
+  | 'trae-json'
   | 'codex-toml'
   | 'opencode-json'
   | 'hermes-yaml'
@@ -29,6 +31,7 @@ export interface AgentDefinition {
   mcp: McpTarget | null
   appPath?: string
   appPaths?: string[]
+  appVersion?: string
 }
 
 const home = os.homedir()
@@ -47,6 +50,98 @@ const claudeDesktopCurrentHome = path.join(
 const claudeDesktopHome = fs.existsSync(claudeDesktopCurrentHome)
   ? claudeDesktopCurrentHome
   : claudeDesktopLegacyHome
+
+const TRAE_APP_NAMES = ['Trae CN.app', 'Trae.app', 'TRAE SOLO CN.app', 'TRAE SOLO.app']
+const TRAE_SUPPORT_NAMES = ['Trae CN', 'Trae', 'TRAE SOLO CN', 'TRAE SOLO']
+
+export interface TraeInstallation {
+  appPath: string | null
+  appVersion: string | null
+  supportHome: string | null
+  mcpPath: string
+  legacy: boolean
+}
+
+function exists(target: string): boolean {
+  try {
+    return fs.existsSync(target)
+  } catch {
+    return false
+  }
+}
+
+export function readAppVersion(appPath: string): string | null {
+  const infoPlist = path.join(appPath, 'Contents', 'Info.plist')
+  try {
+    const raw = fs.readFileSync(infoPlist, 'utf8')
+    const match = raw.match(
+      /<key>CFBundleShortVersionString<\/key>\s*<string>([^<]+)<\/string>/
+    )
+    if (match?.[1]) return match[1].trim()
+  } catch {
+    // Fall back to plutil for binary plists.
+  }
+  try {
+    return execFileSync(
+      '/usr/bin/plutil',
+      ['-extract', 'CFBundleShortVersionString', 'raw', infoPlist],
+      { encoding: 'utf8' }
+    ).trim()
+  } catch {
+    return null
+  }
+}
+
+export function resolveTraeInstallation(
+  userHome = home,
+  applicationsDir = '/Applications'
+): TraeInstallation {
+  const appPaths = TRAE_APP_NAMES.map((name) => path.join(applicationsDir, name))
+  const supportHomes = TRAE_SUPPORT_NAMES.map((name) =>
+    path.join(userHome, 'Library', 'Application Support', name)
+  )
+
+  const installedApps = appPaths.filter(exists)
+  const appPath = installedApps[0] ?? null
+  const newAppInstalled = installedApps.some((item) =>
+    ['Trae CN.app', 'Trae.app'].includes(path.basename(item))
+  )
+  const newSupportInstalled = supportHomes.slice(0, 2).some(exists)
+  const useCurrent = newAppInstalled || newSupportInstalled
+  const tier = useCurrent ? TRAE_SUPPORT_NAMES.slice(0, 2) : TRAE_SUPPORT_NAMES.slice(2)
+
+  const mappedSupport = appPath ? path.basename(appPath, '.app') : null
+  const supportOrder =
+    mappedSupport && tier.includes(mappedSupport)
+      ? [mappedSupport, ...tier.filter((item) => item !== mappedSupport)]
+      : tier
+  const supportHome =
+    supportOrder
+      .map((name) => path.join(userHome, 'Library', 'Application Support', name))
+      .find(exists) ?? path.join(userHome, 'Library', 'Application Support', supportOrder[0])
+
+  return {
+    appPath,
+    appVersion: appPath ? readAppVersion(appPath) : null,
+    supportHome,
+    mcpPath: path.join(supportHome, 'User', 'mcp.json'),
+    legacy: !useCurrent
+  }
+}
+
+export function resolveAgentDefinition(definition: AgentDefinition): AgentDefinition {
+  const resolved: AgentDefinition = {
+    ...definition,
+    mcp: definition.mcp ? { ...definition.mcp } : null
+  }
+  if (definition.id !== 'trae') return resolved
+
+  const userHome = path.dirname(definition.home)
+  const installation = resolveTraeInstallation(userHome)
+  resolved.mcp = { type: 'trae-json', path: installation.mcpPath }
+  resolved.appVersion = installation.appVersion ?? undefined
+  return resolved
+}
 
 export const AGENT_DEFINITIONS: AgentDefinition[] = [
   {
@@ -150,18 +245,18 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
   },
   {
     id: 'trae',
-    name: 'Trae',
+    name: 'TRAE',
     kind: 'editor',
     home: path.join(home, '.trae-cn'),
     homes: [path.join(home, '.trae')],
-    description: 'Project topic memories and session summaries',
-    accent: '#32F08C',
+    description: 'Agent and IDE modes with durable profile, project, and session memory',
+    accent: '#111111',
     mcp: {
-      type: 'json-mcpServers',
-      path: path.join(home, 'Library', 'Application Support', 'TRAE SOLO CN', 'User', 'mcp.json')
+      type: 'trae-json',
+      path: path.join(home, 'Library', 'Application Support', 'Trae CN', 'User', 'mcp.json')
     },
     appPath: '/Applications/Trae CN.app',
-    appPaths: ['/Applications/Trae.app']
+    appPaths: ['/Applications/Trae.app', '/Applications/TRAE SOLO CN.app', '/Applications/TRAE SOLO.app']
   },
   {
     id: 'hermes',

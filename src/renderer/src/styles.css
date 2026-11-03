@@ -2699,6 +2699,10 @@ button.pulse-series-item:focus-visible {
   margin-top: 3px;
 }
 
+.settings-agent-path {
+  margin-top: 1px;
+}
+
 .settings-agent-dot {
   flex: 0 0 auto;
   border-color: transparent;
@@ -3733,6 +3737,187 @@ button.pulse-series-item:focus-visible {
 .art-caption p {
   margin: 0;
   font-size: 13px;
+}
+
+/* Sync result */
+
+.sync-notice {
+  width: min(1020px, calc(100% - 72px));
+  flex: 0 0 auto;
+  margin: 14px auto 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  animation: rise 0.3s var(--ease) both;
+}
+
+.sync-notice.error {
+  border-color: color-mix(in srgb, #a34b42 32%, var(--line));
+  background: color-mix(in srgb, #a34b42 5%, var(--surface));
+}
+
+.sync-notice-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.sync-notice-icon {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--surface-soft);
+  color: var(--ink-soft);
+}
+
+.sync-notice.error .sync-notice-icon {
+  background: color-mix(in srgb, #a34b42 12%, var(--surface));
+  color: #8a3d36;
+}
+
+.sync-notice-copy {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.sync-notice-copy strong {
+  overflow: hidden;
+  font-size: 13.5px;
+  font-weight: 610;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sync-notice-copy span {
+  overflow: hidden;
+  color: var(--faint);
+  font-size: 11.5px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sync-notice-expand,
+.sync-notice-close {
+  height: 27px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.sync-notice-expand {
+  padding: 0 7px;
+}
+
+.sync-notice-expand svg {
+  transition: transform 0.16s var(--ease);
+}
+
+.sync-notice-expand.expanded svg {
+  transform: rotate(90deg);
+}
+
+.sync-notice-close {
+  width: 27px;
+  flex: 0 0 27px;
+  padding: 0;
+}
+
+.sync-notice-expand:hover,
+.sync-notice-close:hover {
+  background: var(--surface-soft);
+  color: var(--ink);
+}
+
+.sync-notice-list {
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 4px 12px 10px 50px;
+  border-top: 1px solid var(--line);
+}
+
+.sync-change {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.sync-change:last-child {
+  border-bottom: 0;
+}
+
+.sync-change strong {
+  overflow: hidden;
+  font-size: 12.5px;
+  font-weight: 560;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sync-change > span:last-child {
+  color: var(--faint);
+  font-size: 11px;
+}
+
+.sync-change-kind {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+}
+
+.sync-change-kind.added {
+  color: var(--green);
+}
+
+.sync-change-kind.updated {
+  color: #9a6d2f;
+}
+
+.sync-notice.compact {
+  width: auto;
+  margin: 9px 12px 0;
+  border-radius: 9px;
+}
+
+.sync-notice.compact .sync-notice-main {
+  padding: 8px 9px;
+}
+
+.sync-notice.compact .sync-notice-icon {
+  width: 24px;
+  height: 24px;
+  flex-basis: 24px;
+}
+
+.sync-notice.compact .sync-notice-copy strong {
+  font-size: 12.5px;
+}
+
+.sync-notice.compact .sync-notice-copy span {
+  font-size: 10.5px;
+}
+
+.sync-settings-status {
+  padding-left: 44px;
 }
 
 /* Toast and loading */

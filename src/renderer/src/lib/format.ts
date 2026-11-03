@@ -12,7 +12,7 @@ export const AGENT_ACCENTS: Record<string, string> = {
   windsurf: '#3F7A6E',
   workbuddy: '#01C886',
   doubao: '#1E37FC',
-  trae: '#32F08C',
+  trae: '#111111',
   hermes: '#D45B90',
   pi: '#1C1C1C',
   zcode: '#2D2D2D',
@@ -22,6 +22,11 @@ export const AGENT_ACCENTS: Record<string, string> = {
 
 export function accentFor(agentId: string): string {
   return AGENT_ACCENTS[agentId] ?? '#7A7064'
+}
+
+export function displayHomePath(target: string): string {
+  const match = target.match(/^\/Users\/[^/]+(?=\/|$)/)
+  return match ? `~${target.slice(match[0].length)}` : target
 }
 
 export function initials(name: string, id = ''): string {

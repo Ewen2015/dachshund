@@ -16,6 +16,7 @@ export interface AgentSummary {
   mcpInstalled: boolean
   mcpConfigPath: string | null
   mcpMode: McpMode
+  appVersion: string | null
   note: string | null
 }
 
@@ -61,7 +62,55 @@ export interface AppState {
   libraryPath: string
   onboarded: boolean
   scanning: boolean
+  sync: SyncState
   version: string
+}
+
+export type ScanReason = 'startup' | 'manual' | 'automatic' | 'enabled'
+
+export interface ScanChange {
+  memoryId: string
+  title: string
+  agentId: string
+  agentName: string
+  change: 'added' | 'updated'
+}
+
+export interface ScanFailure {
+  agentId: string
+  agentName: string
+  message: string
+}
+
+export interface ScanResult {
+  startedAt: number
+  finishedAt: number
+  reason: ScanReason
+  added: number
+  updated: number
+  unchanged: number
+  failures: ScanFailure[]
+  changes: ScanChange[]
+  ok: boolean
+}
+
+export interface SyncState {
+  autoSync: boolean
+  intervalMinutes: number
+  lastSyncAttemptAt: number | null
+  lastSuccessfulSyncAt: number | null
+  lastResult: ScanResult | null
+  scanning: boolean
+}
+
+export interface ScanResponse {
+  state: AppState
+  result: ScanResult
+}
+
+export interface SyncToggleResponse {
+  state: AppState
+  result: ScanResult | null
 }
 
 export type UpdatePhase =

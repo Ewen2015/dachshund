@@ -42,7 +42,7 @@ const AGENT_MEMORY_DIAGRAMS: Record<string, AgentMemoryDiagram> = {
   trae: {
     src: traeDiagram,
     flow: 'User profile + project memory → current task · rules remain separate',
-    alt: 'Trae memory mechanism: a global user profile and project memory are selected for the current task, while rules remain a separate instruction system.'
+    alt: 'TRAE Agent and IDE memory mechanism: a global user profile and project memory are selected for the current task, while rules remain a separate instruction system.'
   },
   pi: {
     src: piDiagram,

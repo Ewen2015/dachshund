@@ -72,7 +72,7 @@ Verified in this repository:
   agents. Hermes contributed 17 native entries. Pi, ZCode, and DeepSeek
   Harness were detected and parsed; their transcript adapters correctly skipped
   ordinary task prompts with no durable-memory signal.
-- An end-to-end MCP query against that imported library found a Trae-authored
+- An end-to-end MCP query against that imported library found a TRAE-authored
   memory through `memory_search` and returned it through `memory_context`.
 - The development Connectors screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
@@ -128,10 +128,10 @@ The DMG SHA-256 from this build is:
 
 ### Import Reconciliation
 
-The current scanner identifies memories by content hash and source identity.
-If an agent edits a source memory, the new text becomes a new library item while
-the old item remains active. There is no source tombstone, supersession chain, or
-conflict review yet.
+Stable source identity and content hashes are now persisted, so an edited source
+updates its existing memory instead of creating a parallel active copy. There is
+still no source tombstone, revision history, or conflict review when two sources
+converge on the same content or disappear.
 
 ### Deduplication
 
@@ -140,10 +140,12 @@ non-identical knowledge is not merged.
 
 ### File Watching
 
-There is no live filesystem watcher. Scans run on startup and on explicit user
-action. A future watcher and source-revision model is described in
-[Product](PRODUCT.md#memory-synchronization-direction), but it is not
-implemented.
+There is no live filesystem watcher. Scans run on startup, on explicit user
+action, and every 60 minutes when the user enables automatic sync. The timer is
+cleared while the app quits or the system sleeps and schedules at most one
+catch-up scan after resume. Revision history and conflict review remain future
+work described in
+[Product](PRODUCT.md#memory-synchronization-direction).
 
 ### Local Search Model
 

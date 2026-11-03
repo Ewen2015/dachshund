@@ -25,7 +25,6 @@ const LOBE_ICONS = [
   { agentId: 'windsurf', file: 'windsurf.svg', source: 'windsurf.svg' },
   { agentId: 'workbuddy', file: 'workbuddy-color.svg', source: 'workbuddy-color.svg' },
   { agentId: 'doubao', file: 'doubao-color.svg', source: 'doubao-color.svg' },
-  { agentId: 'trae', file: 'trae-color.svg', source: 'trae-color.svg' },
   { agentId: 'hermes', file: 'hermesagent.svg', source: 'hermesagent.svg' },
   { agentId: 'pi', file: 'pi.svg', source: 'pi.svg' },
   { agentId: 'deepseek-harness', file: 'deepseek-color.svg', source: 'deepseek-color.svg' }
@@ -40,13 +39,24 @@ const EXTERNAL_ICONS = [
   }
 ]
 
+const LOCAL_ICONS = [
+  {
+    agentId: 'trae',
+    file: 'trae-color.svg',
+    source: 'Trae CN.app application icon (vector redraw)',
+    collection: 'TRAE official product asset',
+    cachedOnly: true
+  }
+]
+
 const ICONS = [
   ...LOBE_ICONS.map((icon) => ({
     ...icon,
     source: `${SOURCE_BASE}/${icon.source}`,
     collection: 'lobe-icons'
   })),
-  ...EXTERNAL_ICONS
+  ...EXTERNAL_ICONS,
+  ...LOCAL_ICONS
 ]
 
 function digest(value) {
@@ -85,7 +95,10 @@ async function main() {
   let downloaded = 0
 
   for (const icon of ICONS) {
-    let value = force ? null : await readCached(icon)
+    let value = icon.cachedOnly ? await readCached(icon) : force ? null : await readCached(icon)
+    if (!value && icon.cachedOnly) {
+      throw new Error(`Local icon is missing or invalid: ${icon.file}`)
+    }
     if (!value) {
       value = await download(icon)
       await writeFile(join(ICON_DIR, icon.file), value, 'utf8')

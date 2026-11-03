@@ -109,7 +109,7 @@ Memory 导入：
 <table>
 <tr><td>
 
-Claude Code · Codex · Cursor · Gemini CLI · GitHub Copilot · OpenCode · Windsurf · Claude Desktop · WorkBuddy · Doubao · Trae · Hermes · Pi · ZCode · DeepSeek Harness
+Claude Code · Codex · Cursor · Gemini CLI · GitHub Copilot · OpenCode · Windsurf · Claude Desktop · WorkBuddy · Doubao · TRAE · Hermes · Pi · ZCode · DeepSeek Harness
 
 </td></tr>
 </table>
@@ -155,7 +155,7 @@ Markdown 文件是持久化的事实来源，SQLite 只是可重建的索引。�
 ### 先导入，再使用
 
 在手动创建任何 Memory 之前，你就能看到有用的内容。dachshund 支持 Markdown、
-WorkBuddy 笔记、Trae 会话 JSONL、Hermes 原生记忆条目、Pi 摘要、ZCode SQLite、
+WorkBuddy 笔记、TRAE 会话 JSONL、Hermes 原生记忆条目、Pi 摘要、ZCode SQLite、
 DeepSeek Harness Zstandard 会话日志、Codex Memory 文件，以及可读取的 Codex
 SQLite 记录
 
@@ -277,8 +277,8 @@ npm run screenshot
 
 - 去重基于完全相同的内容，不做语义合并
 - 搜索使用词法检索，暂不包含本地 Embedding 模型
-- 只在启动和手动扫描时导入，没有实时文件监听
-- 来源内容修改后，尚未实现增量同步和冲突处理
+- 启动和手动扫描时导入；开启自动同步后，应用运行期间每小时扫描一次。暂无实时文件监听
+- 来源内容修改后会替换原 memory；暂不做冲突合并，删除来源也暂不保留墓碑
 - 目前只构建 Apple Silicon 版本，且未公证
 - 暂不支持云同步、团队模式和多设备历史
 

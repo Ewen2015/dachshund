@@ -4,7 +4,8 @@ import type {
   CreateMemoryInput,
   MemoryDetail as MemoryDetailType,
   MemorySummary,
-  ScanProgress
+  ScanProgress,
+  ScanResult
 } from '../../shared/types'
 import { AgentsView } from './components/AgentsView'
 import { Composer } from './components/Composer'
@@ -17,6 +18,7 @@ import { Onboarding } from './components/Onboarding'
 import { PulseView } from './components/PulseView'
 import { SettingsView } from './components/SettingsView'
 import { Sidebar } from './components/Sidebar'
+import { SyncNotice } from './components/SyncNotice'
 import { Toast } from './components/Toast'
 import { UpdateNotice } from './components/UpdateNotice'
 import { useUpdater } from './lib/useUpdater'
@@ -40,6 +42,7 @@ export default function App() {
   const [progress, setProgress] = useState<Record<string, ScanProgress>>({})
   const [landingOpen, setLandingOpen] = useState(false)
   const [toast, setToast] = useState<{ message: string; error?: boolean } | null>(null)
+  const [syncNotice, setSyncNotice] = useState<ScanResult | null>(null)
   const [bridgePath, setBridgePath] = useState('')
   const [sidebarMode, setSidebarMode] = useState(() => {
     try {
@@ -51,6 +54,7 @@ export default function App() {
   const updater = useUpdater()
   const searchRef = useRef<HTMLInputElement>(null)
   const toastTimer = useRef<number | null>(null)
+  const syncReloadRef = useRef<() => void>(() => {})
 
   const closeDetail = useCallback(() => {
     setDetail(null)
@@ -90,6 +94,12 @@ export default function App() {
   )
 
   useEffect(() => {
+    syncReloadRef.current = () => {
+      void loadMemories(query, activeAgentId)
+    }
+  }, [activeAgentId, loadMemories, query])
+
+  useEffect(() => {
     try {
       window.localStorage.setItem('dachshund.sidebar-navigation', sidebarMode ? '1' : '0')
     } catch {
@@ -111,6 +121,10 @@ export default function App() {
     const offState = window.dachshund.onStateChanged((next) => {
       setState(next)
     })
+    const offSync = window.dachshund.onSyncResult((result) => {
+      setSyncNotice(result)
+      syncReloadRef.current()
+    })
     const offNew = window.dachshund.onNewMemory(() => setComposerOpen(true))
     const offOpen = window.dachshund.onOpenMemory((id) => {
       void (async () => {
@@ -126,6 +140,7 @@ export default function App() {
     return () => {
       offProgress()
       offState()
+      offSync()
       offNew()
       offOpen()
       offLanding()
@@ -177,16 +192,30 @@ export default function App() {
     setScanning(true)
     setProgress({})
     try {
-      const next = await window.dachshund.scan()
-      setState(next)
+      const response = await window.dachshund.scan()
+      setState(response.state)
       await loadMemories(query, activeAgentId)
-      notify(
-        next.counts.memories === 0
-          ? 'No memories found yet'
-          : `${next.counts.memories} memories from ${next.counts.agents} agents`
-      )
+      setSyncNotice(response.result)
     } catch (error) {
       notify(error instanceof Error ? error.message : 'Scan failed', true)
+    } finally {
+      setScanning(false)
+    }
+  }
+
+  const setAutoSync = async (enabled: boolean) => {
+    if (scanning) return
+    setScanning(true)
+    try {
+      const response = await window.dachshund.setAutoSync(enabled)
+      setState(response.state)
+      if (response.result) {
+        setSyncNotice(response.result)
+        await loadMemories(query, activeAgentId)
+      }
+      notify(enabled ? 'Automatic sync turned on' : 'Automatic sync turned off')
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Could not update sync settings', true)
     } finally {
       setScanning(false)
     }
@@ -319,6 +348,13 @@ export default function App() {
               onDismiss={updater.dismiss}
             />
           )}
+          {syncNotice && (
+            <SyncNotice
+              result={syncNotice}
+              lastSuccessfulSyncAt={state.sync.lastSuccessfulSyncAt}
+              onDismiss={() => setSyncNotice(null)}
+            />
+          )}
           <div className="content-scroll">
             {view === 'memory' &&
               (activeAgent ? (
@@ -399,6 +435,7 @@ export default function App() {
                 onScan={() => void scan()}
                 onReveal={(path) => void window.dachshund.reveal(path)}
                 onInstallMcp={(id) => void installMcp(id)}
+                onToggleAutoSync={(enabled) => void setAutoSync(enabled)}
                 onQuit={() => void window.dachshund.quit()}
               />
             )}

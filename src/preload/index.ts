@@ -8,14 +8,19 @@ import type {
   MemoryDetail,
   MemorySummary,
   ScanProgress,
+  ScanResponse,
+  ScanResult,
   SearchQuery,
+  SyncToggleResponse,
   UpdateState,
   UpdateMemoryInput
 } from '../shared/types'
 
 const api = {
   getState: (): Promise<AppState> => ipcRenderer.invoke('app:state'),
-  scan: (): Promise<AppState> => ipcRenderer.invoke('app:scan'),
+  scan: (): Promise<ScanResponse> => ipcRenderer.invoke('app:scan'),
+  setAutoSync: (enabled: boolean): Promise<SyncToggleResponse> =>
+    ipcRenderer.invoke('sync:auto', enabled),
   markOnboarded: (): Promise<AppState> => ipcRenderer.invoke('app:onboarded'),
   bridgePath: (): Promise<string> => ipcRenderer.invoke('app:bridge-path'),
   libraryPath: (): Promise<string> => ipcRenderer.invoke('app:library-path'),
@@ -54,6 +59,12 @@ const api = {
       callback(progress)
     ipcRenderer.on('scan:progress', listener)
     return () => ipcRenderer.removeListener('scan:progress', listener)
+  },
+  onSyncResult: (callback: (result: ScanResult) => void): (() => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, result: ScanResult): void =>
+      callback(result)
+    ipcRenderer.on('sync:result', listener)
+    return () => ipcRenderer.removeListener('sync:result', listener)
   },
   onStateChanged: (callback: (state: AppState) => void): (() => void) => {
     const listener = (_event: Electron.IpcRendererEvent, state: AppState): void => callback(state)

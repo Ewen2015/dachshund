@@ -7,8 +7,13 @@ import type {
   MemoryDetail,
   MemoryFile,
   MemorySummary,
+  ScanChange,
   ScanProgress,
+  ScanReason,
+  ScanResponse,
+  ScanResult,
   SearchQuery,
+  SyncState,
   UpdateMemoryInput
 } from '../../shared/types'
 import { DISABLE_IMPORT, IS_DEMO, LIBRARY_DIR, ensureDirs } from '../paths'
@@ -16,13 +21,22 @@ import { normalizeMemoryKind } from '../../shared/memory-taxonomy'
 import { discoverAgents, refreshAgents } from '../agents/discovery'
 import { importAgentMemories } from '../agents/importers'
 import { installMcp } from '../agents/mcp-install'
-import { Db, contentHash, makeId } from './db'
+import { Db, contentHash, makeId, type SourceRecord } from './db'
 import { Library, slugify } from './library'
+
+export const SYNC_INTERVAL_MINUTES = 60
+const MAX_SCAN_CHANGES = 50
+
+export interface IngestOutcome {
+  status: 'added' | 'updated' | 'unchanged' | 'skipped'
+  change?: ScanChange
+}
 
 export class Store {
   readonly db: Db
   readonly library: Library
   private version: string
+  private activeScan: Promise<ScanResponse> | null = null
   private scanning = false
 
   constructor(version: string) {
@@ -35,6 +49,7 @@ export class Store {
   init(): void {
     this.library.syncToDb(this.db)
     refreshAgents(this.db)
+    this.bootstrapSourceRecords()
   }
 
   state(): AppState {
@@ -46,8 +61,25 @@ export class Store {
       libraryPath: LIBRARY_DIR,
       onboarded: this.db.getMeta('onboarded') === '1',
       scanning: this.scanning,
+      sync: this.syncState(),
       version: this.version
     }
+  }
+
+  syncState(): SyncState {
+    return {
+      autoSync: this.db.getMeta('autoSync') === '1',
+      intervalMinutes: SYNC_INTERVAL_MINUTES,
+      lastSyncAttemptAt: this.metaNumber('lastSyncAttemptAt'),
+      lastSuccessfulSyncAt: this.metaNumber('lastSuccessfulSyncAt'),
+      lastResult: this.lastScanResult(),
+      scanning: this.scanning
+    }
+  }
+
+  setAutoSync(enabled: boolean): AppState {
+    this.db.setMeta('autoSync', enabled ? '1' : '0')
+    return this.state()
   }
 
   search(query: SearchQuery): MemorySummary[] {
@@ -63,71 +95,161 @@ export class Store {
     return this.db.getMemory(id)
   }
 
-  async scan(onProgress?: (progress: ScanProgress) => void): Promise<AppState> {
-    if (this.scanning) return this.state()
+  scan(reason: ScanReason = 'manual', onProgress?: (progress: ScanProgress) => void): Promise<ScanResponse> {
+    if (this.activeScan) return this.activeScan
     this.scanning = true
+    this.activeScan = this.performScan(reason, onProgress).finally(() => {
+      this.scanning = false
+      this.activeScan = null
+    })
+    return this.activeScan
+  }
+
+  private async performScan(
+    reason: ScanReason,
+    onProgress?: (progress: ScanProgress) => void
+  ): Promise<ScanResponse> {
+    const startedAt = Date.now()
+    const result: ScanResult = {
+      startedAt,
+      finishedAt: startedAt,
+      reason,
+      added: 0,
+      updated: 0,
+      unchanged: 0,
+      failures: [],
+      changes: [],
+      ok: true
+    }
+    let attemptedAgents = 0
+    let fatal = false
+    const changeKeys = new Set<string>()
+
     try {
       this.library.syncToDb(this.db)
       const agents = refreshAgents(this.db)
       if (!DISABLE_IMPORT && !IS_DEMO) {
+        const definitions = discoverAgents()
         for (const agent of agents) {
           if (!agent.installed || !agent.shared) continue
+          attemptedAgents += 1
           onProgress?.({
             agentId: agent.id,
             agentName: agent.name,
             status: 'scanning'
           })
           try {
-            const definition = discoverAgents().find((item) => item.id === agent.id)
-            if (!definition) continue
+            const definition = definitions.find((item) => item.id === agent.id)
+            if (!definition) throw new Error('Agent definition was not found')
             const imported = importAgentMemories(definition)
-            let accepted = 0
+            let changed = 0
             for (const memory of imported) {
-              if (this.ingestImport(memory)) accepted += 1
+              const outcome = this.ingestImport(memory)
+              if (outcome.status === 'added') result.added += 1
+              else if (outcome.status === 'updated') result.updated += 1
+              else if (outcome.status === 'unchanged') result.unchanged += 1
+              if (outcome.change) {
+                const key = `${outcome.change.change}:${outcome.change.memoryId}`
+                if (!changeKeys.has(key)) {
+                  changeKeys.add(key)
+                  changed += 1
+                  if (result.changes.length < MAX_SCAN_CHANGES) result.changes.push(outcome.change)
+                }
+              }
             }
             onProgress?.({
               agentId: agent.id,
               agentName: agent.name,
               status: 'ready',
-              memories: accepted
+              memories: changed
             })
           } catch (error) {
+            const message = error instanceof Error ? error.message : 'Could not read this agent'
+            result.failures.push({ agentId: agent.id, agentName: agent.name, message })
             onProgress?.({
               agentId: agent.id,
               agentName: agent.name,
               status: 'error',
-              message: error instanceof Error ? error.message : 'Could not read this agent'
+              message
             })
           }
           await new Promise((resolve) => setTimeout(resolve, 60))
         }
       }
-      this.db.setMeta('lastScan', String(Date.now()))
-      this.scanning = false
-      return this.state()
-    } finally {
-      this.scanning = false
+    } catch (error) {
+      fatal = true
+      result.failures.push({
+        agentId: 'dachshund',
+        agentName: 'dachshund',
+        message: error instanceof Error ? error.message : 'Synchronization failed'
+      })
     }
+
+    result.finishedAt = Date.now()
+    result.ok = !fatal && (attemptedAgents === 0 || result.failures.length < attemptedAgents)
+    this.db.setMeta('lastSyncAttemptAt', String(result.finishedAt))
+    if (result.ok) {
+      this.db.setMeta('lastSuccessfulSyncAt', String(result.finishedAt))
+      this.db.setMeta('lastScan', String(result.finishedAt))
+    }
+    this.db.setMeta('lastScanResult', JSON.stringify(result))
+    this.scanning = false
+    return { state: this.state(), result }
   }
 
-  private ingestImport(memory: ImportedMemory): boolean {
+  ingestImport(memory: ImportedMemory): IngestOutcome {
     const content = memory.content.trim()
-    if (content.length < 30) return false
+    if (content.length < 30) return { status: 'skipped' }
     const hash = contentHash(content)
+    const now = Date.now()
+    const sourceKey = sourceKeyFor(memory.agentId, memory.sourcePath, memory.sourceRef)
+    const record = this.db.getSourceRecord(sourceKey)
+    const previousId = record?.memoryId ?? this.db.findMemoryIdBySource(
+      memory.agentId,
+      memory.sourcePath,
+      memory.sourceRef
+    )
+
+    if (record?.contentHash === hash) {
+      const current = this.db.getMemory(record.memoryId)
+      if (current) {
+        this.attachImportedSource(current.id, memory)
+        this.recordSource(memory, sourceKey, current.id, hash, current.title, record, now)
+        return { status: 'unchanged' }
+      }
+    }
+
+    if (previousId) {
+      const previous = this.db.getMemory(previousId)
+      if (previous) {
+        const matching = this.db.findByHash(hash)
+        if (matching && matching.id !== previous.id) {
+          this.attachImportedSource(matching.id, memory)
+          this.recordSource(memory, sourceKey, matching.id, hash, matching.title, record, now)
+          return {
+            status: 'updated',
+            change: changeFor(matching, memory, 'updated')
+          }
+        }
+        this.attachImportedSource(previous.id, memory)
+        const updated = this.updateImportedMemory(previous, memory, content)
+        this.recordSource(memory, sourceKey, previous.id, hash, updated.title, record, now)
+        return {
+          status: 'updated',
+          change: changeFor(updated, memory, 'updated')
+        }
+      }
+    }
+
     const existing = this.db.findByHash(hash)
     if (existing) {
-      this.db.attachSource(existing.id, {
-        agentId: memory.agentId,
-        agentName: memory.agentName,
-        path: memory.sourcePath,
-        ref: memory.sourceRef,
-        importedAt: Date.now()
-      })
-      return true
+      this.attachImportedSource(existing.id, memory)
+      this.recordSource(memory, sourceKey, existing.id, hash, existing.title, record, now)
+      return { status: 'unchanged' }
     }
 
     const stable = createHash('sha1')
-      .update(`${memory.agentId}|${memory.sourcePath}|${memory.sourceRef ?? ''}|${hash}`)
+      .update(`source|${sourceKey}`)
       .digest('hex')
       .slice(0, 16)
     const id = `mem_${stable}`
@@ -158,9 +280,132 @@ export class Store {
       agentName: memory.agentName,
       path: memory.sourcePath,
       ref: memory.sourceRef,
+      importedAt: now
+    })
+    this.recordSource(memory, sourceKey, id, hash, memory.title, record, now)
+    return {
+      status: 'added',
+      change: changeFor(file as MemoryFile & { id: string; title: string }, memory, 'added')
+    }
+  }
+
+  private attachImportedSource(memoryId: string, memory: ImportedMemory): void {
+    this.db.attachSource(memoryId, {
+      agentId: memory.agentId,
+      agentName: memory.agentName,
+      path: memory.sourcePath,
+      ref: memory.sourceRef,
       importedAt: Date.now()
     })
-    return true
+  }
+
+  private updateImportedMemory(
+    previous: MemoryDetail,
+    memory: ImportedMemory,
+    content: string
+  ): MemoryDetail {
+    const sources = new Map(
+      previous.sources.map((source) => [
+        sourceKeyFor(source.agentId, source.path, source.ref),
+        {
+          agentId: source.agentId,
+          path: source.path,
+          ref: source.ref
+        }
+      ])
+    )
+    sources.set(sourceKeyFor(memory.agentId, memory.sourcePath, memory.sourceRef), {
+      agentId: memory.agentId,
+      path: memory.sourcePath,
+      ref: memory.sourceRef
+    })
+    const file: MemoryFile = {
+      id: previous.id,
+      title: memory.title,
+      content,
+      kind: normalizeMemoryKind(memory.kind),
+      project: memory.project,
+      tags: memory.tags.slice(0, 12),
+      createdAt: previous.createdAt,
+      updatedAt: Math.max(memory.updatedAt, Date.now()),
+      archived: previous.archived,
+      pinned: previous.pinned,
+      sources: [...sources.values()]
+    }
+    const filePath = this.library.write(file, this.db.getMemoryPath(previous.id))
+    this.db.upsertMemory({ ...file, filePath })
+    return this.db.getMemory(previous.id) as MemoryDetail
+  }
+
+  private recordSource(
+    memory: ImportedMemory,
+    sourceKey: string,
+    memoryId: string,
+    hash: string,
+    title: string,
+    previous: SourceRecord | null,
+    now: number
+  ): void {
+    this.db.upsertSourceRecord({
+      sourceKey,
+      agentId: memory.agentId,
+      agentName: memory.agentName,
+      path: memory.sourcePath,
+      ref: memory.sourceRef,
+      memoryId,
+      contentHash: hash,
+      title,
+      firstSeenAt: previous?.firstSeenAt ?? now,
+      lastSeenAt: now,
+      updatedAt: now
+    })
+  }
+
+  private bootstrapSourceRecords(): void {
+    const seen = new Set<string>()
+    for (const link of this.db.sourceLinksForBootstrap()) {
+      const sourceKey = sourceKeyFor(link.agentId, link.path, link.ref)
+      if (seen.has(sourceKey) || this.db.getSourceRecord(sourceKey)) continue
+      seen.add(sourceKey)
+      this.db.upsertSourceRecord({
+        sourceKey,
+        agentId: link.agentId,
+        agentName: link.agentName,
+        path: link.path,
+        ref: link.ref,
+        memoryId: link.memoryId,
+        contentHash: link.contentHash,
+        title: link.title,
+        firstSeenAt: link.importedAt,
+        lastSeenAt: link.importedAt,
+        updatedAt: link.updatedAt
+      })
+    }
+  }
+
+  private metaNumber(key: string): number | null {
+    const value = Number(this.db.getMeta(key))
+    return Number.isFinite(value) && value > 0 ? value : null
+  }
+
+  private lastScanResult(): ScanResult | null {
+    const raw = this.db.getMeta('lastScanResult')
+    if (!raw) return null
+    try {
+      const parsed = JSON.parse(raw) as ScanResult
+      if (
+        !parsed ||
+        typeof parsed !== 'object' ||
+        typeof parsed.finishedAt !== 'number' ||
+        !Array.isArray(parsed.changes) ||
+        !Array.isArray(parsed.failures)
+      ) {
+        return null
+      }
+      return parsed
+    } catch {
+      return null
+    }
   }
 
   create(input: CreateMemoryInput): MemoryDetail {
@@ -276,5 +521,25 @@ export class Store {
 
   fileNameFor(title: string): string {
     return slugify(title)
+  }
+}
+
+function sourceKeyFor(agentId: string, sourcePath: string, sourceRef?: string): string {
+  return createHash('sha1')
+    .update(JSON.stringify([agentId, sourcePath, sourceRef ?? '']))
+    .digest('hex')
+}
+
+function changeFor(
+  memory: { id: string; title: string },
+  imported: ImportedMemory,
+  change: ScanChange['change']
+): ScanChange {
+  return {
+    memoryId: memory.id,
+    title: memory.title || imported.title,
+    agentId: imported.agentId,
+    agentName: imported.agentName,
+    change
   }
 }

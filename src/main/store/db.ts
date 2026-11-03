@@ -143,6 +143,22 @@ export class Db {
         imported_at INTEGER NOT NULL
       );
 
+      CREATE TABLE IF NOT EXISTS source_records (
+        source_key TEXT PRIMARY KEY,
+        agent_id TEXT NOT NULL,
+        agent_name TEXT NOT NULL,
+        path TEXT NOT NULL,
+        ref TEXT,
+        memory_id TEXT NOT NULL,
+        content_hash TEXT NOT NULL,
+        title TEXT NOT NULL,
+        first_seen_at INTEGER NOT NULL,
+        last_seen_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_source_records_agent ON source_records(agent_id);
+      CREATE INDEX IF NOT EXISTS idx_source_records_memory ON source_records(memory_id);
+
       CREATE VIRTUAL TABLE IF NOT EXISTS memories_fts USING fts5(
         id UNINDEXED,
         title,
@@ -246,6 +262,7 @@ export class Db {
         mcpInstalled: bool(row.mcp_installed),
         mcpConfigPath: str(row.mcp_config_path) || null,
         mcpMode: str(row.mcp_config_path) ? 'config' : null,
+        appVersion: null,
         note: null
       }
     })
@@ -475,6 +492,84 @@ export class Db {
     return Boolean(row && num(row.mtime) === mtime && num(row.size) === size)
   }
 
+  getSourceRecord(sourceKey: string): SourceRecord | null {
+    const row = this.db
+      .prepare('SELECT * FROM source_records WHERE source_key = ?')
+      .get(sourceKey) as Row | undefined
+    return row ? this.rowToSourceRecord(row) : null
+  }
+
+  upsertSourceRecord(input: SourceRecord): void {
+    this.db
+      .prepare(`
+        INSERT INTO source_records(
+          source_key, agent_id, agent_name, path, ref, memory_id, content_hash,
+          title, first_seen_at, last_seen_at, updated_at
+        )
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(source_key) DO UPDATE SET
+          agent_name = excluded.agent_name,
+          path = excluded.path,
+          ref = excluded.ref,
+          memory_id = excluded.memory_id,
+          content_hash = excluded.content_hash,
+          title = excluded.title,
+          last_seen_at = excluded.last_seen_at,
+          updated_at = excluded.updated_at
+      `)
+      .run(
+        input.sourceKey,
+        input.agentId,
+        input.agentName,
+        input.path,
+        input.ref ?? null,
+        input.memoryId,
+        input.contentHash,
+        input.title,
+        input.firstSeenAt,
+        input.lastSeenAt,
+        input.updatedAt
+      )
+  }
+
+  findMemoryIdBySource(agentId: string, pathValue: string, ref?: string): string | null {
+    const row = this.db
+      .prepare(`
+        SELECT memory_id FROM sources
+        WHERE agent_id = ? AND path = ? AND ${ref ? 'ref = ?' : 'ref IS NULL'}
+        ORDER BY imported_at DESC
+        LIMIT 1
+      `)
+      .get(agentId, pathValue, ...(ref ? [ref] : [])) as Row | undefined
+    return row ? str(row.memory_id) || null : null
+  }
+
+  sourceLinksForBootstrap(): Array<
+    Omit<SourceRecord, 'sourceKey' | 'firstSeenAt' | 'lastSeenAt'> & { importedAt: number }
+  > {
+    const rows = this.db
+      .prepare(`
+        SELECT s.agent_id, s.agent_name, s.path, s.ref, s.memory_id, s.imported_at,
+               m.hash, m.title
+        FROM sources s
+        JOIN memories m ON m.id = s.memory_id
+        WHERE s.agent_id != 'dachshund'
+        ORDER BY s.imported_at DESC
+      `)
+      .all() as Row[]
+    return rows.map((row) => ({
+      agentId: str(row.agent_id),
+      agentName: str(row.agent_name),
+      path: str(row.path),
+      ref: str(row.ref) || undefined,
+      memoryId: str(row.memory_id),
+      contentHash: str(row.hash),
+      title: str(row.title),
+      updatedAt: num(row.imported_at),
+      importedAt: num(row.imported_at)
+    }))
+  }
+
   private rowsToSummaries(rows: Row[], withScore = false): MemorySummary[] {
     if (!rows.length) return []
     const ids = rows.map((r) => str(r.id))
@@ -530,6 +625,36 @@ export class Db {
     }
     return map
   }
+
+  private rowToSourceRecord(row: Row): SourceRecord {
+    return {
+      sourceKey: str(row.source_key),
+      agentId: str(row.agent_id),
+      agentName: str(row.agent_name),
+      path: str(row.path),
+      ref: str(row.ref) || undefined,
+      memoryId: str(row.memory_id),
+      contentHash: str(row.content_hash),
+      title: str(row.title),
+      firstSeenAt: num(row.first_seen_at),
+      lastSeenAt: num(row.last_seen_at),
+      updatedAt: num(row.updated_at)
+    }
+  }
+}
+
+export interface SourceRecord {
+  sourceKey: string
+  agentId: string
+  agentName: string
+  path: string
+  ref?: string
+  memoryId: string
+  contentHash: string
+  title: string
+  firstSeenAt: number
+  lastSeenAt: number
+  updatedAt: number
 }
 
 function parseTags(value: unknown): string[] {
@@ -583,7 +708,7 @@ export function accentFor(id: string): string {
     windsurf: '#3F7A6E',
     workbuddy: '#01C886',
     doubao: '#1E37FC',
-    trae: '#32F08C',
+    trae: '#111111',
     hermes: '#D45B90',
     pi: '#1C1C1C',
     zcode: '#2D2D2D',

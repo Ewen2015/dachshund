@@ -343,7 +343,7 @@ function traeSessionMemory(
   )
   const messageId = typeof entry.message_id === 'string' ? entry.message_id.trim() : ''
   const title =
-    intent || outcome || learned[0] || `Trae session ${messageId.slice(-6) || lineNumber}`
+    intent || outcome || learned[0] || `TRAE session ${messageId.slice(-6) || lineNumber}`
 
   return {
     title: title.length > 110 ? `${title.slice(0, 107).trimEnd()}…` : title,
@@ -398,7 +398,17 @@ function importTraeTopics(
 }
 
 function importTrae(agent: AgentDefinition): ImportedMemory[] {
-  const out: ImportedMemory[] = []
+  const byIdentity = new Map<string, ImportedMemory>()
+  const add = (memory: ImportedMemory): void => {
+    const identity = [
+      normalizeMemoryKind(memory.kind),
+      memory.project ?? '',
+      memory.sourceRef ?? '',
+      memory.content.trim().replace(/\s+/g, ' ')
+    ].join('\u0000')
+    const current = byIdentity.get(identity)
+    if (!current || memory.updatedAt > current.updatedAt) byIdentity.set(identity, memory)
+  }
   const roots = [...new Set([agent.home, ...(agent.homes ?? [])])]
   for (const root of roots) {
     const projectsRoot = path.join(root, 'memory', 'projects')
@@ -407,7 +417,7 @@ function importTrae(agent: AgentDefinition): ImportedMemory[] {
       agent,
       { kind: 'profile', tags: ['trae', 'user-profile'] }
     )
-    if (profile) out.push(profile)
+    if (profile) add(profile)
 
     const projectMemories = walk(
       projectsRoot,
@@ -420,18 +430,20 @@ function importTrae(agent: AgentDefinition): ImportedMemory[] {
         project: projectFromTraeDir(file, 1),
         tags: ['trae', 'project-memory']
       })
-      if (memory) out.push(memory)
+      if (memory) add(memory)
     }
 
     const episodeFiles = walk(
       projectsRoot,
-      (file) => file.endsWith('.jsonl') || path.basename(file) === 'topics.md',
+      (file) =>
+        path.basename(file) === 'topics.md' ||
+        (path.basename(file).startsWith('session_memory_') && file.endsWith('.jsonl')),
       400
     )
     for (const file of episodeFiles) {
       const project = projectFromTraeDir(file)
       if (path.basename(file) === 'topics.md') {
-        out.push(...importTraeTopics(file, agent, project))
+        importTraeTopics(file, agent, project).forEach(add)
         continue
       }
       const raw = readText(file)
@@ -439,11 +451,11 @@ function importTrae(agent: AgentDefinition): ImportedMemory[] {
       raw.split('\n').forEach((line, index) => {
         if (!line.trim()) return
         const memory = traeSessionMemory(file, line, index + 1, agent, project)
-        if (memory) out.push(memory)
+        if (memory) add(memory)
       })
     }
   }
-  return out
+  return [...byIdentity.values()]
 }
 
 function projectFromClaudeDir(memoryFile: string): string | null {

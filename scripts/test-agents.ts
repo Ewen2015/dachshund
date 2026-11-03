@@ -12,7 +12,10 @@ import {
   upsertHermesYaml,
   upsertJsonMcp
 } from '../src/main/agents/mcp-install'
-import type { AgentDefinition } from '../src/main/agents/registry'
+import {
+  resolveTraeInstallation,
+  type AgentDefinition
+} from '../src/main/agents/registry'
 import {
   AGENT_MEMORY_MODELS,
   MEMORY_CATEGORIES,
@@ -731,7 +734,7 @@ function testWorkBuddyTaxonomy(): void {
 
 function testTraeTaxonomy(): void {
   const home = path.join(root, 'trae')
-  const agent = definition('trae', 'Trae', home, path.join(home, 'mcp.json'))
+  const agent = definition('trae', 'TRAE', home, path.join(home, 'mcp.json'))
   write(
     path.join(home, 'memory', 'user_profile.md'),
     '# User profile\n\nThe user prefers Chinese product documentation and explicit release notes.'
@@ -770,6 +773,192 @@ function testTraeTaxonomy(): void {
       .filter((memory) => memory.kind !== 'profile')
       .every((memory) => memory.project === 'tmp/alpha')
   )
+}
+
+function testTraeMigrationDedupe(): void {
+  const parent = path.join(root, 'trae-migration')
+  const currentHome = path.join(parent, '.trae-cn')
+  const legacyHome = path.join(parent, '.trae')
+  const agent = definition('trae', 'TRAE', currentHome, path.join(currentHome, 'mcp.json'))
+  agent.homes = [legacyHome]
+
+  const profile = '# User profile\n\nThe migrated TRAE profile should appear exactly once.'
+  write(path.join(currentHome, 'memory', 'user_profile.md'), profile)
+  write(path.join(legacyHome, 'memory', 'user_profile.md'), profile)
+  fs.utimesSync(path.join(legacyHome, 'memory', 'user_profile.md'), new Date(1000), new Date(1000))
+
+  const session = JSON.stringify({
+    intent: 'Validate migration deduplication',
+    outcome: 'The newer unified TRAE record is retained.',
+    learned: ['Legacy and unified memory share one source identity.'],
+    message_id: 'trae-migration-1',
+    message_summary_time: '2026-10-31T11:00:00.000Z'
+  })
+  const sessionDir = path.join('memory', 'projects', '-tmp-migrated', '2026-10-31')
+  write(path.join(currentHome, sessionDir, 'session_memory_1.jsonl'), session)
+  write(path.join(legacyHome, sessionDir, 'session_memory_1.jsonl'), session)
+  fs.utimesSync(
+    path.join(legacyHome, sessionDir, 'session_memory_1.jsonl'),
+    new Date(1000),
+    new Date(1000)
+  )
+  write(
+    path.join(currentHome, sessionDir, 'unstable-cache.jsonl'),
+    JSON.stringify({ intent: 'This cache row must not be imported', outcome: 'Ignored' })
+  )
+  write(
+    path.join(currentHome, 'memory', 'projects', '-tmp-migrated', '.cleanup', 'memory.md'),
+    '# Hidden cleanup\n\nThis hidden migration residue must not be imported.'
+  )
+  write(
+    path.join(currentHome, 'Cache', 'session_memory_99.jsonl'),
+    JSON.stringify({ intent: 'This cache row must not be imported', outcome: 'Ignored' })
+  )
+
+  const memories = importAgentMemories(agent)
+  assert.equal(memories.length, 2)
+  const profileMemory = memories.find((memory) => memory.kind === 'profile')
+  assert.ok(profileMemory?.sourcePath.startsWith(currentHome))
+  assert.equal(
+    memories.filter((memory) => memory.sourceRef === 'trae-migration-1').length,
+    1
+  )
+  assert.ok(!memories.some((memory) => memory.content.includes('cache row')))
+  assert.ok(!memories.some((memory) => memory.content.includes('cleanup')))
+
+  const legacyOnlyHome = path.join(root, 'trae-legacy-only')
+  const legacyOnly = definition(
+    'trae',
+    'TRAE',
+    path.join(legacyOnlyHome, '.trae-cn'),
+    path.join(legacyOnlyHome, 'mcp.json')
+  )
+  legacyOnly.homes = [path.join(legacyOnlyHome, '.trae')]
+  write(
+    path.join(legacyOnlyHome, '.trae', 'memory', 'user_profile.md'),
+    '# User profile\n\nLegacy TRAE data remains readable when no current data exists.'
+  )
+  assert.equal(importAgentMemories(legacyOnly).length, 1)
+}
+
+function writeAppInfoPlist(appPath: string, version: string): void {
+  write(
+    path.join(appPath, 'Contents', 'Info.plist'),
+    [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">',
+      '<plist version="1.0"><dict>',
+      '<key>CFBundleShortVersionString</key>',
+      `<string>${version}</string>`,
+      '</dict></plist>'
+    ].join('\n')
+  )
+}
+
+function testTraeInstallationResolution(): void {
+  const userHome = path.join(root, 'trae-install-home')
+  const applications = path.join(root, 'TraeApplications')
+  writeAppInfoPlist(path.join(applications, 'Trae CN.app'), '3.4.9')
+  write(
+    path.join(
+      userHome,
+      'Library',
+      'Application Support',
+      'TRAE SOLO CN',
+      'User',
+      'mcp.json'
+    ),
+    '{"mcpServers":{}}\n'
+  )
+
+  const current = resolveTraeInstallation(userHome, applications)
+  assert.equal(current.appPath, path.join(applications, 'Trae CN.app'))
+  assert.equal(current.appVersion, '3.4.9')
+  assert.equal(current.legacy, false)
+  assert.equal(
+    current.mcpPath,
+    path.join(
+      userHome,
+      'Library',
+      'Application Support',
+      'Trae CN',
+      'User',
+      'mcp.json'
+    )
+  )
+
+  fs.rmSync(path.join(applications, 'Trae CN.app'), { recursive: true })
+  writeAppInfoPlist(path.join(applications, 'TRAE SOLO CN.app'), '0.1.49')
+  write(
+    path.join(
+      userHome,
+      'Library',
+      'Application Support',
+      'Trae CN',
+      'User',
+      'settings.json'
+    ),
+    '{}\n'
+  )
+  const currentSupportWins = resolveTraeInstallation(userHome, applications)
+  assert.equal(currentSupportWins.legacy, false)
+  assert.equal(
+    currentSupportWins.mcpPath,
+    path.join(
+      userHome,
+      'Library',
+      'Application Support',
+      'Trae CN',
+      'User',
+      'mcp.json'
+    )
+  )
+
+  fs.rmSync(path.join(userHome, 'Library', 'Application Support', 'Trae CN'), {
+    recursive: true
+  })
+  const legacy = resolveTraeInstallation(userHome, applications)
+  assert.equal(legacy.appPath, path.join(applications, 'TRAE SOLO CN.app'))
+  assert.equal(legacy.appVersion, '0.1.49')
+  assert.equal(legacy.legacy, true)
+  assert.equal(
+    legacy.mcpPath,
+    path.join(
+      userHome,
+      'Library',
+      'Application Support',
+      'TRAE SOLO CN',
+      'User',
+      'mcp.json'
+    )
+  )
+}
+
+function testTraeMcpRoot(): void {
+  const dir = path.join(root, 'trae-mcp')
+  const serversFile = path.join(dir, 'servers.json')
+  write(serversFile, '{"servers":{"existing":{"command":"keep-me"}}}\n')
+  const serversResult = upsertJsonMcp(
+    serversFile,
+    path.join(dir, 'bridge.cjs'),
+    false,
+    'trae'
+  )
+  assert.equal(serversResult.ok, true)
+  const serversConfig = JSON.parse(fs.readFileSync(serversFile, 'utf8'))
+  assert.equal(serversConfig.servers.existing.command, 'keep-me')
+  assert.ok(serversConfig.servers.dachshund)
+  assert.equal(serversConfig.mcpServers, undefined)
+  assert.ok(fs.existsSync(`${serversFile}.dachshund.bak`))
+
+  const mcpServersFile = path.join(dir, 'mcp-servers.json')
+  write(mcpServersFile, '{"mcpServers":{"existing":{"command":"keep-me"}}}\n')
+  upsertJsonMcp(mcpServersFile, path.join(dir, 'bridge.cjs'), false, 'trae')
+  const mcpServersConfig = JSON.parse(fs.readFileSync(mcpServersFile, 'utf8'))
+  assert.equal(mcpServersConfig.mcpServers.existing.command, 'keep-me')
+  assert.ok(mcpServersConfig.mcpServers.dachshund)
+  assert.equal(mcpServersConfig.servers, undefined)
+  assert.ok(!fs.readdirSync(dir).some((file) => file.includes('.tmp')))
 }
 
 function testDoubaoTaxonomy(): void {
@@ -980,6 +1169,9 @@ try {
   testDeepSeekHarness()
   testWorkBuddyTaxonomy()
   testTraeTaxonomy()
+  testTraeMigrationDedupe()
+  testTraeInstallationResolution()
+  testTraeMcpRoot()
   testDoubaoTaxonomy()
   testInstructionsAndObservedMemory()
   testClaudeTaxonomy()

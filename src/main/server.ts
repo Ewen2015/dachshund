@@ -127,7 +127,7 @@ export function startHttpServer(store: Store, version: string): Promise<{ runtim
       }
 
       if (req.method === 'POST' && url.pathname === '/api/scan') {
-        json(res, 200, await store.scan())
+        json(res, 200, (await store.scan('manual')).state)
         return
       }
 

@@ -169,14 +169,18 @@ It exists so later work can build on a precise boundary.
 
 ### Current behavior
 
-- Import runs at app startup and on an explicit scan. There is no continuous
-  filesystem watcher.
+- Import runs at app startup and on an explicit scan. Users can also opt into
+  automatic sync, which runs the same pipeline every 60 minutes while the app is
+  running. There is no continuous filesystem watcher.
 - Agent-owned source files are opened read-only. dachshund copies their content
   into its own Markdown library and keeps the source path as provenance.
 - Exact normalized-content duplicates become multiple source echoes on one
   dachshund memory.
-- If a native source changes, the next scan can create a new memory, but the
-  previous version is not reconciled, superseded, or marked stale automatically.
+- Stable source identity is persisted. If a native source changes, the next scan
+  updates the existing memory in place and reports it as updated.
+- Automatic sync pauses while the app quits or the system sleeps, schedules at
+  most one catch-up scan after resume, and reports added, updated, unchanged, and
+  failed states without blocking the interface.
 - Memory written through dachshund's MCP `memory_remember` tool goes directly
   into the dachshund library and is immediately available to agents connected
   to that MCP service. It is not written back into an agent's private memory.
@@ -189,10 +193,8 @@ Any stronger synchronization model should preserve the local-only boundary and
 make every automated change reviewable.
 
 - Add debounced file watching with a bounded rescan on wake or reconnect.
-- Persist stable source identity, modification time, size, and content hash in
-  the existing `imports` records.
-- Define update, supersede, and archive semantics for changed source records,
-  including removal tombstones.
+- Define archive and removal-tombstone semantics for source records that
+  disappear.
 - Keep revision history and provenance so a user can compare the old and new
   source records before accepting a change.
 - Add explicit conflict review when both dachshund and a native source changed
@@ -202,5 +204,6 @@ make every automated change reviewable.
 - Do not infer cloud-account memory or add a hosted synchronization service as
   part of this work.
 
-This direction is not scheduled and does not change the importer contract in
-the current release.
+The remaining direction is not scheduled. Automatic sync and source-version
+replacement are implemented; revision history, removal tombstones, conflict
+review, and native writeback are not.

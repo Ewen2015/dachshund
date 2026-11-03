@@ -279,10 +279,10 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
     ]
   },
   trae: {
-    title: 'Profile, project, topics, sessions',
+    title: 'Agent + IDE memory',
     summary:
-      'Trae separates persistent profile and project memory from chronological topic and session summaries.',
-    path: '~/.trae/memory/user_profile.md + projects',
+      'TRAE combines Agent and IDE modes while keeping durable profile and project memory separate from chronological topic and session summaries.',
+    path: '~/.trae-cn or ~/.trae / memory/user_profile.md + projects',
     mappings: [
       { native: 'user_profile', description: 'Global identity and preferences', category: 'about', kinds: ['profile'], imported: true },
       { native: 'project_memory', description: 'Durable project context', category: 'projects', kinds: ['project'], imported: true },

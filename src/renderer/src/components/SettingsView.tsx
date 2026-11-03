@@ -1,6 +1,6 @@
 import type { AppState } from '../../../shared/types'
 import { AgentLogo } from './AgentLogo'
-import { sortAgentsByMemory } from '../lib/format'
+import { displayHomePath, relativeTime, sortAgentsByMemory } from '../lib/format'
 import {
   ArrowUpRightIcon,
   CheckIcon,
@@ -16,6 +16,7 @@ export function SettingsView({
   onScan,
   onReveal,
   onInstallMcp,
+  onToggleAutoSync,
   onQuit
 }: {
   state: AppState
@@ -23,6 +24,7 @@ export function SettingsView({
   onScan: () => void
   onReveal: (path: string) => void
   onInstallMcp: (id: string) => void
+  onToggleAutoSync: (enabled: boolean) => void
   onQuit: () => void
 }) {
   const installed = sortAgentsByMemory(state.agents.filter((agent) => agent.installed))
@@ -39,6 +41,61 @@ export function SettingsView({
           Give each local agent one path to the same memory library over MCP. Connections stay on
           this Mac, and dachshund never rewrites the memory files an agent already keeps.
         </p>
+      </section>
+
+      <section className="settings-section">
+        <div className="settings-heading">
+          <h2>Memory sync</h2>
+          <span>{state.sync.autoSync ? 'On' : 'Off'}</span>
+        </div>
+        <div className="settings-card">
+          <div className="settings-row">
+            <div className="settings-icon">
+              <RefreshIcon size={18} />
+            </div>
+            <div className="settings-copy">
+              <strong>Automatic sync</strong>
+              <span>
+                Scan agent memory when you turn this on, then every {state.sync.intervalMinutes}{' '}
+                minutes while dachshund is running. Source files stay read-only.
+              </span>
+            </div>
+            <button
+              className={`switch ${state.sync.autoSync ? 'on' : ''}`}
+              type="button"
+              role="switch"
+              aria-checked={state.sync.autoSync}
+              aria-label="Automatic memory sync"
+              disabled={state.sync.scanning && !state.sync.autoSync}
+              onClick={() => onToggleAutoSync(!state.sync.autoSync)}
+            >
+              <span />
+            </button>
+          </div>
+          <div className="settings-row compact">
+            <div className="settings-copy sync-settings-status">
+              <strong>
+                {state.sync.scanning
+                  ? 'Scanning memory files…'
+                  : state.sync.lastResult?.ok === false
+                    ? 'Last sync failed'
+                    : 'Last successful sync'}
+              </strong>
+              <span>
+                {state.sync.lastSuccessfulSyncAt
+                  ? relativeTime(state.sync.lastSuccessfulSyncAt)
+                  : 'Not completed yet'}
+                {state.sync.lastResult && state.sync.lastResult.added + state.sync.lastResult.updated > 0
+                  ? ` · ${state.sync.lastResult.added} added, ${state.sync.lastResult.updated} updated`
+                  : ''}
+              </span>
+            </div>
+            <button className="ghost-button small" type="button" onClick={onScan} disabled={state.scanning}>
+              <RefreshIcon size={13} />
+              Sync now
+            </button>
+          </div>
+        </div>
       </section>
 
       <section className="settings-section">
@@ -73,7 +130,17 @@ export function SettingsView({
               />
               <div className="settings-copy">
                 <strong>{agent.name}</strong>
-                <span>{agent.mcpInstalled ? 'Connected over MCP' : 'Not connected yet'}</span>
+                <span>
+                  {agent.mcpInstalled ? 'Connected over MCP' : 'Not connected yet'}
+                  {agent.id === 'trae'
+                    ? ` · ${agent.appVersion ? `v${agent.appVersion}` : 'version unknown'}`
+                    : ''}
+                </span>
+                {agent.id === 'trae' && agent.mcpConfigPath ? (
+                  <code className="settings-agent-path" title={agent.mcpConfigPath}>
+                    {displayHomePath(agent.mcpConfigPath)}
+                  </code>
+                ) : null}
               </div>
               <button
                 className={`mcp-button ${agent.mcpInstalled ? 'connected' : ''}`}

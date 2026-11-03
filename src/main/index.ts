@@ -8,7 +8,8 @@ import {
   shell,
   screen,
   globalShortcut,
-  dialog
+  dialog,
+  powerMonitor
 } from 'electron'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -16,7 +17,11 @@ import { Store } from './store'
 import { startHttpServer } from './server'
 import type {
   CreateMemoryInput,
+  ScanReason,
+  ScanResponse,
+  ScanResult,
   SearchQuery,
+  SyncToggleResponse,
   UpdateState,
   UpdateMemoryInput
 } from '../shared/types'
@@ -25,6 +30,7 @@ import { UpdateService } from './updater'
 import { findDefinition } from './agents/discovery'
 import { buildMcpSetup, getMcpConnectionStatus } from './agents/mcp-connection'
 import { panelPlacement } from './panel-placement'
+import { nextSyncDelay } from './sync-schedule'
 import {
   currentAppBundlePath,
   installerLogPath,
@@ -51,6 +57,8 @@ let closeServer: (() => void) | null = null
 let quitting = false
 let installScheduled = false
 let hidingMainWindow = false
+let syncTimer: ReturnType<typeof setTimeout> | null = null
+let systemSuspended = false
 
 function bridgePath(): string {
   if (process.env.DACHSHUND_MCP_BRIDGE) return process.env.DACHSHUND_MCP_BRIDGE
@@ -389,13 +397,40 @@ function buildMenu(): void {
   )
 }
 
-async function scanAgents(): Promise<void> {
-  const state = await store.scan((progress) => {
+function clearSyncTimer(): void {
+  if (!syncTimer) return
+  clearTimeout(syncTimer)
+  syncTimer = null
+}
+
+function scheduleAutomaticSync(delayMs?: number): void {
+  clearSyncTimer()
+  if (quitting || systemSuspended) return
+  const sync = store.syncState()
+  if (!sync.autoSync) return
+  syncTimer = setTimeout(() => {
+    syncTimer = null
+    if (systemSuspended) return
+    void scanAgents('automatic')
+  }, delayMs ?? nextSyncDelay(sync.lastSyncAttemptAt, sync.intervalMinutes))
+}
+
+async function scanAgents(reason: ScanReason = 'manual'): Promise<ScanResponse> {
+  const response = await store.scan(reason, (progress) => {
     for (const win of [mainWindow, panelWindow]) {
       win?.webContents.send('scan:progress', progress)
     }
   })
-  broadcastState(state)
+  broadcastState(response.state)
+  broadcastScanResult(response.result)
+  scheduleAutomaticSync()
+  return response
+}
+
+function broadcastScanResult(result: ScanResult): void {
+  for (const win of [mainWindow, panelWindow]) {
+    win?.webContents.send('sync:result', result)
+  }
 }
 
 function broadcastState(state: ReturnType<Store['state']>): void {
@@ -482,9 +517,18 @@ function scheduleAutomaticInstall(state: UpdateState): void {
 
 function registerIpc(): void {
   ipcMain.handle('app:state', () => store.state())
-  ipcMain.handle('app:scan', async () => {
-    await scanAgents()
-    return store.state()
+  ipcMain.handle('app:scan', () => scanAgents('manual'))
+  ipcMain.handle('sync:auto', async (_event, enabled: boolean): Promise<SyncToggleResponse> => {
+    store.setAutoSync(enabled === true)
+    if (enabled !== true) {
+      clearSyncTimer()
+      const state = store.state()
+      broadcastState(state)
+      return { state, result: null }
+    }
+    scheduleAutomaticSync()
+    const response = await scanAgents('enabled')
+    return response
   })
   ipcMain.handle('app:onboarded', () => store.markOnboarded())
   ipcMain.handle('app:bridge-path', () => bridgePath())
@@ -607,14 +651,24 @@ if (!gotLock) {
     }
 
     setTimeout(() => {
-      void scanAgents()
+      void scanAgents('startup')
     }, 900)
+
+    powerMonitor.on('suspend', () => {
+      systemSuspended = true
+      clearSyncTimer()
+    })
+    powerMonitor.on('resume', () => {
+      systemSuspended = false
+      scheduleAutomaticSync()
+    })
 
     app.on('activate', showWindow)
   })
 
   app.on('before-quit', () => {
     quitting = true
+    clearSyncTimer()
     globalShortcut.unregisterAll()
     updateService?.stop()
     closeServer?.()

@@ -221,7 +221,7 @@ export function agentNameFor(id: string): string {
     windsurf: 'Windsurf',
     workbuddy: 'WorkBuddy',
     doubao: 'Doubao',
-    trae: 'Trae',
+    trae: 'TRAE',
     hermes: 'Hermes',
     pi: 'Pi',
     zcode: 'ZCode',

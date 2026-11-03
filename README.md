@@ -127,7 +127,7 @@ connectors, including Doubao, open a guided local setup instead.
 <table>
 <tr><td>
 
-Claude Code · Codex · Cursor · Gemini CLI · GitHub Copilot · OpenCode · Windsurf · Claude Desktop · WorkBuddy · Doubao · Trae · Hermes · Pi · ZCode · DeepSeek Harness
+Claude Code · Codex · Cursor · Gemini CLI · GitHub Copilot · OpenCode · Windsurf · Claude Desktop · WorkBuddy · Doubao · TRAE · Hermes · Pi · ZCode · DeepSeek Harness
 
 </td></tr>
 </table>
@@ -177,7 +177,7 @@ security boundary and failure modes.
 ### Import first
 
 Useful memory appears before you write anything. dachshund reads the formats
-agents already produce, including Markdown, WorkBuddy notes, Trae session JSONL,
+agents already produce, including Markdown, WorkBuddy notes, TRAE session JSONL,
 Hermes native memory entries, Pi summaries, ZCode SQLite rows, DeepSeek Harness
 Zstandard logs, Codex memory files and readable Codex SQLite rows.
 
@@ -305,8 +305,10 @@ directories. They never modify a real user agent configuration.
 
 - Deduplication is exact, not semantic.
 - Library search is lexical, with no local embedding model.
-- Imports run at startup and on explicit scans; there is no live file watcher.
-- Source edits are not yet reconciled incrementally.
+- Imports run at startup and on explicit scans, with an optional hourly sync
+  while the app is running; there is no live file watcher.
+- Source edits replace the prior active memory; removed sources have no
+  tombstone yet.
 - The build is Apple Silicon only and not notarized.
 - There is no cloud sync, team mode or multi-device history.
 

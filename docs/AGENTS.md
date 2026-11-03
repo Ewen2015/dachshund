@@ -19,7 +19,7 @@ and build-time fetching rules.
 | Claude Desktop | Yes | `Claude(-3p)/claude_desktop_config.json` | Local Cowork Space `MEMORY.md` topic files |
 | WorkBuddy | Yes | `~/.workbuddy/mcp.json` | Identity, user memory, and workspace memory Markdown |
 | Doubao | Yes | Guided STDIO connector | Agent Mode global and session memory Markdown |
-| Trae | Yes | `~/Library/Application Support/TRAE SOLO CN/User/mcp.json` | User profile, project memory, topics, and session memory JSONL |
+| TRAE | Yes | Detected `Trae CN`, `Trae`, or legacy `TRAE SOLO*` `User/mcp.json` | User profile, project memory, topics, and session memory JSONL |
 | Hermes | Yes | `~/.hermes/config.yaml` | Native `MEMORY.md` and `USER.md` entries |
 | Pi | Yes | `~/.pi/agent/mcp.json` | Compaction summaries and durable user context |
 | ZCode | Yes | `~/.zcode/cli/config.json` | Project memory Markdown plus read-only SQLite durable user text |
@@ -207,12 +207,30 @@ or `豆包` remain valid. The bridge appends only the client name, version, agen
 identity, and timestamp to `mcp-clients.jsonl` in the dachshund data directory.
 Merely opening or filling in the Doubao form does not count as connected.
 
-## Trae
+## TRAE
 
 Homes:
 
 - China build: `~/.trae-cn`;
 - international build: `~/.trae`.
+
+Product history: TraeWork supplied Agent mode and TraeCode supplied IDE
+capabilities. TRAE 3.4.0 unified both modes into one product with shared data;
+this is one agent identity in dachshund, not separate TraeWork, TraeCode, and
+TRAE cards.
+
+Application candidates, in priority order:
+
+- `/Applications/Trae CN.app`;
+- `/Applications/Trae.app`;
+- `/Applications/TRAE SOLO CN.app`;
+- `/Applications/TRAE SOLO.app`.
+
+Application Support candidates use the matching `Trae CN`, `Trae`,
+`TRAE SOLO CN`, and `TRAE SOLO` directories. dachshund selects one active
+instance only. A current app or current support directory takes precedence over
+legacy SOLO data; when no current installation exists, the legacy instance is
+used as a read-only compatibility fallback.
 
 Imported:
 
@@ -223,9 +241,23 @@ Imported:
 
 Session JSONL entries are converted into readable memory with `Outcome`,
 `Learned`, and `Actions` sections. Profile memory maps to About me; project
-memory maps to Projects; topic and session summaries map to History. Trae rules
-are not imported. MCP target for the current China build:
-`~/Library/Application Support/TRAE SOLO CN/User/mcp.json`, under `mcpServers`.
+memory maps to Projects; topic and session summaries map to History. TRAE rules
+are not imported.
+
+When both `~/.trae-cn` and `~/.trae` exist, current durable memory is read first
+and normalized by kind, project, source reference, and content. Duplicate
+legacy records are collapsed, retaining the newer record. Hidden migration
+residue, `Cache`, `Code Cache`, `IndexedDB`, logs, browser storage, workspace MCP
+caches, and unversioned JSONL are not imported.
+
+MCP target: dachshund resolves the selected app's matching
+`<Application Support>/<build>/User/mcp.json`. Current builds therefore write
+to `Trae CN/User/mcp.json` or `Trae/User/mcp.json`; only a legacy-only
+installation writes to `TRAE SOLO*/User/mcp.json`. The importer is read-only,
+while MCP installation backs up the config and uses an atomic write. TRAE
+accepts either `servers` or `mcpServers`; dachshund preserves the existing root
+field and never creates both copies. Settings shows the detected app version and
+the exact MCP path used.
 
 ## Hermes
 
@@ -439,10 +471,11 @@ file.
 - Import is bounded to avoid walking an entire home directory.
 - Very large files are skipped.
 - Exact duplicate detection only; no semantic consolidation.
-- Source edits are not yet reconciled incrementally.
+- Source edits replace the prior active memory through persisted source identity;
+  removed sources have no tombstone yet.
 - Agent-specific formats may change upstream and require importer updates.
 - A source file is copied into the dachshund library; the source path is
   retained as provenance but the source itself remains immutable.
-- Watcher, source-revision, conflict-review, and native writeback behavior is
-  future planning only; see
+- Automatic sync runs hourly while enabled, but live file watching, revision
+  history, conflict review, and native writeback are future planning only; see
   [Product](PRODUCT.md#memory-synchronization-direction).

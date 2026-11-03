@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { AppState, MemorySummary } from '../../shared/types'
+import type { AppState, MemorySummary, ScanResult } from '../../shared/types'
 import {
   MEMORY_CATEGORIES,
   categoryDefinition,
@@ -19,6 +19,7 @@ import {
   SearchIcon
 } from './components/Icons'
 import { Mark } from './components/Mark'
+import { SyncNotice } from './components/SyncNotice'
 import { UpdateNotice } from './components/UpdateNotice'
 import { kindLabel, relativeTime, sortAgentsByMemory, uniqueSources } from './lib/format'
 import { useUpdater } from './lib/useUpdater'
@@ -33,6 +34,7 @@ export default function PanelApp() {
   const [memories, setMemories] = useState<MemorySummary[]>([])
   const [showAllAgents, setShowAllAgents] = useState(false)
   const [scanning, setScanning] = useState(false)
+  const [syncNotice, setSyncNotice] = useState<ScanResult | null>(null)
   const updater = useUpdater()
 
   useEffect(() => {
@@ -47,6 +49,7 @@ export default function PanelApp() {
       setState(next)
       setMemories(next.memories)
     })
+    const offSync = window.dachshund.onSyncResult((result) => setSyncNotice(result))
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') void window.dachshund.hidePanel()
     }
@@ -55,6 +58,7 @@ export default function PanelApp() {
       document.body.classList.remove('panel-mode')
       document.documentElement.classList.remove('panel-mode')
       offState()
+      offSync()
       window.removeEventListener('keydown', onKey)
     }
   }, [])
@@ -94,9 +98,10 @@ export default function PanelApp() {
   const scan = async () => {
     setScanning(true)
     try {
-      const next = await window.dachshund.scan()
-      setState(next)
-      setMemories(next.memories)
+      const response = await window.dachshund.scan()
+      setState(response.state)
+      setMemories(response.state.memories)
+      setSyncNotice(response.result)
     } finally {
       setScanning(false)
     }
@@ -159,6 +164,15 @@ export default function PanelApp() {
           onDownload={() => void updater.download()}
           onOpenDownloaded={() => void updater.openDownloaded()}
           onDismiss={updater.dismiss}
+        />
+      )}
+
+      {syncNotice && (
+        <SyncNotice
+          result={syncNotice}
+          lastSuccessfulSyncAt={state.sync.lastSuccessfulSyncAt}
+          compact
+          onDismiss={() => setSyncNotice(null)}
         />
       )}
 

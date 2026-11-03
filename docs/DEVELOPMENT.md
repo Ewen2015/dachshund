@@ -127,7 +127,7 @@ The test:
 
 A separate real-import acceptance run scans the current Mac into an isolated
 library, starts the loopback server, and verifies that the MCP bridge can recall
-a Trae-authored memory through both `memory_search` and `memory_context`.
+a TRAE-authored memory through both `memory_search` and `memory_context`.
 
 ## Screenshots
 

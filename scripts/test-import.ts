@@ -3,7 +3,7 @@ import { Store } from '../src/main/store'
 async function main(): Promise<void> {
   const store = new Store('0.1.0-test')
   store.init()
-  const state = await store.scan((progress) => {
+  const { state, result } = await store.scan('manual', (progress) => {
     console.error(
       `[scan] ${progress.agentName}: ${progress.status}${progress.memories ? ` (${progress.memories})` : ''}`
     )
@@ -12,6 +12,7 @@ async function main(): Promise<void> {
   console.log(
     JSON.stringify(
       {
+        result,
         counts: state.counts,
         agents: state.agents
           .filter((agent) => agent.installed)

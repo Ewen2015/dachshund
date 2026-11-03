@@ -5,6 +5,7 @@ import type { McpInstallResult } from '../../shared/types'
 import { DATA_DIR } from '../paths'
 import { mergeDeepSeekInstructions } from './deepseek-instructions'
 import { findDefinition } from './discovery'
+import { resolveAgentDefinition } from './registry'
 import { nodeRuntime } from './node-runtime'
 
 interface InstallOptions {
@@ -18,6 +19,28 @@ function backup(file: string): void {
     fs.copyFileSync(file, `${file}.dachshund.bak`)
   } catch {
     // best effort
+  }
+}
+
+function writeFileAtomic(file: string, value: string): void {
+  const existingMode = (() => {
+    try {
+      return fs.statSync(file).mode & 0o777
+    } catch {
+      return 0o600
+    }
+  })()
+  const temporary = `${file}.dachshund.${process.pid}.${Date.now()}.tmp`
+  try {
+    fs.writeFileSync(temporary, value, { encoding: 'utf8', mode: existingMode })
+    fs.renameSync(temporary, file)
+  } catch (error) {
+    try {
+      fs.rmSync(temporary, { force: true })
+    } catch {
+      // Preserve the original write error.
+    }
+    throw error
   }
 }
 
@@ -44,7 +67,7 @@ export function upsertJsonMcp(
   file: string,
   bridgePath: string,
   dryRun = false,
-  mode: 'mcpServers' | 'opencode' | 'zcode' = 'mcpServers'
+  mode: 'mcpServers' | 'trae' | 'opencode' | 'zcode' = 'mcpServers'
 ): McpInstallResult {
   const config = readJson(file)
   if (mode === 'opencode') {
@@ -72,6 +95,26 @@ export function upsertJsonMcp(
     }
     mcp.servers = servers
     config.mcp = mcp
+  } else if (mode === 'trae') {
+    const servers = (
+      config.servers && typeof config.servers === 'object' ? config.servers : null
+    ) as Record<string, unknown> | null
+    const mcpServers = (
+      config.mcpServers && typeof config.mcpServers === 'object' ? config.mcpServers : null
+    ) as Record<string, unknown> | null
+    const key =
+      servers && 'dachshund' in servers
+        ? 'servers'
+        : mcpServers && 'dachshund' in mcpServers
+          ? 'mcpServers'
+          : servers && !mcpServers
+            ? 'servers'
+            : 'mcpServers'
+    const target = (
+      key === 'servers' ? servers ?? {} : mcpServers ?? {}
+    ) as Record<string, unknown>
+    target.dachshund = mcpEntry(bridgePath)
+    config[key] = target
   } else {
     const servers = (
       config.mcpServers && typeof config.mcpServers === 'object' ? config.mcpServers : {}
@@ -82,7 +125,7 @@ export function upsertJsonMcp(
   if (!dryRun) {
     fs.mkdirSync(path.dirname(file), { recursive: true })
     backup(file)
-    fs.writeFileSync(file, `${JSON.stringify(config, null, 2)}\n`, 'utf8')
+    writeFileAtomic(file, `${JSON.stringify(config, null, 2)}\n`)
   }
   return {
     ok: true,
@@ -110,7 +153,7 @@ export function upsertHermesYaml(
   if (!dryRun) {
     fs.mkdirSync(path.dirname(file), { recursive: true })
     backup(file)
-    fs.writeFileSync(file, document.toString({ lineWidth: 0 }), 'utf8')
+    writeFileAtomic(file, document.toString({ lineWidth: 0 }))
   }
   return {
     ok: true,
@@ -156,7 +199,7 @@ export function upsertCodexToml(file: string, bridgePath: string, dryRun = false
   if (!dryRun) {
     fs.mkdirSync(path.dirname(file), { recursive: true })
     backup(file)
-    fs.writeFileSync(file, next, 'utf8')
+    writeFileAtomic(file, next)
   }
   return {
     ok: true,
@@ -203,7 +246,7 @@ export function upsertDeepSeekCordis(
   if (!dryRun) {
     fs.mkdirSync(path.dirname(file), { recursive: true })
     backup(file)
-    fs.writeFileSync(file, next, 'utf8')
+    writeFileAtomic(file, next)
     if (agentHome) {
       const instructionsPath = path.join(agentHome, 'AGENTS.md')
       const existingInstructions = fs.existsSync(instructionsPath)
@@ -213,7 +256,7 @@ export function upsertDeepSeekCordis(
       if (mergedInstructions !== existingInstructions) {
         fs.mkdirSync(agentHome, { recursive: true })
         backup(instructionsPath)
-        fs.writeFileSync(instructionsPath, mergedInstructions, 'utf8')
+        writeFileAtomic(instructionsPath, mergedInstructions)
       }
     }
   }
@@ -229,7 +272,8 @@ export function upsertDeepSeekCordis(
 }
 
 export function installMcp(agentId: string, options: InstallOptions): McpInstallResult {
-  const definition = findDefinition(agentId)
+  const source = findDefinition(agentId)
+  const definition = source ? resolveAgentDefinition(source) : null
   if (!definition?.mcp) {
     return {
       ok: false,
@@ -291,6 +335,14 @@ export function installMcp(agentId: string, options: InstallOptions): McpInstall
           options.bridgePath,
           options.dryRun,
           'mcpServers'
+        )
+        break
+      case 'trae-json':
+        result = upsertJsonMcp(
+          configPath,
+          options.bridgePath,
+          options.dryRun,
+          'trae'
         )
         break
       case 'manual':

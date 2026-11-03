@@ -16,7 +16,10 @@ Icons come from the open-source
 
 The ZCode entry uses the official Z.ai brand SVG published at
 `https://z-cdn.chatglm.cn/z-ai/static/logo.svg`. Z.ai has no corresponding
-ZCode entry in the pinned LobeHub package. Product names and logos remain
+ZCode entry in the pinned LobeHub package. The TRAE mark is a vector redraw of
+the current official `Trae CN.app` icon: a white rounded tile with the black
+TRAE display mark. It replaces the legacy green TraeWork/TraeCode asset and is
+treated as a cached-only local brand asset. Product names and logos remain
 trademarks of their respective owners. dachshund uses them only to identify the
 local agent a memory came from.
 
@@ -55,7 +58,7 @@ npm run icons:agents -- --force
 | Windsurf | `windsurf.svg` |
 | WorkBuddy | `workbuddy-color.svg` |
 | Doubao | `doubao-color.svg` |
-| Trae | `trae-color.svg` |
+| TRAE | `trae-color.svg` (official current app mark) |
 | Hermes | `hermesagent.svg` |
 | Pi | `pi.svg` |
 | ZCode | `zai.svg` (official Z.ai asset) |

@@ -125,7 +125,7 @@ claiming that dachshund currently has access to that data.
 | **Hermes** | `USER.md` and `MEMORY.md` | `USER.md` to About me; untyped `MEMORY.md` entries conservatively to Facts & references | SQLite session history |
 | **OpenCode** | Global and project `AGENTS.md`, observed memory Markdown, sessions | Global `AGENTS.md` to Ways of working; observed memory Markdown to Facts & references | Project `AGENTS.md` and session history |
 | **Pi** | Session tree, compaction, branch summaries | Compaction and branch summaries to History; explicit durable cues to About me or Ways of working | Raw session branches and ordinary messages |
-| **Trae** | `user_profile.md`, `project_memory.md`, `topics.md`, session JSONL | Profile to About me; project memory to Projects; topics and session summaries to History | Rules |
+| **TRAE** | `user_profile.md`, `project_memory.md`, `topics.md`, session JSONL | Profile to About me; project memory to Projects; topics and session summaries to History | Rules and transient cache/log data |
 | **WorkBuddy** | Typed `user`, `feedback`, `project`, `reference` memory plus identity files | Typed memory maps to About me, Ways of working, Projects, and Facts & references; assistant identity maps to Ways of working | Sessions |
 | **ZCode** | Project-scoped typed Markdown memory plus session evidence | Typed Markdown maps to About me, Ways of working, Projects, and Facts & references; explicit session cues map to About me or Ways of working | Global and project `AGENTS.md` |
 | **Windsurf** | Workspace memories, rules, `AGENTS.md` | Workspace memory Markdown to Projects | Rules and `AGENTS.md` |

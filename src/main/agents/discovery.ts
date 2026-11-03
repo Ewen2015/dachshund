@@ -4,13 +4,19 @@ import type { AgentSummary } from '../../shared/types'
 import { Db, accentFor, monogramForId } from '../store/db'
 import { DATA_DIR, IS_DEMO } from '../paths'
 import { latestMcpClientReceipt } from '../../shared/mcp-client-receipts'
-import { AGENT_DEFINITIONS, DEMO_AGENT_IDS, type AgentDefinition } from './registry'
+import {
+  AGENT_DEFINITIONS,
+  DEMO_AGENT_IDS,
+  resolveAgentDefinition,
+  type AgentDefinition
+} from './registry'
 
-export interface DetectedAgent extends AgentDefinition {
+export interface DetectedAgent extends Omit<AgentDefinition, 'appVersion'> {
   installed: boolean
   mcpInstalled: boolean
   mcpConfigPath: string | null
   mcpMode: AgentSummary['mcpMode']
+  appVersion?: string
 }
 
 function exists(target: string): boolean {
@@ -22,23 +28,25 @@ function exists(target: string): boolean {
 }
 
 export function isMcpInstalled(definition: AgentDefinition): boolean {
-  if (!definition.mcp) return false
-  if (definition.mcp.type === 'manual') {
-    return Boolean(latestMcpClientReceipt(DATA_DIR, definition.id))
+  const resolved = resolveAgentDefinition(definition)
+  if (!resolved.mcp) return false
+  if (resolved.mcp.type === 'manual') {
+    return Boolean(latestMcpClientReceipt(DATA_DIR, resolved.id))
   }
-  if (!definition.mcp.path) return false
+  if (!resolved.mcp.path) return false
   try {
-    if (!fs.existsSync(definition.mcp.path)) return false
-    return fs.readFileSync(definition.mcp.path, 'utf8').includes('dachshund')
+    if (!fs.existsSync(resolved.mcp.path)) return false
+    return fs.readFileSync(resolved.mcp.path, 'utf8').includes('dachshund')
   } catch {
     return false
   }
 }
 
 export function discoverAgents(): DetectedAgent[] {
-  const definitions = IS_DEMO
+  const definitions = (IS_DEMO
     ? AGENT_DEFINITIONS.filter((definition) => DEMO_AGENT_IDS.includes(definition.id))
     : AGENT_DEFINITIONS
+  ).map(resolveAgentDefinition)
   return definitions.map((definition) => {
     const homes = [definition.home, ...(definition.homes ?? [])]
     const appPaths = [
@@ -53,6 +61,7 @@ export function discoverAgents(): DetectedAgent[] {
       installed,
       mcpInstalled: isMcpInstalled(definition),
       mcpConfigPath: definition.mcp?.path ?? null,
+      appVersion: definition.appVersion,
       mcpMode:
         definition.mcp?.type === 'manual'
           ? 'manual'
@@ -83,6 +92,7 @@ export function refreshAgents(db: Db): AgentSummary[] {
       accent: agent.accent || accentFor(agent.id),
       monogram: agent.monogram || monogramForId(agent.name, agent.id),
       description: definition?.description ?? '',
+      appVersion: definition?.appVersion ?? null,
       mcpMode:
         definition?.mcp?.type === 'manual'
           ? 'manual'

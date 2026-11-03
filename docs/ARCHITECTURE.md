@@ -108,26 +108,39 @@ See [Updates](UPDATES.md) for the release contract and updater state machine.
 
 ## Discovery And Import
 
-On startup, after onboarding, and on manual scan:
+On startup, after onboarding, on manual scan, and when automatic sync is due:
 
 1. Known agent homes and application paths are checked for installation.
 2. Enabled agents are read using agent-specific importers.
 3. Imported records shorter than 30 characters are ignored.
 4. A normalized content hash is computed.
 5. Exact duplicate content attaches a new source to the existing memory.
-6. New content is written to the dachshund Markdown library.
-7. The SQLite index is updated.
+6. Stable source identity (agent, path, and source ref) is checked against
+   `source_records`.
+7. New content is written to the dachshund Markdown library.
+8. Changed content for the same source updates the existing memory in place.
+9. The SQLite index is updated.
 
 Source files are opened read-only. dachshund does not move, rewrite, or delete
 them.
 
-The `imports` table exists in the schema but incremental source-change tracking
-is not yet implemented. A changed source can currently appear as a new memory
-while the prior version remains active. See [MVP](MVP.md#known-limitations).
-The proposed watcher, source-revision, supersession, and conflict-review design
-is documented as future product planning in
-[Product](PRODUCT.md#memory-synchronization-direction); none of it is active in
-the current importer.
+`source_records` stores the current memory, content hash, title, and first/last
+seen time for each stable source identity. The older `imports` table remains as
+legacy schema. If a source's content changes, its existing memory is rewritten
+and indexed instead of creating a parallel copy. Removed-source tombstones and
+conflict review are still future work.
+
+## Automatic Sync
+
+Automatic sync is opt-in and persisted in the local database. Turning it on runs
+the same scan pipeline immediately. While dachshund is running, the main process
+schedules the next scan 60 minutes after the previous attempt. Manual and
+scheduled scans share one in-flight promise, so they cannot run concurrently.
+
+The timer is cleared during system suspend and app quit. On resume, the main
+process schedules at most one catch-up scan. Every result reports added and
+updated memory counts, unchanged state, per-agent failures, and the last
+successful sync time. Agent source files remain read-only.
 
 ## Deduplication
 
