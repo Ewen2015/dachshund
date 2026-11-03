@@ -26,7 +26,7 @@ npm install
 | `npm start` | Preview the production Electron build |
 | `npm run typecheck` | Type-check main and renderer projects |
 | `npm run test:agents` | Validate the Hermes, Pi, ZCode and DeepSeek Harness importers and MCP writers |
-| `npm run test:panel` | Validate menu bar placement across displays and stale tray bounds |
+| `npm run test:panel` | Validate menu bar placement and full-screen Space visibility |
 | `npm run test:mcp` | Run isolated HTTP and MCP integration tests |
 | `npm run demo:seed` | Seed the stable demo memory library |
 | `npm run screenshot` | Capture the documented app screenshots |
@@ -174,9 +174,9 @@ and notarized.
 
 Verified build:
 
-- output: `release/dachshund-0.1.20-arm64.dmg`
+- output: `release/dachshund-0.1.21-arm64.dmg`
 - SHA-256:
-  `4063f16d94017eb54097145485da07a137492142a49e561b6534bae92be0d3b6`
+  `346b107b456a6d8e750936adaee99e0697d66b2c084bd0939064d7aea2f236e6`
 - packaged app launch and packaged MCP bridge smoke test pass
 - code signing: ad-hoc only
 - Gatekeeper assessment: fails without Developer ID signing and notarization

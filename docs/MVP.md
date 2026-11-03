@@ -52,9 +52,11 @@ The MVP is considered healthy when:
 6. `memory_context` returns a labeled prompt block.
 7. `memory_forget` archives the memory and removes it from default search.
 8. The compact panel remains usable at 420 x 620 logical pixels.
-9. The Connectors screen reports the correct MCP bridge path.
-10. `npm run dist:mac` produces a DMG.
-11. A packaged previous version can download a newer release, replace itself
+9. The compact panel opens above a macOS full-screen Space without switching
+   away from it.
+10. The Connectors screen reports the correct MCP bridge path.
+11. `npm run dist:mac` produces a DMG.
+12. A packaged previous version can download a newer release, replace itself
     in place, pass code-signature verification, and reopen.
 
 ## Current Verification
@@ -80,19 +82,22 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development Connectors screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.20-arm64.dmg` was produced on 2026-11-03.
+- `release/dachshund-0.1.21-arm64.dmg` was produced on 2026-11-03.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.20`.
-- The `0.1.20` DMG mounted read-only, contained a valid ad-hoc-signed app at
-  version `0.1.20`, and included an executable MCP bridge.
+  packaged version of `0.1.21`; its compact panel reported
+  `visibleOnAllWorkspaces: true`.
+- The `0.1.21` DMG mounted read-only, contained a valid ad-hoc-signed app at
+  version `0.1.21`, and included an executable MCP bridge.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.20` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.21` passed the same
   five-tool MCP smoke test.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
+- The compact panel remained visible, focused, and always on top while the
+  main window was in a native macOS full-screen Space.
 - Main-window and compact-panel screenshots pass at 920 x 700 and 420 x 620
   with the larger typography and complete category labels.
 - The full app keeps one active view while switching between compact top tabs
@@ -334,9 +339,17 @@ token are not a defense against a compromised account.
   versus source-only labels;
 - removed the outdated Windsurf integration and pruned stale discovered agents.
 
+#### 0.1.21: Full-Screen Menu Bar Panel
+
+- made the compact menu bar panel visible above native macOS full-screen
+  windows without switching away from the current Space;
+- reapplied the full-screen workspace behavior whenever the panel opens;
+- added regression coverage and synchronized the window architecture and
+  release documentation.
+
 ### Next
 
-#### 0.1.21: Reviewable Consolidation
+#### 0.1.22: Reviewable Consolidation
 
 - near-duplicate suggestions;
 - merge and split flows;
@@ -344,7 +357,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.22: Recall Quality
+#### 0.1.23: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -352,7 +365,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-#### 0.1.23: Distribution
+#### 0.1.24: Distribution
 
 - signed and notarized universal build;
 - update channel;

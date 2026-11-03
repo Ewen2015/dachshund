@@ -116,8 +116,9 @@ the collar accent, not from decorative typography.
 - Footer always shows local-only status and the primary new-memory action.
 
 The window uses native vibrancy, rounded corners, and a transparent background.
-It opens on the display where the tray icon was clicked, joins the current
-full-screen Space without switching away from it, and hides on blur.
+It opens on the display where the tray icon was clicked, explicitly opts into
+visibility above full-screen windows without switching Spaces, and hides on
+blur.
 
 ## Components
 

@@ -32,6 +32,7 @@ import { UpdateService } from './updater'
 import { findDefinition } from './agents/discovery'
 import { buildMcpSetup, getMcpConnectionStatus } from './agents/mcp-connection'
 import { panelPlacement } from './panel-placement'
+import { ensurePanelVisibleInFullscreen } from './panel-window'
 import { nextSyncDelay } from './sync-schedule'
 import {
   currentAppBundlePath,
@@ -195,6 +196,7 @@ function createPanelWindow(): void {
       sandbox: false
     }
   })
+  ensurePanelVisibleInFullscreen(panelWindow)
   panelWindow.on('blur', () => {
     if (!panelWindow?.isVisible()) return
     setTimeout(() => {
@@ -242,6 +244,7 @@ function positionPanel(): void {
 
 function showPanel(): void {
   if (!panelWindow) createPanelWindow()
+  if (panelWindow) ensurePanelVisibleInFullscreen(panelWindow)
   positionPanel()
   panelWindow?.show()
   panelWindow?.focus()

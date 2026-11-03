@@ -284,8 +284,9 @@ state directly.
 - Panel uses the cursor's current display. Tray bounds are used only when they
   belong to that display; otherwise the cursor position is the anchor. The
   result is clamped to the display work area.
-- The panel joins full-screen Spaces and remains above them without moving the
-  user away from the current desktop.
+- The panel explicitly enables `visibleOnFullScreen` and
+  `skipTransformProcessType` on every show, so it joins full-screen Spaces
+  without moving the user away from the current desktop.
 - Global shortcuts register while the app is running.
 
 ## Security Boundary

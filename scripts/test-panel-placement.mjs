@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { panelPlacement } from '../src/main/panel-placement.ts'
+import { ensurePanelVisibleInFullscreen } from '../src/main/panel-window.ts'
 
 const panelSize = { width: 420, height: 620 }
 const primary = { x: 0, y: 25, width: 1470, height: 931 }
@@ -46,4 +47,23 @@ assert.deepEqual(
   'the panel should centre under a tray icon on the current display'
 )
 
-console.log('Panel placement fixtures passed')
+let workspaceVisibilityCall = null
+ensurePanelVisibleInFullscreen({
+  setVisibleOnAllWorkspaces(visible, options) {
+    workspaceVisibilityCall = { visible, options }
+  }
+})
+
+assert.deepEqual(
+  workspaceVisibilityCall,
+  {
+    visible: true,
+    options: {
+      visibleOnFullScreen: true,
+      skipTransformProcessType: true
+    }
+  },
+  'the compact panel should remain available above full-screen Spaces'
+)
+
+console.log('Panel placement and full-screen fixtures passed')
