@@ -7,6 +7,7 @@ import { mergeDeepSeekInstructions } from './deepseek-instructions'
 import { findDefinition } from './discovery'
 import { resolveAgentDefinition } from './registry'
 import { nodeRuntime } from './node-runtime'
+import { mergeSharedMemoryInstructions } from './shared-memory-instructions'
 
 interface InstallOptions {
   dryRun?: boolean
@@ -55,11 +56,14 @@ function readJson(file: string): Record<string, unknown> {
   return parsed as Record<string, unknown>
 }
 
-export function mcpEntry(bridgePath: string): Record<string, unknown> {
+export function mcpEntry(bridgePath: string, agentId = ''): Record<string, unknown> {
   return {
     command: '/usr/bin/env',
     args: ['node', bridgePath],
-    env: { DACHSHUND_HOME: DATA_DIR }
+    env: {
+      DACHSHUND_HOME: DATA_DIR,
+      ...(agentId ? { DACHSHUND_CLIENT_AGENT: agentId } : {})
+    }
   }
 }
 
@@ -67,7 +71,8 @@ export function upsertJsonMcp(
   file: string,
   bridgePath: string,
   dryRun = false,
-  mode: 'mcpServers' | 'trae' | 'opencode' | 'zcode' = 'mcpServers'
+  mode: 'mcpServers' | 'trae' | 'opencode' | 'zcode' = 'mcpServers',
+  agentId = ''
 ): McpInstallResult {
   const config = readJson(file)
   if (mode === 'opencode') {
@@ -76,7 +81,10 @@ export function upsertJsonMcp(
       type: 'local',
       command: ['/usr/bin/env', 'node', bridgePath],
       enabled: true,
-      environment: { DACHSHUND_HOME: DATA_DIR }
+      environment: {
+        DACHSHUND_HOME: DATA_DIR,
+        ...(agentId ? { DACHSHUND_CLIENT_AGENT: agentId } : {})
+      }
     }
     config.mcp = mcp
   } else if (mode === 'zcode') {
@@ -90,7 +98,10 @@ export function upsertJsonMcp(
       type: 'stdio',
       command: '/usr/bin/env',
       args: ['node', bridgePath],
-      env: { DACHSHUND_HOME: DATA_DIR },
+      env: {
+        DACHSHUND_HOME: DATA_DIR,
+        ...(agentId ? { DACHSHUND_CLIENT_AGENT: agentId } : {})
+      },
       enabled: true
     }
     mcp.servers = servers
@@ -113,13 +124,13 @@ export function upsertJsonMcp(
     const target = (
       key === 'servers' ? servers ?? {} : mcpServers ?? {}
     ) as Record<string, unknown>
-    target.dachshund = mcpEntry(bridgePath)
+    target.dachshund = mcpEntry(bridgePath, agentId)
     config[key] = target
   } else {
     const servers = (
       config.mcpServers && typeof config.mcpServers === 'object' ? config.mcpServers : {}
     ) as Record<string, unknown>
-    servers.dachshund = mcpEntry(bridgePath)
+    servers.dachshund = mcpEntry(bridgePath, agentId)
     config.mcpServers = servers
   }
   if (!dryRun) {
@@ -139,7 +150,8 @@ export function upsertJsonMcp(
 export function upsertHermesYaml(
   file: string,
   bridgePath: string,
-  dryRun = false
+  dryRun = false,
+  agentId = ''
 ): McpInstallResult {
   const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : ''
   const document = parseDocument(existing.trim() ? existing : '{}\n')
@@ -147,7 +159,7 @@ export function upsertHermesYaml(
     throw new Error(`Hermes config is not valid YAML: ${document.errors[0].message}`)
   }
   document.setIn(['mcp_servers', 'dachshund'], {
-    ...mcpEntry(bridgePath),
+    ...mcpEntry(bridgePath, agentId),
     enabled: true
   })
   if (!dryRun) {
@@ -164,21 +176,30 @@ export function upsertHermesYaml(
   }
 }
 
-function tomlBlock(bridgePath: string): string {
+function tomlBlock(bridgePath: string, agentId: string): string {
+  const env = [
+    `DACHSHUND_HOME = ${JSON.stringify(DATA_DIR)}`,
+    ...(agentId ? [`DACHSHUND_CLIENT_AGENT = ${JSON.stringify(agentId)}`] : [])
+  ].join(', ')
   return [
     '# >>> dachshund (managed by dachshund)',
     '[mcp_servers.dachshund]',
     'command = "/usr/bin/env"',
     `args = ["node", ${JSON.stringify(bridgePath)}]`,
-    `env = { DACHSHUND_HOME = ${JSON.stringify(DATA_DIR)} }`,
+    `env = { ${env} }`,
     '# <<< dachshund',
     ''
   ].join('\n')
 }
 
-export function upsertCodexToml(file: string, bridgePath: string, dryRun = false): McpInstallResult {
+export function upsertCodexToml(
+  file: string,
+  bridgePath: string,
+  dryRun = false,
+  agentId = ''
+): McpInstallResult {
   const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : ''
-  const block = tomlBlock(bridgePath)
+  const block = tomlBlock(bridgePath, agentId)
   let next = existing
 
   const marker = existing.match(/# >>> dachshund[\s\S]*?# <<< dachshund\n?/)
@@ -304,13 +325,19 @@ export function installMcp(agentId: string, options: InstallOptions): McpInstall
     let result: McpInstallResult
     switch (target.type) {
       case 'codex-toml':
-        result = upsertCodexToml(configPath, options.bridgePath, options.dryRun)
+        result = upsertCodexToml(configPath, options.bridgePath, options.dryRun, agentId)
         break
       case 'hermes-yaml':
-        result = upsertHermesYaml(configPath, options.bridgePath, options.dryRun)
+        result = upsertHermesYaml(configPath, options.bridgePath, options.dryRun, agentId)
         break
       case 'zcode-json':
-        result = upsertJsonMcp(configPath, options.bridgePath, options.dryRun, 'zcode')
+        result = upsertJsonMcp(
+          configPath,
+          options.bridgePath,
+          options.dryRun,
+          'zcode',
+          agentId
+        )
         break
       case 'deepseek-cordis':
         result = upsertDeepSeekCordis(
@@ -325,7 +352,8 @@ export function installMcp(agentId: string, options: InstallOptions): McpInstall
           configPath,
           options.bridgePath,
           options.dryRun,
-          'opencode'
+          'opencode',
+          agentId
         )
         break
       case 'pi-json':
@@ -334,7 +362,8 @@ export function installMcp(agentId: string, options: InstallOptions): McpInstall
           configPath,
           options.bridgePath,
           options.dryRun,
-          'mcpServers'
+          'mcpServers',
+          agentId
         )
         break
       case 'trae-json':
@@ -342,13 +371,37 @@ export function installMcp(agentId: string, options: InstallOptions): McpInstall
           configPath,
           options.bridgePath,
           options.dryRun,
-          'trae'
+          'trae',
+          agentId
         )
         break
       case 'manual':
         throw new Error(`Add the dachshund connector inside ${definition.name}`)
     }
-    return { ...result, agentId }
+    let instructionInstalled = false
+    if (result.ok && !options.dryRun && definition.instructionPath) {
+      try {
+        const existing = fs.existsSync(definition.instructionPath)
+          ? fs.readFileSync(definition.instructionPath, 'utf8')
+          : ''
+        const merged = mergeSharedMemoryInstructions(existing)
+        if (merged !== existing) {
+          fs.mkdirSync(path.dirname(definition.instructionPath), { recursive: true })
+          backup(definition.instructionPath)
+          writeFileAtomic(definition.instructionPath, merged)
+        }
+        instructionInstalled = true
+      } catch {
+        // The MCP connection is still valid if an optional instruction file cannot be updated.
+      }
+    }
+    return {
+      ...result,
+      agentId,
+      message:
+        result.message +
+        (instructionInstalled ? ' with shared-memory instructions' : '')
+    }
   } catch (error) {
     return {
       ok: false,

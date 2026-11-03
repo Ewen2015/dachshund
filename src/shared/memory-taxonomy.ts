@@ -318,17 +318,6 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
       { native: 'durable preference', description: 'Explicit preference found in session text', category: 'about', kinds: ['preference'], imported: true },
       { native: 'durable correction', description: 'Explicit correction found in session text', category: 'working', kinds: ['feedback'], imported: true }
     ]
-  },
-  windsurf: {
-    title: 'Workspace memories',
-    summary:
-      'Cascade memories are workspace-scoped. dachshund imports the local memories directory; current Devin Local rules and project AGENTS.md files are not scanned.',
-    path: '~/.codeium/windsurf/memories',
-    mappings: [
-      { native: 'memory', description: 'A workspace-scoped Cascade memory', category: 'projects', kinds: ['project'], imported: true },
-      { native: 'rule', description: 'User, workspace, or system guidance', category: 'working', kinds: ['rule'], imported: false },
-      { native: 'AGENTS.md', description: 'Location-scoped project instruction', category: 'working', kinds: ['rule'], imported: false }
-    ]
   }
 }
 

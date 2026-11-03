@@ -29,6 +29,7 @@ export interface AgentDefinition {
   description: string
   accent: string
   mcp: McpTarget | null
+  instructionPath?: string
   appPath?: string
   appPaths?: string[]
   appVersion?: string
@@ -151,7 +152,8 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, '.claude'),
     description: 'Project memories and session history',
     accent: '#C0663B',
-    mcp: { type: 'json-mcpServers', path: path.join(home, '.claude.json') }
+    mcp: { type: 'json-mcpServers', path: path.join(home, '.claude.json') },
+    instructionPath: path.join(home, '.claude', 'CLAUDE.md')
   },
   {
     id: 'codex',
@@ -160,7 +162,8 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, '.codex'),
     description: 'Task memories, rollouts, and preferences',
     accent: '#2E2B27',
-    mcp: { type: 'codex-toml', path: path.join(home, '.codex', 'config.toml') }
+    mcp: { type: 'codex-toml', path: path.join(home, '.codex', 'config.toml') },
+    instructionPath: path.join(home, '.codex', 'AGENTS.md')
   },
   {
     id: 'gemini-cli',
@@ -169,7 +172,8 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, '.gemini'),
     description: 'Global instructions and project context',
     accent: '#4C6F91',
-    mcp: { type: 'json-mcpServers', path: path.join(home, '.gemini', 'settings.json') }
+    mcp: { type: 'json-mcpServers', path: path.join(home, '.gemini', 'settings.json') },
+    instructionPath: path.join(home, '.gemini', 'GEMINI.md')
   },
   {
     id: 'cursor',
@@ -188,7 +192,8 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, '.copilot'),
     description: 'Copilot CLI sessions and instructions',
     accent: '#5C6570',
-    mcp: { type: 'json-mcpServers', path: path.join(home, '.copilot', 'mcp-config.json') }
+    mcp: { type: 'json-mcpServers', path: path.join(home, '.copilot', 'mcp-config.json') },
+    instructionPath: path.join(home, '.copilot', 'instructions', 'dachshund.md')
   },
   {
     id: 'opencode',
@@ -197,17 +202,8 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, '.config', 'opencode'),
     description: 'Agent sessions and local configuration',
     accent: '#8A6A4F',
-    mcp: { type: 'opencode-json', path: path.join(home, '.config', 'opencode', 'opencode.json') }
-  },
-  {
-    id: 'windsurf',
-    name: 'Windsurf',
-    kind: 'editor',
-    home: path.join(home, '.codeium', 'windsurf'),
-    description: 'Cascade memories and workspace rules',
-    accent: '#3F7A6E',
-    mcp: { type: 'json-mcpServers', path: path.join(home, '.codeium', 'windsurf', 'mcp_config.json') },
-    appPath: '/Applications/Windsurf.app'
+    mcp: { type: 'opencode-json', path: path.join(home, '.config', 'opencode', 'opencode.json') },
+    instructionPath: path.join(home, '.config', 'opencode', 'AGENTS.md')
   },
   {
     id: 'claude-desktop',
@@ -299,6 +295,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
       type: 'deepseek-cordis',
       path: path.join(home, '.dsh', 'profiles', 'desktop', 'cordis.patch.yml')
     },
+    instructionPath: path.join(home, '.dsh', 'AGENTS.md'),
     appPath: '/Applications/DeepSeek Harness.app'
   }
 ]
@@ -317,6 +314,5 @@ export const DEMO_AGENT_IDS = [
   'deepseek-harness',
   'copilot',
   'opencode',
-  'windsurf',
   'claude-desktop'
 ]

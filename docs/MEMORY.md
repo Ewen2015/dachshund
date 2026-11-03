@@ -140,7 +140,6 @@ claiming that dachshund currently has access to that data.
 | **TRAE** | `user_profile.md`, `project_memory.md`, `topics.md`, session JSONL | Profile to About me; project memory to Projects; topics and session summaries to History | Rules and transient cache/log data |
 | **WorkBuddy** | Typed `user`, `feedback`, `project`, `reference` memory, identity files, and dated workspace logs | Typed memory maps to About me, Ways of working, Projects, and Facts & references; `YYYY-MM-DD.md` workspace logs map to History with a session scope; assistant identity maps to Ways of working | Undated session internals |
 | **ZCode** | Project-scoped typed Markdown memory plus session evidence | Typed Markdown maps to About me, Ways of working, Projects, and Facts & references; explicit session cues map to About me or Ways of working | Global and project `AGENTS.md` |
-| **Windsurf** | Workspace memories, rules, `AGENTS.md` | Workspace memory Markdown to Projects | Rules and `AGENTS.md` |
 
 This table describes the current adapters, not a claim that every agent exposes
 the same five categories natively. A mapping row and an imported record are
@@ -168,11 +167,18 @@ The shared library and the per-agent view use the taxonomy differently:
 - **An agent page** explains that agent's native model first, then shows the
   mapping into dachshund. Its timeline contains only memories with a source from
   that agent and remains sorted newest first.
-- **Changing agents resets the category filter.** Native categories and counts
-  are not carried across incompatible source models.
+- **The selected category carries into an agent page.** Opening an agent from a
+  category keeps that category active, and switching agents preserves it so the
+  same slice can be compared across native source models.
 - **An echo is not a second memory.** Identical content from several agents
   remains one item with multiple sources; it does not receive conflicting
   categories based on which agent was read last.
+- **MCP writes keep caller provenance.** A write from Codex or Claude is stored
+  with that agent as its source. An exact write from another MCP client attaches
+  a second source to the same memory instead of creating a duplicate.
+- **Share can create an explicit shared copy.** The detail action adds a
+  dachshund source to the existing record. The source agent files remain
+  untouched; only the dachshund-owned Markdown copy is promoted.
 
 ## Boundaries
 
@@ -180,6 +186,8 @@ The shared library and the per-agent view use the taxonomy differently:
   code change with tests, not an opaque model update.
 - Exact duplicate detection is separate from classification. Echo merging does
   not perform semantic deduplication.
+- MCP writes use the same normalized content hash as imports. Different wording
+  is not merged automatically; promoting a memory is explicit.
 - The mapping is intentionally conservative. If a source does not make its
   meaning clear, dachshund preserves the content rather than inventing a
   stronger category.

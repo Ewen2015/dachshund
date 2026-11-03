@@ -9,9 +9,14 @@ import { importAgentMemories } from '../src/main/agents/importers'
 import { DEEPSEEK_MANAGED_BLOCK } from '../src/main/agents/deepseek-instructions'
 import {
   upsertDeepSeekCordis,
+  upsertCodexToml,
   upsertHermesYaml,
   upsertJsonMcp
 } from '../src/main/agents/mcp-install'
+import {
+  mergeSharedMemoryInstructions,
+  stripSharedMemoryInstructions
+} from '../src/main/agents/shared-memory-instructions'
 import {
   resolveTraeInstallation,
   type AgentDefinition
@@ -1178,19 +1183,10 @@ function testInstructionsAndObservedMemory(): void {
   assert.ok(openCodeMemories.some((memory) => memory.kind === 'rule'))
   assert.ok(openCodeMemories.some((memory) => memory.kind === 'fact'))
 
-  const windsurfHome = path.join(root, 'windsurf')
-  const windsurf = definition('windsurf', 'Windsurf', windsurfHome, path.join(windsurfHome, 'mcp.json'))
-  write(
-    path.join(windsurfHome, 'memories', 'workspace.md'),
-    'This workspace uses a compact menu bar shell and local-only memory storage.'
-  )
-  const windsurfMemories = importAgentMemories(windsurf)
-  assert.equal(windsurfMemories.length, 1)
-  assert.equal(windsurfMemories[0].kind, 'project')
 }
 
 function testAgentModelMappings(): void {
-  assert.equal(Object.keys(AGENT_MEMORY_MODELS).length, 15)
+  assert.equal(Object.keys(AGENT_MEMORY_MODELS).length, 14)
   for (const [agentId, model] of Object.entries(AGENT_MEMORY_MODELS)) {
     assert.ok(model.title, `${agentId} needs a title`)
     assert.ok(model.mappings.length > 0, `${agentId} needs at least one mapping`)
@@ -1214,26 +1210,30 @@ function testWriters(): void {
   const bridgePath = path.join(root, 'out', 'mcp', 'index.cjs')
   const hermesPath = path.join(root, 'writer-hermes', 'config.yaml')
   write(hermesPath, 'memory:\n  enabled: true\n')
-  upsertHermesYaml(hermesPath, bridgePath)
-  upsertHermesYaml(hermesPath, bridgePath)
+  upsertHermesYaml(hermesPath, bridgePath, false, 'hermes')
+  upsertHermesYaml(hermesPath, bridgePath, false, 'hermes')
   const hermes = parseYaml(fs.readFileSync(hermesPath, 'utf8')) as {
     memory: { enabled: boolean }
-    mcp_servers: { dachshund: { command: string; enabled: boolean } }
+    mcp_servers: {
+      dachshund: { command: string; enabled: boolean; env: Record<string, string> }
+    }
   }
   assert.equal(hermes.memory.enabled, true)
   assert.equal(hermes.mcp_servers.dachshund.command, '/usr/bin/env')
   assert.equal(hermes.mcp_servers.dachshund.enabled, true)
+  assert.equal(hermes.mcp_servers.dachshund.env.DACHSHUND_CLIENT_AGENT, 'hermes')
 
   const piPath = path.join(root, 'writer-pi', 'mcp.json')
-  upsertJsonMcp(piPath, bridgePath, false, 'mcpServers')
+  upsertJsonMcp(piPath, bridgePath, false, 'mcpServers', 'pi')
   const pi = JSON.parse(fs.readFileSync(piPath, 'utf8')) as {
-    mcpServers: { dachshund: { command: string } }
+    mcpServers: { dachshund: { command: string; env: Record<string, string> } }
   }
   assert.equal(pi.mcpServers.dachshund.command, '/usr/bin/env')
+  assert.equal(pi.mcpServers.dachshund.env.DACHSHUND_CLIENT_AGENT, 'pi')
 
   const zcodePath = path.join(root, 'writer-zcode', 'config.json')
   write(zcodePath, '{"plugins":{"enabledPlugins":{"example":true}}}\n')
-  upsertJsonMcp(zcodePath, bridgePath, false, 'zcode')
+  upsertJsonMcp(zcodePath, bridgePath, false, 'zcode', 'zcode')
   const zcode = JSON.parse(fs.readFileSync(zcodePath, 'utf8')) as {
     plugins: unknown
     mcp: { servers: { dachshund: Record<string, unknown> } }
@@ -1246,6 +1246,24 @@ function testWriters(): void {
     'env',
     'type'
   ])
+  assert.equal(
+    (zcode.mcp.servers.dachshund.env as Record<string, string>).DACHSHUND_CLIENT_AGENT,
+    'zcode'
+  )
+
+  const codexPath = path.join(root, 'writer-codex', 'config.toml')
+  upsertCodexToml(codexPath, bridgePath, false, 'codex')
+  const codex = fs.readFileSync(codexPath, 'utf8')
+  assert.ok(codex.includes('DACHSHUND_CLIENT_AGENT = "codex"'))
+
+  const originalInstructions = '# Existing instructions\n'
+  const mergedInstructions = mergeSharedMemoryInstructions(originalInstructions)
+  assert.ok(mergedInstructions.includes('memory_context'))
+  assert.equal(
+    mergedInstructions.match(/dachshund memory \(managed by dachshund\)/g)?.length,
+    1
+  )
+  assert.equal(stripSharedMemoryInstructions(mergedInstructions), '# Existing instructions')
 
   const dshHome = path.join(root, 'writer-dsh')
   const dshPath = path.join(dshHome, 'profiles', 'desktop', 'cordis.patch.yml')

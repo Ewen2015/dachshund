@@ -9,7 +9,6 @@ export const AGENT_ACCENTS: Record<string, string> = {
   cursor: '#66765A',
   copilot: '#5C6570',
   opencode: '#8A6A4F',
-  windsurf: '#3F7A6E',
   workbuddy: '#01C886',
   doubao: '#1E37FC',
   trae: '#111111',
@@ -36,7 +35,6 @@ export function initials(name: string, id = ''): string {
   if (id === 'cursor') return 'CU'
   if (id === 'copilot') return 'GH'
   if (id === 'opencode') return 'OC'
-  if (id === 'windsurf') return 'WS'
   if (id === 'workbuddy') return 'WB'
   if (id === 'doubao') return 'DB'
   if (id === 'trae') return 'TR'

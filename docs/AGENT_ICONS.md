@@ -55,7 +55,6 @@ npm run icons:agents -- --force
 | Cursor | `cursor.svg` |
 | GitHub Copilot | `githubcopilot.svg` |
 | OpenCode | `opencode.svg` |
-| Windsurf | `windsurf.svg` |
 | WorkBuddy | `workbuddy-color.svg` |
 | Doubao | `doubao-color.svg` |
 | TRAE | `trae-color.svg` (official current app mark) |

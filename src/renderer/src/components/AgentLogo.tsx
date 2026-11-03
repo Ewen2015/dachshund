@@ -5,7 +5,6 @@ import geminiCliIcon from '../assets/agent-icons/geminicli-color.svg'
 import cursorIcon from '../assets/agent-icons/cursor.svg'
 import copilotIcon from '../assets/agent-icons/githubcopilot.svg'
 import opencodeIcon from '../assets/agent-icons/opencode.svg'
-import windsurfIcon from '../assets/agent-icons/windsurf.svg'
 import workBuddyIcon from '../assets/agent-icons/workbuddy-color.svg'
 import doubaoIcon from '../assets/agent-icons/doubao-color.svg'
 import traeIcon from '../assets/agent-icons/trae-color.svg'
@@ -24,7 +23,6 @@ const AGENT_ICONS: Record<string, string> = {
   cursor: cursorIcon,
   copilot: copilotIcon,
   opencode: opencodeIcon,
-  windsurf: windsurfIcon,
   workbuddy: workBuddyIcon,
   doubao: doubaoIcon,
   trae: traeIcon,

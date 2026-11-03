@@ -414,7 +414,7 @@ async function createNativeStatusItem(): Promise<boolean> {
   if (process.platform !== 'darwin') return false
 
   const helperPath = statusItemPath()
-  const imagePath = iconPath('trayTemplate.png')
+  const imagePath = iconPath('trayTemplate@2x.png')
   if (!fs.existsSync(helperPath) || !fs.existsSync(imagePath)) {
     console.warn('Native status item helper is unavailable; using Electron tray fallback')
     return false
@@ -771,6 +771,7 @@ function registerIpc(): void {
   ipcMain.handle('memory:update', (_event, id: string, patch: UpdateMemoryInput) =>
     store.update(id, patch)
   )
+  ipcMain.handle('memory:promote', (_event, id: string) => store.promoteMemory(id))
   ipcMain.handle('memory:archive', (_event, id: string) => store.archive(id))
   ipcMain.handle('agent:shared', (_event, id: string, shared: boolean) =>
     store.setShared(id, shared)

@@ -6,8 +6,8 @@ import { DatabaseSync } from 'node:sqlite'
 import type { ImportedMemory } from '../../shared/types'
 import { normalizeMemoryKind } from '../../shared/memory-taxonomy'
 import { expandHome } from '../paths'
-import { stripDeepSeekInstructions } from './deepseek-instructions'
 import type { AgentDefinition } from './registry'
+import { stripSharedMemoryInstructions } from './shared-memory-instructions'
 
 const MAX_FILE_BYTES = 1_200_000
 const MAX_FILES = 1200
@@ -111,7 +111,7 @@ function parseMarkdownRaw(
   raw: string,
   defaults: { kind?: string; project?: string | null; tags?: string[] } = {}
 ): ImportedMemory | null {
-  const parsed = matter(raw)
+  const parsed = matter(stripSharedMemoryInstructions(raw))
   const body = parsed.content.trim()
   if (!body) return null
   const data = parsed.data as Record<string, unknown>
@@ -985,17 +985,6 @@ function importOpenCode(agent: AgentDefinition): ImportedMemory[] {
   ].filter((item): item is ImportedMemory => Boolean(item))
 }
 
-function importWindsurf(agent: AgentDefinition): ImportedMemory[] {
-  return walk(path.join(agent.home, 'memories'), (file) => file.endsWith('.md'), 300)
-    .map((file) =>
-      parseMarkdownFile(file, agent, {
-        kind: 'project',
-        tags: ['windsurf', 'workspace-memory']
-      })
-    )
-    .filter((item): item is ImportedMemory => Boolean(item))
-}
-
 function memoryTitle(text: string, fallback: string): string {
   const firstLine =
     text
@@ -1525,7 +1514,7 @@ function importDeepSeekHarness(agent: AgentDefinition): ImportedMemory[] {
     const rule = parseMarkdownRaw(
       instructionsPath,
       agent,
-      stripDeepSeekInstructions(instructions),
+      stripSharedMemoryInstructions(instructions),
       {
         kind: 'rule',
         tags: ['deepseek-harness', 'user-global-instructions']
@@ -1628,9 +1617,6 @@ export function importAgentMemories(agent: AgentDefinition): ImportedMemory[] {
       break
     case 'opencode':
       memories = importOpenCode(agent)
-      break
-    case 'windsurf':
-      memories = importWindsurf(agent)
       break
     case 'workbuddy':
       memories = importWorkBuddy(agent)

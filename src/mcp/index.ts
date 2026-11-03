@@ -16,6 +16,7 @@ interface RuntimeInfo {
 const dataDir =
   process.env.DACHSHUND_HOME ?? path.join(os.homedir(), 'Library', 'Application Support', 'dachshund')
 const runtimePath = path.join(dataDir, 'runtime.json')
+const clientAgentId = process.env.DACHSHUND_CLIENT_AGENT?.trim() || 'mcp-client'
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -85,6 +86,9 @@ function text(value: string): { content: Array<{ type: 'text'; text: string }> }
 const server = new McpServer({
   name: 'dachshund',
   version: packageJson.version
+}, {
+  instructions:
+    'Before answering when prior user preferences, decisions, project context, or lessons could affect the response, call memory_context. Save durable, confirmed information with memory_remember. These memories are local to this Mac and may come from other agents.'
 })
 
 server.server.oninitialized = () => {
@@ -148,7 +152,7 @@ server.registerTool(
   {
     title: 'Remember something',
     description:
-      'Save a durable memory to the user’s local shared memory. Use for stable preferences, decisions, project facts, and lessons that should survive this session and be visible to other agents. Do not save secrets, transient chatter, or facts that will expire.',
+      `Save a durable memory to the user’s local shared memory as ${clientAgentId}. Use for stable preferences, decisions, project facts, and lessons that should survive this session and be visible to other agents. Do not save secrets, transient chatter, or facts that will expire.`,
     inputSchema: {
       content: z.string().min(1).describe('The memory itself. Be specific and self-contained.'),
       title: z.string().optional().describe('Short human-readable title'),
@@ -177,7 +181,8 @@ server.registerTool(
       title: title ?? '',
       kind: kind ?? 'fact',
       project: project ?? null,
-      tags: tags ?? []
+      tags: tags ?? [],
+      agentId: clientAgentId
     })
     return text(`Remembered “${result.title}” in dachshund (${result.id}).`)
   }

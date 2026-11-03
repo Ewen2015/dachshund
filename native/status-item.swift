@@ -30,7 +30,7 @@ final class StatusItemController: NSObject, NSApplicationDelegate {
     }
 
     image.isTemplate = true
-    image.size = NSSize(width: 22, height: 22)
+    image.size = NSSize(width: 20, height: 20)
 
     let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     statusItem = item

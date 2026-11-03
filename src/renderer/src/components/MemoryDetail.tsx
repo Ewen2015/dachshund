@@ -8,6 +8,7 @@ import { AgentLogo } from './AgentLogo'
 import {
   ArchiveIcon,
   ArrowUpRightIcon,
+  CheckIcon,
   CollapseIcon,
   CloseIcon,
   CopyIcon,
@@ -28,6 +29,7 @@ export function MemoryDetail({
   expanded,
   onToggleExpanded,
   onClose,
+  onShare,
   onArchive,
   onReveal,
   onToast
@@ -36,6 +38,7 @@ export function MemoryDetail({
   expanded: boolean
   onToggleExpanded: () => void
   onClose: () => void
+  onShare: () => void
   onArchive: () => void
   onReveal: (path: string) => void
   onToast: (message: string) => void
@@ -49,6 +52,9 @@ export function MemoryDetail({
   const [outlineCollapsed, setOutlineCollapsed] = useState(false)
   const sources = uniqueSources(memory.sources)
   const category = categoryDefinition(categoryForKind(memory.kind))
+  const shared = sources.some(
+    (source) => source.agentId === 'dachshund' || source.path.startsWith('mcp://')
+  )
 
   useEffect(() => {
     setOutlineCollapsed(false)
@@ -242,17 +248,21 @@ export function MemoryDetail({
                   <div className="source-copy">
                     <strong>{source.agentName}</strong>
                     <span title={source.path}>
-                      {source.path.replace(/^\/Users\/[^/]+/, '~')}
+                      {source.path.startsWith('mcp://')
+                        ? 'Written over MCP'
+                        : source.path.replace(/^\/Users\/[^/]+/, '~')}
                     </span>
                   </div>
-                  <button
-                    className="mini-button"
-                    type="button"
-                    onClick={() => onReveal(source.path)}
-                    aria-label={`Reveal ${source.agentName} source`}
-                  >
-                    <ArrowUpRightIcon size={13} />
-                  </button>
+                  {!source.path.startsWith('mcp://') && (
+                    <button
+                      className="mini-button"
+                      type="button"
+                      onClick={() => onReveal(source.path)}
+                      aria-label={`Reveal ${source.agentName} source`}
+                    >
+                      <ArrowUpRightIcon size={13} />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -267,6 +277,20 @@ export function MemoryDetail({
       </div>
 
       <div className="detail-actions">
+        <button
+          className={`ghost-button small ${shared ? 'is-shared' : ''}`}
+          type="button"
+          onClick={onShare}
+          disabled={shared}
+          title={
+            shared
+              ? 'This memory is already in the shared library'
+              : 'Keep a shared copy available to every connected agent'
+          }
+        >
+          {shared ? <CheckIcon size={14} /> : <ArrowUpRightIcon size={14} />}
+          {shared ? 'Shared' : 'Share'}
+        </button>
         <button className="ghost-button small" type="button" onClick={() => void copy()}>
           <CopyIcon size={14} />
           Copy

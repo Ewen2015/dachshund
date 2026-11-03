@@ -234,10 +234,10 @@ export function PulseView({
     if (breakdown === 'overlap') {
       const overlap = visible.filter((memory) => memory.echoCount > 1).length
       return [
-        { id: 'overlap', label: 'Shared by agents', color: '#2c2c2f', count: overlap },
+        { id: 'overlap', label: 'Shared memory', color: '#2c2c2f', count: overlap },
         {
           id: 'single',
-          label: 'Single source',
+          label: 'Source-only',
           color: '#b8afa5',
           count: visible.length - overlap
         }
@@ -405,7 +405,7 @@ export function PulseView({
               aria-pressed={breakdown === 'overlap'}
               onClick={() => setBreakdown('overlap')}
             >
-              Overlap
+              Shared
             </button>
           </div>
         </div>
@@ -416,7 +416,7 @@ export function PulseView({
               ? 'A memory can count once for each source agent.'
               : breakdown === 'category'
                 ? 'A memory belongs to one of the five dachshund categories.'
-                : 'Single-source memories versus memories echoed by two or more agents.'}
+                : 'Memories with multiple sources or an explicit dachshund shared copy.'}
           </p>
           <span>{visible.length} memories</span>
         </div>

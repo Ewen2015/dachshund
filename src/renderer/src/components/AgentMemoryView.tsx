@@ -20,6 +20,8 @@ export function AgentMemoryView({
   agent,
   agents,
   memories,
+  activeCategory,
+  onCategory,
   selectedId,
   onSelect,
   onBack,
@@ -30,6 +32,8 @@ export function AgentMemoryView({
   agent: AgentSummary
   agents: AgentSummary[]
   memories: MemorySummary[]
+  activeCategory: MemoryCategoryId | null
+  onCategory: (category: MemoryCategoryId | null) => void
   selectedId: string | null
   onSelect: (id: string) => void
   onBack: () => void
@@ -37,7 +41,6 @@ export function AgentMemoryView({
   onScan: () => void
   scanning: boolean
 }) {
-  const [category, setCategory] = useState<MemoryCategoryId | null>(null)
   const [diagramOpen, setDiagramOpen] = useState(false)
   const closeDiagramRef = useRef<HTMLButtonElement>(null)
   const model = agentMemoryModel(agent.id)
@@ -68,7 +71,10 @@ export function AgentMemoryView({
     ])
   ) as Record<MemoryCategoryId, number>
   const visible = [...memories]
-    .filter((memory) => category === null || categoryForKind(memory.kind) === category)
+    .filter(
+      (memory) =>
+        activeCategory === null || categoryForKind(memory.kind) === activeCategory
+    )
     .sort((a, b) => b.updatedAt - a.updatedAt)
 
   return (
@@ -232,8 +238,8 @@ export function AgentMemoryView({
       </div>
       <CategoryLegend
         counts={categoryCounts}
-        selected={category}
-        onSelect={setCategory}
+        selected={activeCategory}
+        onSelect={onCategory}
       />
 
       <AgentFilterBar
@@ -253,7 +259,7 @@ export function AgentMemoryView({
       )}
 
       <MemoryTimeline
-        category={category}
+        category={activeCategory}
         memories={visible}
         selectedId={selectedId}
         onSelect={onSelect}

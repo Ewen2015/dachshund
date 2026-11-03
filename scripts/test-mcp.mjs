@@ -22,6 +22,7 @@ const transport = new StdioClientTransport({
 
 const client = new Client({ name: 'dachshund-smoke-test', version: '0.1.0' }, { capabilities: {} })
 await client.connect(transport)
+assert.match(client.getInstructions() ?? '', /memory_context/)
 
 const receiptPath = path.join(home, 'mcp-clients.jsonl')
 for (let attempt = 0; attempt < 20 && !fs.existsSync(receiptPath); attempt += 1) {
@@ -44,6 +45,7 @@ assert.deepEqual(
   ['memory_context', 'memory_forget', 'memory_remember', 'memory_search', 'memory_stats']
 )
 const rememberTool = tools.tools.find((tool) => tool.name === 'memory_remember')
+assert.match(rememberTool?.description ?? '', /deepseek-harness/)
 assert.deepEqual(
   rememberTool?.inputSchema.properties.kind.enum,
   [
@@ -76,6 +78,36 @@ const created = await client.callTool({
 })
 console.log('remember:', created.content[0].text.trim())
 
+const secondTransport = new StdioClientTransport({
+  command: process.execPath,
+  args: [bridge],
+  env: {
+    ...process.env,
+    DACHSHUND_HOME: home,
+    DACHSHUND_AUTOLAUNCH: '0',
+    DACHSHUND_CLIENT_AGENT: 'codex'
+  }
+})
+const secondClient = new Client(
+  { name: 'dachshund-second-agent', version: '0.1.0' },
+  { capabilities: {} }
+)
+await secondClient.connect(secondTransport)
+const echoed = await secondClient.callTool({
+  name: 'memory_remember',
+  arguments: {
+    title: 'dachshund integration probe',
+    content:
+      'dachshund MVP integration probe: shared local memory is visible to every connected agent through MCP.',
+    kind: 'fact',
+    tags: ['integration', 'mvp']
+  }
+})
+const echoedId = echoed.content[0].text.match(/\((mem_[^)]+)\)/)?.[1]
+const createdId = created.content[0].text.match(/\((mem_[^)]+)\)/)?.[1]
+assert.equal(echoedId, createdId)
+await secondClient.close()
+
 const search = await client.callTool({
   name: 'memory_search',
   arguments: { query: 'integration probe', limit: 5 }
@@ -84,6 +116,8 @@ const results = JSON.parse(search.content[0].text)
 console.log('search results:', results.length, results[0]?.title ?? 'none')
 assert.equal(results[0]?.title, 'dachshund integration probe')
 assert.ok(results[0]?.id)
+assert.equal(results[0]?.echoCount, 2)
+assert.deepEqual(results[0]?.agents.sort(), ['Codex', 'DeepSeek Harness'])
 
 const typed = await client.callTool({
   name: 'memory_remember',

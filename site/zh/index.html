@@ -79,7 +79,7 @@
           <p class="eyebrow reveal"><span class="status-dot"></span>给 Agent 的本地记忆基础设施</p>
           <h1 class="reveal reveal-delay-1">所有 Agent，<br>共用一份<span class="marker">记忆</span></h1>
           <p class="hero-lede reveal reveal-delay-2">
-            dachshund 找到 Claude Code、Codex、Cursor 等 15 个 Agent 已经保存在 Mac 上的 Memory，把它们汇成一份可迁移的 Markdown 记忆库，再通过 MCP 交给所有 Agent 使用
+            dachshund 找到 Claude Code、Codex、Cursor 等 14 个 Agent 已经保存在 Mac 上的 Memory，把它们汇成一份可迁移的 Markdown 记忆库，再通过 MCP 交给所有 Agent 使用
           </p>
           <div class="hero-actions reveal reveal-delay-3">
             <a class="button button-ink" href="#download">
@@ -91,7 +91,7 @@
               <span aria-hidden="true">↓</span>
             </a>
           </div>
-          <p class="hero-meta reveal reveal-delay-3">v0.1.19 · Apple Silicon · 免费开源</p>
+          <p class="hero-meta reveal reveal-delay-3">v0.1.20 · Apple Silicon · 免费开源</p>
         </div>
 
         <div class="hero-stage reveal reveal-delay-2" data-hero-stage>
@@ -144,14 +144,14 @@
             <span class="agent-pill"><img src="../assets/agents/geminicli-color.svg" alt="">Gemini CLI</span>
             <span class="agent-pill"><img src="../assets/agents/githubcopilot.svg" alt="">Copilot</span>
             <span class="agent-pill"><img src="../assets/agents/opencode.svg" alt="">OpenCode</span>
-            <span class="agent-pill agent-pill-more">还有 9 个</span>
+            <span class="agent-pill agent-pill-more">还有 8 个</span>
           </div>
         </div>
       </section>
 
       <section class="proof-strip">
         <div class="section-shell proof-grid">
-          <div><strong>15</strong><span>Agent 集成</span></div>
+          <div><strong>14</strong><span>Agent 集成</span></div>
           <div><strong>5</strong><span>MCP 记忆工具</span></div>
           <div><strong>1</strong><span>可迁移记忆库</span></div>
           <div><strong>0</strong><span>云端账号</span></div>
@@ -175,7 +175,7 @@
               <p>dachshund 在原地读取已知的 Agent 记忆位置。不移动、不改写、不上传</p>
             </div>
             <div class="scan-panel" aria-label="Agent 记忆扫描示例">
-              <div class="scan-head"><span><i></i>正在扫描本地记忆</span><span>发现 15 个</span></div>
+              <div class="scan-head"><span><i></i>正在扫描本地记忆</span><span>发现 14 个</span></div>
               <div class="scan-row"><span class="scan-agent"><img src="../assets/agents/claudecode-color.svg" alt="">Claude Code</span><code>~/.claude</code><b>7</b></div>
               <div class="scan-row"><span class="scan-agent"><img src="../assets/agents/codex-color.svg" alt="">Codex</span><code>~/.codex</code><b>8</b></div>
               <div class="scan-row"><span class="scan-agent"><img src="../assets/agents/cursor.svg" alt="">Cursor</span><code>~/.cursor</code><b>5</b></div>
@@ -187,7 +187,7 @@
           <article class="feature-card echo-card reveal reveal-delay-1">
             <span class="micro-label">跨 Agent 回声</span>
             <h3>一条记忆<br>保留全部来源</h3>
-            <p>三个 Agent 记住同一件事时，只留一份有用的记忆，三条来源都还在</p>
+            <p>导入文件或 MCP 回写完全相同时，只留一份有用的记忆，每个 Agent 的来源都还在</p>
             <div class="echo-visual">
               <div class="source-file"><img src="../assets/agents/claudecode-color.svg" alt=""><span>CLAUDE.md</span></div>
               <div class="source-file"><img src="../assets/agents/codex-color.svg" alt=""><span>AGENTS.md</span></div>
@@ -264,7 +264,7 @@
           <p class="section-index">03 / 穿过工具边界</p>
           <h2>在一个 Agent 里开始。<br>让所有 Agent 都记住。</h2>
           <p>
-            Codex 试错得到的教训，不该让 Claude Code 再重新踩一次。dachshund 把某个 Agent 换来的经验，变成所有已连接 Agent 都能召回的共享记忆
+            Codex 试错得到的教训，不该让 Claude Code 再重新踩一次。dachshund 把某个 Agent 换来的经验，变成所有已连接 Agent 都能召回的共享记忆。打开导入的 memory 并选择 <strong>Share</strong>，即可保留一份 dachshund 管理的共享副本，原文件不动
           </p>
           <div class="segmented" role="tablist" aria-label="记忆示例">
             <button type="button" role="tab" aria-selected="true" data-memory-tab="decision">一个决定</button>
@@ -357,13 +357,13 @@
           <p class="section-index">06 / 不经过云端的 MCP</p>
           <h2>让记忆跟着问题一起出现。</h2>
           <p>
-            连接后，任何 Agent 都可以搜索记忆、请求可直接放进 Prompt 的上下文块、写入持久记忆、归档共享副本，并查看记忆库统计
+            连接后，任何 Agent 都可以搜索记忆、请求可直接放进 Prompt 的上下文块、写入持久记忆、归档共享副本，并查看记忆库统计。MCP 初始化和托管指令会告诉 Agent：在问题依赖既有上下文时，先查询共享记忆
           </p>
         </div>
         <div class="tool-grid">
           <article class="tool-card reveal"><code>memory_search</code><h3>找到正确上下文</h3><p>搜索本地记忆库，每条结果都保留来源信息</p><span>→ 输入问题，返回来源</span></article>
           <article class="tool-card reveal reveal-delay-1"><code>memory_context</code><h3>生成 Prompt 块</h3><p>返回一段紧凑、可直接交给 Agent 使用的上下文</p><span>→ 相关，而不是全量</span></article>
-          <article class="tool-card reveal reveal-delay-2"><code>memory_remember</code><h3>只写一次</h3><p>把决定、偏好或教训保存成可读的 Markdown</p><span>→ 共享、持久</span></article>
+          <article class="tool-card reveal reveal-delay-2"><code>memory_remember</code><h3>只写一次</h3><p>保留调用方 Agent。另一个 Agent 写入完全相同的内容时，只增加来源，不生成重复笔记</p><span>→ 来源可追，内容去重</span></article>
           <article class="tool-card reveal"><code>memory_forget</code><h3>归档共享副本</h3><p>从共享记忆库移除，但不删除 Agent 自己的原始文件</p><span>→ 原始文件不动</span></article>
           <article class="tool-card reveal reveal-delay-1"><code>memory_stats</code><h3>查看记忆库</h3><p>在 Agent 开始工作前，先看记忆、Agent、来源和回声数量</p><span>→ 只基于已经存在的内容</span></article>
           <article class="tool-card tool-card-signal reveal reveal-delay-2">
@@ -403,10 +403,10 @@
             </div>
           </div>
           <div class="download-actions">
-            <a class="button button-ink button-download" href="https://github.com/Ewen2015/dachshund/releases/download/v0.1.19/dachshund-0.1.19-arm64.dmg">
+            <a class="button button-ink button-download" href="https://github.com/Ewen2015/dachshund/releases/download/v0.1.20/dachshund-0.1.20-arm64.dmg">
               <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v10m0 0 4-4m-4 4L6 8M3 14v3h14v-3"/></svg>
               下载 macOS 版
-              <small>v0.1.19 · Apple Silicon</small>
+              <small>v0.1.20 · Apple Silicon</small>
             </a>
             <a class="button button-ghost" href="https://github.com/Ewen2015/dachshund">在 GitHub 查看</a>
             <p>免费开源 · MIT</p>

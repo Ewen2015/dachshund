@@ -74,6 +74,7 @@ export function discoverAgents(): DetectedAgent[] {
 
 export function refreshAgents(db: Db): AgentSummary[] {
   const detected = discoverAgents()
+  db.pruneAgents(detected.map((agent) => agent.id))
   for (const agent of detected) {
     db.upsertAgent({
       id: agent.id,

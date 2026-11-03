@@ -225,6 +225,15 @@ export class Db {
       )
   }
 
+  pruneAgents(keepIds: string[]): void {
+    const keep = new Set(keepIds)
+    const rows = this.db.prepare('SELECT id FROM agents').all() as Row[]
+    for (const row of rows) {
+      const id = str(row.id)
+      if (!keep.has(id)) this.db.prepare('DELETE FROM agents WHERE id = ?').run(id)
+    }
+  }
+
   setAgentShared(id: string, shared: boolean): void {
     this.db.prepare('UPDATE agents SET shared = ? WHERE id = ?').run(shared ? 1 : 0, id)
   }
@@ -738,7 +747,6 @@ export function monogramForId(name: string, id: string): string {
     cursor: 'CU',
     copilot: 'GH',
     opencode: 'OC',
-    windsurf: 'WS',
     workbuddy: 'WB',
     doubao: 'DB',
     trae: 'TR',
@@ -760,7 +768,6 @@ export function accentFor(id: string): string {
     cursor: '#66765A',
     copilot: '#5C6570',
     opencode: '#8A6A4F',
-    windsurf: '#3F7A6E',
     workbuddy: '#01C886',
     doubao: '#1E37FC',
     trae: '#111111',

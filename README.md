@@ -11,7 +11,7 @@ dachshund finds the memory files your agents already keep, brings them into one
 Markdown library, and serves that library back through MCP. No account, no cloud,
 no model requirement.
 
-[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.19/dachshund-0.1.19-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
+[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.20/dachshund-0.1.20-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -42,6 +42,8 @@ surface:
   source provenance retained.
 - **See cross-agent echoes.** When two agents remember the same thing, keep one
   memory and show every source.
+- **Share forward.** Promote a source memory into a durable dachshund copy, or
+  write through MCP with the calling agent retained as provenance.
 - **Keep the library current.** Sync on demand or rescan every 60 minutes, with
   sleep-aware pausing and stable source-version tracking.
 - **Recall from any connected agent.** A loopback-only MCP bridge exposes search,
@@ -56,7 +58,7 @@ already remembers everything you need, you probably do not need dachshund.
 
 | Platform | Architecture | Package | Size | Download |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.19](https://github.com/Ewen2015/dachshund/releases/download/v0.1.19/dachshund-0.1.19-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.20](https://github.com/Ewen2015/dachshund/releases/download/v0.1.20/dachshund-0.1.20-arm64.dmg)** |
 
 **System requirement:** macOS on Apple Silicon
 
@@ -65,7 +67,7 @@ already remembers everything you need, you probably do not need dachshund.
 > **Open** on first launch.
 
 [All releases](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.19/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.20/SHA256SUMS)
 
 **Install**
 
@@ -86,7 +88,7 @@ into the app.
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.19/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.20/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -129,12 +131,12 @@ connectors, including Doubao, open a guided local setup instead.
 <table>
 <tr><td>
 
-Claude Code · Codex · Cursor · Gemini CLI · GitHub Copilot · OpenCode · Windsurf · Claude Desktop · WorkBuddy · Doubao · TRAE · Hermes · Pi · ZCode · DeepSeek Harness
+Claude Code · Codex · Cursor · Gemini CLI · GitHub Copilot · OpenCode · Claude Desktop · WorkBuddy · Doubao · TRAE · Hermes · Pi · ZCode · DeepSeek Harness
 
 </td></tr>
 </table>
 
-dachshund shows only the agents found on your machine. All fifteen integrations
+dachshund shows only the agents found on your machine. All fourteen integrations
 currently have read-only importers. For Claude Desktop this covers local
 Cowork Space memory; ordinary Chat memory stays on the account and remains
 available to Claude over MCP. Doubao connects through a guided STDIO setup
@@ -196,6 +198,14 @@ shows the write, persistence and recall path; open it for a larger reading view.
 Identical memory from multiple agents becomes one item with every source shown.
 You can trace where it came from without turning the library into a collection of
 duplicate notes.
+
+### Shared by default, attributable by design
+
+MCP writes carry `DACHSHUND_CLIENT_AGENT`, so a memory written by Codex remains
+Codex-authored even when another agent later reads it. Exact duplicate writes
+from a second agent attach another source instead of creating a parallel note.
+For agent-managed memory, open a memory and use **Share** to keep an explicit
+dachshund shared copy without rewriting the original file.
 
 ### A real Mac utility
 
@@ -266,6 +276,7 @@ remote icon requests at runtime.
 - No API key, LLM or embedding call on the core path.
 - The only update network request is the public GitHub Releases endpoint.
 - Agent-owned files are read in place and never rewritten by import.
+- Shared copies and MCP writes are stored in dachshund's own Markdown library.
 - Archiving a shared memory does not delete the original agent file.
 - The HTTP service is loopback-only and requires a random bearer token.
 

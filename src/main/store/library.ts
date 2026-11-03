@@ -218,7 +218,6 @@ export function agentNameFor(id: string): string {
     cursor: 'Cursor',
     copilot: 'GitHub Copilot',
     opencode: 'OpenCode',
-    windsurf: 'Windsurf',
     workbuddy: 'WorkBuddy',
     doubao: 'Doubao',
     trae: 'TRAE',

@@ -35,8 +35,13 @@ deterministic local library should not invent a model-based score.
 ## Definitions
 
 - **Memory** means one active item in the local Markdown library.
-- **Cross-agent echo** means one memory with sources from two or more distinct
-  agents. Multiple files from the same agent do not count as an echo.
+- **Shared memory** means one memory with two or more distinct source identities,
+  either independent records from different agents or an explicit **Share**
+  action that adds a dachshund-owned copy. Multiple files from the same agent do
+  not make a memory shared.
+- **Write provenance** means an MCP write keeps the calling agent identity from
+  `DACHSHUND_CLIENT_AGENT`; its source remains visible even when another agent
+  later reads or writes the same memory.
 - **Active agent** means an agent with at least one source in the selected range
   and filter.
 - **Connected** means the agent has a dachshund MCP entry installed.
@@ -85,8 +90,6 @@ payload.
 These become worth adding only when the data exists:
 
 - **Recall coverage** - how often a connected agent searches or reads a memory.
-- **Write provenance** - whether an MCP-connected agent created the memory rather
-  than whether it was only imported.
 - **Conflict rate** - near-duplicate memories whose text diverges.
 - **Refresh pressure** - memories tied to projects that have not appeared in a
   recent agent session.

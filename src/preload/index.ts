@@ -41,6 +41,8 @@ const api = {
     ipcRenderer.invoke('memory:create', input),
   updateMemory: (id: string, patch: UpdateMemoryInput): Promise<MemoryDetail | null> =>
     ipcRenderer.invoke('memory:update', id, patch),
+  shareMemory: (id: string): Promise<MemoryDetail | null> =>
+    ipcRenderer.invoke('memory:promote', id),
   archiveMemory: (id: string): Promise<boolean> => ipcRenderer.invoke('memory:archive', id),
   setAgentShared: (id: string, shared: boolean): Promise<AppState> =>
     ipcRenderer.invoke('agent:shared', id, shared),

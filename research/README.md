@@ -1,6 +1,6 @@
 # 跨 Agent Memory 研究
 
-研究日期：2026-10-31
+研究日期：2026-11-03
 
 这个目录存放会持续更新、带有来源和日期判断的调研材料。`docs/` 继续承载
 dachshund 稳定的产品、架构和实现文档；`research/` 用来回答问题、比较产品、
@@ -94,6 +94,19 @@ dachshund 分类的映射。
 - 未知 kind 保守回退到 `fact`，不伪造推断置信度。
 
 后续只有在真实查询、审核和冲突处理证明有必要时，才评估增加这些字段。
+
+### 6. 跨 Agent 共享已落地为三条路径
+
+- **导入回声**：不同 Agent 的原生文件如果内容完全一致，合并成一条 memory，
+  每个 Agent 仍保留独立来源。
+- **MCP 写入**：托管连接通过 `DACHSHUND_CLIENT_AGENT` 传递调用方身份。写入
+  memory 时保留真实 Agent，不做成匿名的 “MCP memory”；另一个 Agent 写入完全
+  相同内容时只追加来源。
+- **显式 Share**：对于仍由某个 Agent 自己维护的 memory，详情页可以增加一份
+  dachshund 管理的共享来源。原文件不改，共享副本进入本地 Markdown 记忆库。
+
+这三条路径只处理来源与副本，不等同于语义去重：措辞不同但含义接近的两条
+memory 仍会并存，冲突裁决仍属于研究阶段。
 
 各 agent 的原生结构与来源见
 [agent-memory-structures.md](agent-memory-structures.md)，分类模型和产品建议见

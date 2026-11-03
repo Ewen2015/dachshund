@@ -21,15 +21,19 @@ discover existing agent memory
   composer.
 - Per-agent memory mechanism diagrams with expandable full-window viewing.
 - A reusable landing view reachable from the brand mark in both app surfaces.
-- Local discovery for fifteen agent families.
-- Agent-specific read-only importers for all fifteen of them.
+- Local discovery for fourteen agent families.
+- Agent-specific read-only importers for all fourteen of them.
 - Markdown library with YAML frontmatter.
 - SQLite index with FTS5 and BM25 search.
 - Exact content deduplication with multiple source echoes.
+- MCP write attribution and exact-content upsert across connected agents.
+- Explicit **Share** promotion for a dachshund-owned shared copy.
 - Loopback-only HTTP service with a random bearer token.
 - MCP bridge with five tools.
 - MCP config installation for JSON, Codex TOML, OpenCode, Hermes YAML, and
   DeepSeek Harness Cordis patches.
+- Shared-memory instruction blocks for Claude Code, Codex, Gemini CLI, GitHub
+  Copilot, OpenCode, and DeepSeek Harness.
 - Guided app-managed MCP setup for Doubao with verified client handshakes.
 - macOS app icon, tray template icon, and brand mark.
 - In-app update download, digest verification, in-place replacement, rollback,
@@ -76,16 +80,16 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development Connectors screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.19-arm64.dmg` was produced on 2026-11-03.
+- `release/dachshund-0.1.20-arm64.dmg` was produced on 2026-11-03.
 - The packaged app launched against an isolated data directory and reported a
-  healthy loopback service at version `0.1.19`.
-- The `0.1.19` DMG mounted read-only, contained a valid ad-hoc-signed app at
-  version `0.1.19`, and included an executable MCP bridge.
+  healthy loopback service at version `0.1.20`.
+- The `0.1.20` DMG mounted read-only, contained a valid ad-hoc-signed app at
+  version `0.1.20`, and included an executable MCP bridge.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.19` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.20` passed the same
   five-tool MCP smoke test.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
@@ -203,7 +207,7 @@ token are not a defense against a compromised account.
 - separated Claude Code instructions and rules from typed auto memory;
 - added Trae profile and project memory plus ZCode project Markdown memory;
 - added importer fixtures for WorkBuddy, Trae, Doubao, Cursor, Copilot, OpenCode,
-  Windsurf, Claude Code, Codex, Gemini, Hermes, Pi, ZCode, and DeepSeek Harness.
+  Claude Code, Codex, Gemini, Hermes, Pi, ZCode, and DeepSeek Harness.
 
 #### 0.1.8: App-Managed MCP Setup
 
@@ -318,9 +322,21 @@ token are not a defense against a compromised account.
 - removed the redundant scope filter from the memory feed and made sync notices
   dismiss automatically after five seconds.
 
+#### 0.1.20: Shared Memory With Provenance
+
+- retained the calling agent on MCP writes and merged exact duplicate content
+  into one memory with multiple sources;
+- added MCP initialization guidance and idempotent instruction blocks for
+  supported agents, so they ask for shared context before answering;
+- added explicit **Share** promotion for imported memories while leaving the
+  original agent file untouched;
+- carried the selected category into agent views and clarified Pulse's shared
+  versus source-only labels;
+- removed the outdated Windsurf integration and pruned stale discovered agents.
+
 ### Next
 
-#### 0.1.20: Reviewable Consolidation
+#### 0.1.21: Reviewable Consolidation
 
 - near-duplicate suggestions;
 - merge and split flows;
@@ -328,7 +344,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.21: Recall Quality
+#### 0.1.22: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -336,7 +352,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-#### 0.1.22: Distribution
+#### 0.1.23: Distribution
 
 - signed and notarized universal build;
 - update channel;

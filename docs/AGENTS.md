@@ -15,7 +15,6 @@ and build-time fetching rules.
 | Cursor | Yes | `~/.cursor/mcp.json` | Rules and agent Markdown/MDC files |
 | GitHub Copilot | Yes | `~/.copilot/mcp-config.json` | Memory and instruction Markdown |
 | OpenCode | Yes | `~/.config/opencode/opencode.json` | Global `AGENTS.md` and observed memory Markdown |
-| Windsurf | Yes | `~/.codeium/windsurf/mcp_config.json` | Windsurf memory Markdown |
 | Claude Desktop | Yes | `Claude(-3p)/claude_desktop_config.json` | Local Cowork Space `MEMORY.md` topic files |
 | WorkBuddy | Yes | `~/.workbuddy/mcp.json` | Identity, user memory, and workspace memory Markdown |
 | Doubao | Yes | Guided STDIO connector | Agent Mode global and session memory Markdown |
@@ -116,16 +115,6 @@ Imported:
 Project-level `AGENTS.md` files and session history are not imported.
 
 MCP target: `~/.config/opencode/opencode.json`, as `mcp.dachshund`.
-
-## Windsurf
-
-Home: `~/.codeium/windsurf`
-
-Imported:
-
-- Markdown under `~/.codeium/windsurf/memories/`.
-
-MCP target: `~/.codeium/windsurf/mcp_config.json`, under `mcpServers`.
 
 ## Claude Desktop
 
@@ -371,6 +360,29 @@ With DeepSeek Harness `0.2.1-rc.5`, saving the managed row caused the running ap
 to spawn the bridge without an app restart and record
 `dsh-mcp-client` `0.0.1` with `agentId=deepseek-harness`.
 
+## Shared Memory Protocol
+
+Every config-managed MCP entry sets `DACHSHUND_CLIENT_AGENT` to the agent id.
+The bridge forwards that identity on `memory_remember`, so writes remain
+attributable and exact duplicate content from another agent attaches a second
+source. The MCP initialization response also tells clients to consult
+`memory_context` before answering when prior context could change the result.
+
+For agents with a stable global instruction file, Connect maintains an
+idempotent managed block:
+
+- Claude Code: `~/.claude/CLAUDE.md`;
+- Codex: `~/.codex/AGENTS.md`;
+- Gemini CLI: `~/.gemini/GEMINI.md`;
+- GitHub Copilot: `~/.copilot/instructions/dachshund.md`;
+- OpenCode: `~/.config/opencode/AGENTS.md`;
+- DeepSeek Harness: `~/.dsh/AGENTS.md`.
+
+The block asks the agent to call `memory_context` when preferences, decisions,
+project context, or lessons may matter and to call `memory_remember` only for
+durable, user-provided or confirmed information. Importers strip this block, so
+it never becomes a self-referential memory.
+
 ## What "Connect" Writes
 
 Most agents receive:
@@ -382,7 +394,8 @@ Most agents receive:
       "command": "/usr/bin/env",
       "args": ["node", "/path/to/dachshund/out/mcp/index.cjs"],
       "env": {
-        "DACHSHUND_HOME": "/Users/example/Library/Application Support/dachshund"
+        "DACHSHUND_HOME": "/Users/example/Library/Application Support/dachshund",
+        "DACHSHUND_CLIENT_AGENT": "claude-code"
       }
     }
   }
@@ -396,7 +409,7 @@ Codex receives an equivalent managed TOML block:
 [mcp_servers.dachshund]
 command = "/usr/bin/env"
 args = ["node", "/path/to/dachshund/out/mcp/index.cjs"]
-env = { DACHSHUND_HOME = "/Users/example/Library/Application Support/dachshund" }
+env = { DACHSHUND_HOME = "/Users/example/Library/Application Support/dachshund", DACHSHUND_CLIENT_AGENT = "codex" }
 # <<< dachshund
 ```
 
@@ -410,7 +423,8 @@ OpenCode receives:
       "command": ["/usr/bin/env", "node", "/path/to/dachshund/out/mcp/index.cjs"],
       "enabled": true,
       "environment": {
-        "DACHSHUND_HOME": "/Users/example/Library/Application Support/dachshund"
+        "DACHSHUND_HOME": "/Users/example/Library/Application Support/dachshund",
+        "DACHSHUND_CLIENT_AGENT": "opencode"
       }
     }
   }
@@ -428,6 +442,7 @@ mcp_servers:
       - /path/to/dachshund/out/mcp/index.cjs
     env:
       DACHSHUND_HOME: /Users/example/Library/Application Support/dachshund
+      DACHSHUND_CLIENT_AGENT: hermes
     enabled: true
 ```
 
@@ -442,7 +457,8 @@ ZCode receives:
         "command": "/usr/bin/env",
         "args": ["node", "/path/to/dachshund/out/mcp/index.cjs"],
         "env": {
-          "DACHSHUND_HOME": "/Users/example/Library/Application Support/dachshund"
+          "DACHSHUND_HOME": "/Users/example/Library/Application Support/dachshund",
+          "DACHSHUND_CLIENT_AGENT": "zcode"
         },
         "enabled": true
       }
@@ -466,6 +482,7 @@ DeepSeek Harness receives a managed Cordis patch row:
         cwd: "/path/to/dachshund/out/mcp"
         env:
           DACHSHUND_HOME: "/Users/example/Library/Application Support/dachshund"
+          DACHSHUND_CLIENT_AGENT: deepseek-harness
 # <<< dachshund
 ```
 

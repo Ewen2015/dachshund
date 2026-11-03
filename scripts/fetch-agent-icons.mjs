@@ -22,7 +22,6 @@ const LOBE_ICONS = [
   { agentId: 'cursor', file: 'cursor.svg', source: 'cursor.svg' },
   { agentId: 'copilot', file: 'githubcopilot.svg', source: 'githubcopilot.svg' },
   { agentId: 'opencode', file: 'opencode.svg', source: 'opencode.svg' },
-  { agentId: 'windsurf', file: 'windsurf.svg', source: 'windsurf.svg' },
   { agentId: 'workbuddy', file: 'workbuddy-color.svg', source: 'workbuddy-color.svg' },
   { agentId: 'doubao', file: 'doubao-color.svg', source: 'doubao-color.svg' },
   { agentId: 'hermes', file: 'hermesagent.svg', source: 'hermesagent.svg' },

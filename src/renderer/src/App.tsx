@@ -62,6 +62,14 @@ export default function App() {
     setDetailExpanded(false)
   }, [])
 
+  const navigate = useCallback(
+    (next: View) => {
+      setView(next)
+      closeDetail()
+    },
+    [closeDetail]
+  )
+
   const openLanding = useCallback(() => {
     setComposerOpen(false)
     setMcpSetupAgentId(null)
@@ -158,7 +166,7 @@ export default function App() {
     const onKey = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()
-        setView('memory')
+        navigate('memory')
         searchRef.current?.focus()
       }
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'n') {
@@ -185,7 +193,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [closeDetail, composerOpen, detail, detailExpanded, landingOpen, mcpSetupAgentId])
+  }, [closeDetail, composerOpen, detail, detailExpanded, landingOpen, mcpSetupAgentId, navigate])
 
   const scan = async () => {
     if (scanning) return
@@ -259,6 +267,21 @@ export default function App() {
     }
   }
 
+  const share = async () => {
+    if (!detail) return
+    try {
+      const shared = await window.dachshund.shareMemory(detail.id)
+      if (!shared) return
+      setDetail(shared)
+      const next = await refreshState()
+      setState(next)
+      await loadMemories(query, activeAgentId)
+      notify('Memory shared with connected agents')
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Could not share memory', true)
+    }
+  }
+
   const toggleShared = async (id: string, shared: boolean) => {
     const next = await window.dachshund.setAgentShared(id, shared)
     setState(next)
@@ -308,7 +331,6 @@ export default function App() {
     : null
   const openAgentMemory = (id: string) => {
     setActiveAgentId(id)
-    setMemoryCategory(null)
     setQuery('')
     setMemories(
       state.memories.filter((memory) => memory.sources.some((source) => source.agentId === id))
@@ -316,7 +338,6 @@ export default function App() {
   }
   const closeAgentMemory = () => {
     setActiveAgentId(null)
-    setMemoryCategory(null)
     setQuery('')
     setMemories(state.memories)
   }
@@ -325,7 +346,7 @@ export default function App() {
     <div className={`app-shell ${sidebarMode ? 'has-sidebar' : ''}`}>
       <Header
         view={view}
-        onView={setView}
+        onView={navigate}
         onLanding={openLanding}
         query={query}
         onQuery={setQuery}
@@ -338,7 +359,7 @@ export default function App() {
       />
       <div className="app-body">
         {sidebarMode && (
-          <Sidebar view={view} onChange={setView} counts={state.counts} />
+          <Sidebar view={view} onChange={navigate} counts={state.counts} />
         )}
         <main className={`main ${showSyncNotice ? 'has-sync-notice' : ''}`}>
           {updater.visible && updater.state && (
@@ -364,6 +385,8 @@ export default function App() {
                   agent={activeAgent}
                   agents={state.agents}
                   memories={memories}
+                  activeCategory={memoryCategory}
+                  onCategory={setMemoryCategory}
                   selectedId={selectedId}
                   onSelect={(id) => void select(id)}
                   onBack={closeAgentMemory}
@@ -450,6 +473,7 @@ export default function App() {
           expanded={detailExpanded}
           onToggleExpanded={() => setDetailExpanded((current) => !current)}
           onClose={closeDetail}
+          onShare={() => void share()}
           onArchive={() => void archive()}
           onReveal={(path) => void window.dachshund.reveal(path)}
           onToast={notify}

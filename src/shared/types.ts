@@ -163,6 +163,8 @@ export interface CreateMemoryInput {
   kind?: string
   project?: string | null
   tags?: string[]
+  sourceAgentId?: string
+  sourceAgentName?: string
 }
 
 export interface UpdateMemoryInput {

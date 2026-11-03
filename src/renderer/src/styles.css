@@ -609,6 +609,13 @@ kbd {
   color: var(--red);
 }
 
+.ghost-button.is-shared:disabled {
+  color: var(--green);
+  border-color: color-mix(in srgb, var(--green) 24%, var(--line));
+  background: color-mix(in srgb, var(--green) 6%, var(--surface));
+  opacity: 1;
+}
+
 .text-button {
   display: inline-flex;
   align-items: center;

@@ -130,6 +130,13 @@ legacy schema. If a source's content changes, its existing memory is rewritten
 and indexed instead of creating a parallel copy. Removed-source tombstones and
 conflict review are still future work.
 
+MCP writes take the same path. The bridge sends
+`DACHSHUND_CLIENT_AGENT`, the local service resolves that identity to an agent
+name, and the store hashes the content. A new hash writes a `mcp://<agent>`
+source; an existing hash attaches another source. The detail action can promote
+an existing record with a `dachshund` source, which preserves the original
+sources and makes the shared copy explicit.
+
 ## Automatic Sync
 
 Automatic sync is opt-in and persisted in the local database. Turning it on runs
@@ -234,17 +241,22 @@ Six configuration formats are supported:
 - ZCode's strict `mcp.servers.dachshund` JSON object;
 - DeepSeek Harness's managed Cordis patch row.
 
-Installed entries run Node against the dachshund bridge and set `DACHSHUND_HOME`
-to the active data directory. DeepSeek Harness additionally uses an absolute
-Node.js executable and `DACHSHUND_CLIENT_AGENT=deepseek-harness`, so its MCP
-receipt is attributed correctly even when the underlying client reports a
-generic name.
+Installed entries run Node against the dachshund bridge, set `DACHSHUND_HOME` to
+the active data directory, and set `DACHSHUND_CLIENT_AGENT` to the managed agent
+id. DeepSeek Harness additionally uses an absolute Node.js executable. This
+keeps MCP receipts and `memory_remember` provenance attributable even when the
+underlying client reports a generic name.
 
-Connecting DeepSeek Harness also maintains a delimited instruction block in
-`~/.dsh/AGENTS.md`. This keeps memory retrieval and explicit write rules in the
-harness's normal user-global instruction path without patching DSH core. The
-block is idempotent and excluded from the importer, so it cannot become a
-self-referential memory.
+The bridge advertises a shared-memory protocol during MCP initialization. For
+agents with a stable global instruction file, Connect also maintains an
+idempotent delimited block: Claude Code (`~/.claude/CLAUDE.md`), Codex
+(`~/.codex/AGENTS.md`), Gemini CLI (`~/.gemini/GEMINI.md`), GitHub Copilot
+(`~/.copilot/instructions/dachshund.md`), OpenCode
+(`~/.config/opencode/AGENTS.md`), and DeepSeek Harness (`~/.dsh/AGENTS.md`).
+The block tells the agent to call `memory_context` before answering when prior
+context matters and to use `memory_remember` only for durable, confirmed
+information. Importers strip the block so it cannot become a self-referential
+memory.
 
 Doubao has no stable user-editable MCP config file. It is marked `manual` in the
 agent registry, so the UI opens a guided STDIO setup instead of writing an app

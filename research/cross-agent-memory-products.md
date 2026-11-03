@@ -232,6 +232,18 @@ agent-memory 聚合器。**
 
 这个定位比“再做一个 memory server”更具体，也更符合 dachshund 现在的代码和数据模型。
 
+### 当前实现中的差异化细节
+
+- **MCP 写入保留调用方**：配置管理的连接会写入 `DACHSHUND_CLIENT_AGENT`，
+  因此 Codex 写的 memory 仍显示为 Codex 来源，而不是被抹成通用 “MCP”。
+- **完全相同内容合并来源**：导入文件和 MCP 写入共用同一套内容 hash；第二个
+  Agent 写入相同内容时，只增加 source，不制造重复笔记。
+- **原生 memory 可显式提升**：详情页的 **Share** 会为原记忆增加 dachshund
+  共享来源和可读 Markdown 副本，不移动也不改写 Agent 自己的文件。
+
+这些机制改善的是 provenance、复制和跨 Agent 可读性；语义近重复、冲突裁决和
+写入审核仍未实现，不能在产品表达里混为一谈。
+
 ### 最值得借鉴的产品设计
 
 1. **Link 的 review inbox**：agent 提议的写入先审核，不能直接永久化。
@@ -248,9 +260,10 @@ agent-memory 聚合器。**
 - 把所有 agent 的规则和 agent 自动总结的记忆混为一类，会让分类越来越失真。
 
 因此，产品重点不应是继续增加一个 agent 图标，而是维护已经落地的五分类、
-十一 kind 和原生 memory mapping。分类后的 library、按时间的跨 agent 时间线、
-分类 legend 和 agent 详情页共同构成当前体验；更强的 `authority / scope` 仍是
-研究提案，不是已发布 schema。当前产品契约见
+十一 kind、原生 memory mapping，以及“导入回声 / MCP 写入 / 显式 Share”三条
+共享路径。分类后的 library、按时间的跨 agent 时间线、分类 legend 和 agent
+详情页共同构成当前体验；更强的 `authority / scope` 仍是研究提案，不是已发布
+schema。当前产品契约见
 [docs/MEMORY.md](../docs/MEMORY.md)，研究背景和替代模型见
 [dachshund-memory-taxonomy.md](dachshund-memory-taxonomy.md)。
 

@@ -10,7 +10,7 @@
 dachshund 找到这些 Agent 已经写在本机的 Memory，把它们汇入一份 Markdown
 记忆库，再通过 MCP 提供给所有 Agent 使用。无需账号，无需上云，也不依赖模型
 
-[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.19/dachshund-0.1.19-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
+[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.20/dachshund-0.1.20-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -36,6 +36,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
   的统一分类，并按需放大查看机制图
 - **维护统一记忆库**：把结果保存为普通 Markdown，同时保留来源信息
 - **合并跨 Agent 回声**：多个 Agent 记住同一件事时，只保留一份内容并展示全部来源
+- **主动共享**：把单条来源记忆提升为 dachshund 的持久共享副本，或通过 MCP 写入并保留调用方 Agent
 - **保持记忆库更新**：可手动同步，也可每 60 分钟自动扫描；休眠时暂停，并根据来源版本稳定更新
 - **让任意 Agent 召回**：通过仅绑定回环地址的 MCP Bridge 提供搜索、上下文、写入、归档和统计能力
 - **常驻但不打扰**：以紧凑的 macOS 菜单栏面板运行，需要时再打开完整记忆库
@@ -47,7 +48,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 
 | 平台 | 架构 | 安装包 | 大小 | 下载 |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.19](https://github.com/Ewen2015/dachshund/releases/download/v0.1.19/dachshund-0.1.19-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.20](https://github.com/Ewen2015/dachshund/releases/download/v0.1.20/dachshund-0.1.20-arm64.dmg)** |
 
 **系统要求：** Apple Silicon Mac
 
@@ -56,7 +57,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 > 选择“打开”
 
 [所有版本](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.19/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.20/SHA256SUMS)
 
 **安装**
 
@@ -75,7 +76,7 @@ SHA-256 用于确认下载的 DMG 与正式发布文件一致。它不是激活�
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.19/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.20/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -110,12 +111,12 @@ Memory 导入：
 <table>
 <tr><td>
 
-Claude Code · Codex · Cursor · Gemini CLI · GitHub Copilot · OpenCode · Windsurf · Claude Desktop · WorkBuddy · Doubao · TRAE · Hermes · Pi · ZCode · DeepSeek Harness
+Claude Code · Codex · Cursor · Gemini CLI · GitHub Copilot · OpenCode · Claude Desktop · WorkBuddy · Doubao · TRAE · Hermes · Pi · ZCode · DeepSeek Harness
 
 </td></tr>
 </table>
 
-dachshund 只显示本机实际发现的 Agent。当前 15 个集成都支持只读导入。Claude
+dachshund 只显示本机实际发现的 Agent。当前 14 个集成都支持只读导入。Claude
 Desktop 导入的是本地 Cowork Space memory；普通 Chat memory 仍保存在账号侧，
 Claude 通过 MCP 使用 dachshund 的共享记忆。Doubao 的自定义连接器保存在应用内，
 因此通过 STDIO 配置向导手动接入；接入后豆包可以通过 MCP 读写 dachshund
@@ -172,6 +173,13 @@ SQLite 记录
 
 多个 Agent 写入相同内容时，dachshund 会合并为一条 Memory，并保留全部来源，方便
 追踪内容来自哪里，同时避免记忆库被重复笔记淹没
+
+### 写入有来源，共享有动作
+
+MCP 写入会携带 `DACHSHUND_CLIENT_AGENT`，因此 Codex 写入的 Memory 即使被其他
+Agent 读取，也仍然保留 Codex 来源。第二个 Agent 写入完全相同的内容时，只会增加
+来源，不会生成重复笔记。对于 Agent 自己维护的记忆，可以在详情页点击 **Share**，
+保留一份独立的 dachshund 共享副本，同时不修改原文件
 
 ### 真正适合常驻的 Mac 工具
 
@@ -236,6 +244,7 @@ MIT 许可 LobeHub 图标集缓存，应用运行时不会请求远程图标
 - 核心路径不需要 API Key、LLM 或 Embedding 调用
 - 更新功能只会请求公开的 GitHub Releases 接口
 - Agent 文件以只读方式原地扫描，导入过程不会改写原始内容
+- 共享副本和 MCP 写入保存在 dachshund 自己的 Markdown 记忆库
 - 归档共享 Memory 不会删除 Agent 自己的原始文件
 - HTTP 服务只监听回环地址，并要求随机 Bearer Token
 

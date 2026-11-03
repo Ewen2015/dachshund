@@ -427,6 +427,10 @@ export class Store {
 
   create(input: CreateMemoryInput): MemoryDetail {
     const content = input.content.trim()
+    const sourceAgentId = input.sourceAgentId?.trim() || 'dachshund'
+    const sourceAgentName =
+      input.sourceAgentName?.trim() || (sourceAgentId === 'dachshund' ? 'dachshund' : sourceAgentId)
+    const sourcePath = sourceAgentId === 'dachshund' ? '' : `mcp://${sourceAgentId}`
     const title =
       input.title.trim() ||
       content.split('\n').find((line) => line.trim())?.replace(/^#+\s*/, '').slice(0, 90) ||
@@ -443,19 +447,97 @@ export class Store {
       updatedAt: now,
       archived: false,
       pinned: false,
-      sources: [{ agentId: 'dachshund', path: '' }]
+      sources: [{ agentId: sourceAgentId, path: sourcePath }]
     }
     const filePath = this.library.write(file)
-    file.sources = [{ agentId: 'dachshund', path: filePath }]
-    this.library.write(file, filePath)
+    if (sourceAgentId === 'dachshund') {
+      file.sources = [{ agentId: 'dachshund', path: filePath }]
+      this.library.write(file, filePath)
+    }
     this.db.upsertMemory({ ...file, filePath })
     this.db.attachSource(file.id, {
-      agentId: 'dachshund',
-      agentName: 'dachshund',
-      path: filePath,
+      agentId: sourceAgentId,
+      agentName: sourceAgentName,
+      path: sourceAgentId === 'dachshund' ? filePath : sourcePath,
       importedAt: now
     })
     return this.db.getMemory(file.id) as MemoryDetail
+  }
+
+  rememberShared(input: CreateMemoryInput): MemoryDetail {
+    const content = input.content.trim()
+    const sourceAgentId = input.sourceAgentId?.trim() || 'mcp-client'
+    const sourceAgentName = input.sourceAgentName?.trim() || sourceAgentId
+    const existing = this.db.findByHash(contentHash(content))
+    if (existing) {
+      return this.attachSharedSource(existing.id, {
+        agentId: sourceAgentId,
+        agentName: sourceAgentName,
+        path: `mcp://${sourceAgentId}`
+      })
+    }
+    return this.create({
+      ...input,
+      content,
+      sourceAgentId,
+      sourceAgentName
+    })
+  }
+
+  promoteMemory(id: string): MemoryDetail | null {
+    const current = this.db.getMemory(id)
+    if (!current) return null
+    const filePath = this.db.getMemoryPath(id) ?? `dachshund://${id}`
+    return this.attachSharedSource(id, {
+      agentId: 'dachshund',
+      agentName: 'dachshund',
+      path: filePath
+    })
+  }
+
+  private attachSharedSource(
+    memoryId: string,
+    source: { agentId: string; agentName: string; path: string }
+  ): MemoryDetail {
+    const current = this.db.getMemory(memoryId)
+    if (!current) throw new Error('Memory not found')
+    const sources = new Map(
+      current.sources.map((item) => [
+        sourceKeyFor(item.agentId, item.path, item.ref),
+        {
+          agentId: item.agentId,
+          path: item.path,
+          ref: item.ref
+        }
+      ])
+    )
+    sources.set(sourceKeyFor(source.agentId, source.path), {
+      agentId: source.agentId,
+      path: source.path,
+      ref: undefined
+    })
+    const file: MemoryFile = {
+      id: current.id,
+      title: current.title,
+      content: current.content,
+      kind: current.kind,
+      project: current.project,
+      tags: current.tags,
+      createdAt: current.createdAt,
+      updatedAt: current.updatedAt,
+      archived: current.archived,
+      pinned: current.pinned,
+      sources: [...sources.values()]
+    }
+    const filePath = this.library.write(file, this.db.getMemoryPath(current.id))
+    this.db.upsertMemory({ ...file, filePath })
+    this.db.attachSource(current.id, {
+      agentId: source.agentId,
+      agentName: source.agentName,
+      path: source.path,
+      importedAt: Date.now()
+    })
+    return this.db.getMemory(current.id) as MemoryDetail
   }
 
   update(id: string, patch: UpdateMemoryInput): MemoryDetail | null {

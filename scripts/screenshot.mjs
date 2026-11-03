@@ -13,15 +13,15 @@ fs.writeFileSync(
   updateManifest,
   JSON.stringify(
     {
-      tag_name: 'v0.1.19',
-      name: 'dachshund v0.1.19',
+      tag_name: 'v0.1.20',
+      name: 'dachshund v0.1.20',
       body: 'A refreshed dachshund mark, collapsible memory outline, and clearer agent taxonomy mappings.',
-      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.19',
+      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.20',
       assets: [
         {
-          name: 'dachshund-0.1.19-arm64.dmg',
+          name: 'dachshund-0.1.20-arm64.dmg',
           browser_download_url:
-            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.19/dachshund-0.1.19-arm64.dmg'
+            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.20/dachshund-0.1.20-arm64.dmg'
         }
       ]
     },
@@ -70,6 +70,12 @@ if (await page.locator('.onboarding').isVisible().catch(() => false)) {
   await page.screenshot({ path: path.join(shots, '00-onboarding.png') })
   await page.getByRole('button', { name: 'Enter dachshund' }).click()
   await page.waitForTimeout(700)
+}
+
+const returnToTabs = page.getByRole('button', { name: 'Use top tab navigation' })
+if (await returnToTabs.isVisible().catch(() => false)) {
+  await returnToTabs.click()
+  await page.waitForTimeout(350)
 }
 
 await page.getByRole('button', { name: 'Open dachshund landing' }).click()

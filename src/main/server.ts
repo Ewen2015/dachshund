@@ -4,6 +4,7 @@ import path from 'node:path'
 import { randomBytes } from 'node:crypto'
 import type { AddressInfo } from 'node:net'
 import type { CreateMemoryInput, SearchQuery, UpdateMemoryInput } from '../shared/types'
+import { findDefinition } from './agents/discovery'
 import { RUNTIME_PATH } from './paths'
 import { Store } from './store'
 
@@ -175,6 +176,7 @@ export function startHttpServer(store: Store, version: string): Promise<{ runtim
             project: memory.project,
             tags: memory.tags,
             agents: [...new Set(memory.sources.map((source) => source.agentName))],
+            echoCount: memory.echoCount,
             updatedAt: memory.updatedAt
           }))
         })
@@ -197,12 +199,19 @@ export function startHttpServer(store: Store, version: string): Promise<{ runtim
 
       if (req.method === 'POST' && url.pathname === '/api/mcp/remember') {
         const payload = await body(req)
-        const memory = store.create({
+        if (!String(payload.content ?? '').trim()) {
+          json(res, 400, { error: 'Content is required' })
+          return
+        }
+        const agentId = String(payload.agentId ?? '').trim() || 'mcp-client'
+        const memory = store.rememberShared({
           title: String(payload.title ?? ''),
           content: String(payload.content ?? ''),
           kind: payload.kind ? String(payload.kind) : 'fact',
           project: payload.project ? String(payload.project) : null,
-          tags: Array.isArray(payload.tags) ? payload.tags.map(String) : []
+          tags: Array.isArray(payload.tags) ? payload.tags.map(String) : [],
+          sourceAgentId: agentId,
+          sourceAgentName: findDefinition(agentId)?.name ?? agentId
         })
         json(res, 200, { ok: true, id: memory.id, title: memory.title })
         return

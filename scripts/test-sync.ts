@@ -114,6 +114,34 @@ async function main(): Promise<void> {
   assert.equal(active.length, 1)
   assert.equal(active[0].sources.length, 2)
 
+  const agentWrite = store.rememberShared({
+    title: 'MCP attribution probe',
+    content:
+      'MCP attribution probe: durable project context should keep the agent that wrote it.',
+    kind: 'fact',
+    sourceAgentId: 'codex',
+    sourceAgentName: 'Codex'
+  })
+  const agentEcho = store.rememberShared({
+    title: 'MCP attribution probe from Hermes',
+    content:
+      'MCP attribution probe: durable project context should keep the agent that wrote it.',
+    kind: 'fact',
+    sourceAgentId: 'hermes',
+    sourceAgentName: 'Hermes'
+  })
+  assert.equal(agentEcho.id, agentWrite.id)
+  assert.equal(agentEcho.echoCount, 2)
+  assert.deepEqual(
+    agentEcho.sources.map((source) => source.agentId).sort(),
+    ['codex', 'hermes']
+  )
+
+  const promoted = store.promoteMemory(agentWrite.id)
+  assert.equal(promoted?.echoCount, 3)
+  assert.ok(promoted?.sources.some((source) => source.agentId === 'dachshund'))
+  assert.equal(store.archive(agentWrite.id), true)
+
   assert.equal(store.archive(memoryId), true)
   const archivedScan = store.ingestImport({
     ...base,
