@@ -134,31 +134,53 @@ export function AgentMemoryView({
           </div>
         </div>
         <div className="mapping-list">
-          {model.mappings.map((mapping) => {
-            const target = categoryDefinition(mapping.category)
+          <div className="mapping-axis-head" aria-hidden="true">
+            <span>{agent.name} classification</span>
+            <span />
+            <span>dachshund memory</span>
+          </div>
+          {MEMORY_CATEGORIES.map((category) => {
+            const mappings = model.mappings.filter((mapping) => mapping.category === category.id)
+            const target = categoryDefinition(category.id)
             return (
               <div
-                className={`mapping-row ${mapping.imported ? '' : 'not-imported'}`}
-                key={`${mapping.native}-${mapping.category}-${mapping.kinds.join('-')}`}
+                className={`mapping-row ${mappings.length === 0 ? 'is-empty' : ''}`}
+                key={category.id}
+                aria-label={
+                  mappings.length === 0
+                    ? `${category.label}: no native equivalent`
+                    : `${category.label}: ${mappings.map((mapping) => mapping.native).join(', ')}`
+                }
               >
-                <div>
-                  <span
-                    className="native-kind"
-                    style={{ '--mapping-color': target.color } as CSSProperties}
-                  >
-                    {mapping.native}
-                  </span>
-                  <span className="mapping-description">{mapping.description}</span>
+                <div className="mapping-source-list">
+                  {mappings.map((mapping) => (
+                    <div
+                      className={`mapping-source ${mapping.imported ? '' : 'not-imported'}`}
+                      key={`${mapping.native}-${mapping.kinds.join('-')}`}
+                    >
+                      <div className="native-kind-line">
+                        <span
+                          className="native-kind"
+                          style={{ '--mapping-color': target.color } as CSSProperties}
+                        >
+                          {mapping.native}
+                        </span>
+                        {!mapping.imported && <span className="mapping-state">Not imported</span>}
+                      </div>
+                      <span className="mapping-description">{mapping.description}</span>
+                    </div>
+                  ))}
                 </div>
                 <div className="mapping-arrow" aria-hidden="true">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M5 12h14M14 7l5 5-5 5" />
-                  </svg>
+                  {mappings.length > 0 && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M5 12h14M14 7l5 5-5 5" />
+                    </svg>
+                  )}
                 </div>
                 <div className="mapped-kind" style={{ '--mapping-color': target.color } as CSSProperties}>
-                  {!mapping.imported && <span className="mapping-state">Not imported</span>}
                   <strong>{target.label}</strong>
-                  <span>{mapping.kinds.map(kindLabel).join(' / ')}</span>
+                  <span>{target.kinds.map(kindLabel).join(' / ')}</span>
                 </div>
               </div>
             )

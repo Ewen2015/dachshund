@@ -1,5 +1,6 @@
 # Brand Assets
 
+- `dachshund-logo.svg`: master 1024 x 1024 transparent logo.
 - `dachshund-mark.svg`: transparent, current-color silhouette for UI and
   documentation.
 - `dachshund-menubar.svg`: 24 x 24 solid black template icon with transparent

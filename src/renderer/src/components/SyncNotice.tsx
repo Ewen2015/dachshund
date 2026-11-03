@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ScanResult } from '../../../shared/types'
 import { relativeTime } from '../lib/format'
 import { ChevronRightIcon, CloseIcon, RefreshIcon } from './Icons'
@@ -33,10 +33,34 @@ export function SyncNotice({
   onDismiss: () => void
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [paused, setPaused] = useState(false)
+  const dismissRef = useRef(onDismiss)
   const hasDetails = result.changes.length > 0
 
+  useEffect(() => {
+    dismissRef.current = onDismiss
+  }, [onDismiss])
+
+  useEffect(() => {
+    setExpanded(false)
+  }, [result.startedAt])
+
+  useEffect(() => {
+    if (paused || expanded) return
+    const timer = window.setTimeout(() => dismissRef.current(), 5000)
+    return () => window.clearTimeout(timer)
+  }, [expanded, paused, result.finishedAt, result.startedAt])
+
   return (
-    <section className={`sync-notice ${compact ? 'compact' : ''} ${result.ok ? '' : 'error'}`}>
+    <section
+      className={`sync-notice ${compact ? 'compact' : ''} ${result.ok ? '' : 'error'}`}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false)
+      }}
+    >
       <div className="sync-notice-main">
         <span className="sync-notice-icon">
           <RefreshIcon size={14} />

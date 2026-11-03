@@ -217,3 +217,19 @@ export function SidebarToggleIcon({ size = 17, className }: IconProps) {
     </svg>
   )
 }
+
+export function OutlineCollapseIcon({ size = 15, className }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="m11 6-6 6 6 6M18 6l-6 6 6 6" />
+    </svg>
+  )
+}
+
+export function OutlineExpandIcon({ size = 15, className }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="m6 6 6 6-6 6M13 6l6 6-6 6" />
+    </svg>
+  )
+}

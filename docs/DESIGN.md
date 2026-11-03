@@ -156,7 +156,8 @@ not add gradients, outlines around outlines, or text inside the mark.
 
 Assets:
 
-- `docs/brand/dachshund-mark.svg`: transparent line mark for UI and documents.
+- `docs/brand/dachshund-mark.svg`: transparent current-color mark for UI and
+  documents.
 - `docs/brand/dachshund-menubar.svg`: 24 x 24 solid template icon.
 - `docs/brand/dachshund-app-icon.svg`: near-white macOS icon tile.
 

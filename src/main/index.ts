@@ -414,7 +414,7 @@ async function createNativeStatusItem(): Promise<boolean> {
   if (process.platform !== 'darwin') return false
 
   const helperPath = statusItemPath()
-  const imagePath = iconPath('trayTemplateLarge.png')
+  const imagePath = iconPath('trayTemplate.png')
   if (!fs.existsSync(helperPath) || !fs.existsSync(imagePath)) {
     console.warn('Native status item helper is unavailable; using Electron tray fallback')
     return false
