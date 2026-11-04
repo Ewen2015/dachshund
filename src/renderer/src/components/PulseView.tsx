@@ -418,7 +418,7 @@ export function PulseView({
             {breakdown === 'agent'
               ? 'A memory can count once for each source agent.'
               : breakdown === 'category'
-                ? 'Durable memories use four stable categories; Evidence and Unclassified stay in supporting layers.'
+                ? 'Durable memories use four stable categories; Evidence stays in its own supporting layer.'
                 : 'Memories with multiple sources or an explicit dachshund shared copy.'}
           </p>
           <span>{visible.length} memories</span>

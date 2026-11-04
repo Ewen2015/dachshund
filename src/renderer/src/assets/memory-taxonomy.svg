@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" role="img" aria-labelledby="memory-plan-title memory-plan-desc" class="memory-plan-svg">
   <title id="memory-plan-title">How dachshund files memory</title>
-  <desc id="memory-plan-desc">A top-down filing plan. Agent-native files enter a normalizer that resolves ten durable kinds and assigns each memory to one of four fixed categories. Evidence and Unclassified sit in a separate review tray.</desc>
+  <desc id="memory-plan-desc">A top-down filing plan. Agent-native files enter a normalizer that resolves ten durable kinds and assigns each memory to one of four fixed categories. Evidence remains the only separate supporting layer.</desc>
   <defs>
     <pattern id="plan-grid" width="18" height="18" patternUnits="userSpaceOnUse">
       <circle cx="1" cy="1" r="0.65" fill="#D8D7D1"/>
@@ -116,7 +116,7 @@
   <rect x="284" y="332" width="98" height="56" rx="7" fill="#EEF1EB" stroke="#D5DAD1"/>
   <text x="333" y="352" font-size="11" font-weight="660" fill="#171718" text-anchor="middle">10 kinds</text>
   <text x="333" y="367" font-size="9.5" font-weight="500" fill="#686C62" text-anchor="middle">4 categories</text>
-  <text class="plan-mono" x="333" y="380" font-size="8.4" fill="#7C8076" text-anchor="middle">+ 2 trays</text>
+  <text class="plan-mono" x="333" y="380" font-size="8.4" fill="#7C8076" text-anchor="middle">+ evidence</text>
 
 
   <g class="plan-routes">
@@ -218,23 +218,16 @@
 
   <g>
     <path class="plan-route is-aux" d="M333 388 V416 H414"/>
-    <rect x="418" y="352" width="214" height="88" rx="9" fill="#FCFCFA" stroke="#D9D6D4"/>
-    <path d="M428 357 H622" stroke="#8B6D76" stroke-width="3" stroke-linecap="round"/>
+    <rect x="418" y="352" width="448" height="88" rx="9" fill="#FCFCFA" stroke="#D9D6D4"/>
+    <path d="M428 357 H856" stroke="#8B6D76" stroke-width="3" stroke-linecap="round"/>
     <text class="plan-mono" x="432" y="376" font-size="9.5" fill="#8B6D76" text-anchor="start">EVIDENCE</text>
     <text x="432" y="395" font-size="10.2" font-weight="560" fill="#313032" text-anchor="start">Keep source evidence intact.</text>
-    <text x="432" y="412" font-size="8.8" font-weight="500" fill="#75716F" text-anchor="start">session summary · rollout · compaction</text>
-    <text x="432" y="426" font-size="8.8" font-weight="500" fill="#75716F" text-anchor="start">workspace log · feedback event</text>
-
-    <rect x="648" y="352" width="214" height="88" rx="9" fill="#FCFCFA" stroke="#D9D6D4"/>
-    <path d="M658 357 H852" stroke="#77716A" stroke-width="3" stroke-linecap="round"/>
-    <text class="plan-mono" x="662" y="376" font-size="9.5" fill="#77716A" text-anchor="start">UNCLASSIFIED</text>
-    <text x="662" y="395" font-size="10.2" font-weight="560" fill="#313032" text-anchor="start">Review before durable filing.</text>
-    <text x="662" y="412" font-size="8.8" font-weight="500" fill="#75716F" text-anchor="start">unknown · ambiguous · unsupported</text>
-    <text class="plan-mono" x="662" y="427" font-size="8.6" fill="#8A867F" text-anchor="start">NO FORCED GUESS</text>
+    <text x="432" y="412" font-size="8.8" font-weight="500" fill="#75716F" text-anchor="start">session summary · rollout · compaction · workspace log · feedback event</text>
+    <text class="plan-mono" x="432" y="427" font-size="8.6" fill="#8A867F" text-anchor="start">THE ONLY SEPARATE LAYER</text>
   </g>
 
   <g>
     <circle cx="24" cy="438" r="2.5" fill="#55745F"/>
-    <text x="34" y="442" font-size="10.5" font-weight="560" fill="#5D5A55" text-anchor="start">Kind is the concrete type. Category is the stable shelf.</text>
+    <text x="34" y="442" font-size="10.5" font-weight="560" fill="#5D5A55" text-anchor="start">Kind is the concrete type. Category is the stable shelf. Untyped content defaults to Fact.</text>
   </g>
 </svg>

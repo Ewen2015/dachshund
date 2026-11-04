@@ -180,8 +180,7 @@ export function startHttpServer(store: Store, version: string): Promise<{ runtim
           query: String(payload.query ?? ''),
           agentId: payload.agentId ? String(payload.agentId) : undefined,
           limit: Math.min(Number(payload.limit ?? 8), 40),
-          includeEvidence: false,
-          includeUnclassified: false
+          includeEvidence: false
         })
         json(res, 200, {
           memories: memories.map((memory) => ({
@@ -208,8 +207,7 @@ export function startHttpServer(store: Store, version: string): Promise<{ runtim
           query: String(payload.query ?? ''),
           agentId: payload.agentId ? String(payload.agentId) : undefined,
           limit: Math.min(Number(payload.limit ?? 8), 20),
-          includeEvidence: false,
-          includeUnclassified: false
+          includeEvidence: false
         })
         const memories = summaries
           .map((summary) => store.getMemory(summary.id))

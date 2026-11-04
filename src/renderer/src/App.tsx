@@ -362,7 +362,11 @@ export default function App() {
         {sidebarMode && (
           <Sidebar view={view} onChange={navigate} counts={state.counts} />
         )}
-        <main className={`main ${showSyncNotice ? 'has-sync-notice' : ''}`}>
+        <main
+          className={`main ${showSyncNotice ? 'has-sync-notice' : ''} ${
+            detail && !detailExpanded ? 'has-detail' : ''
+          }`}
+        >
           {updater.visible && updater.state && (
             <UpdateNotice
               update={updater.state}

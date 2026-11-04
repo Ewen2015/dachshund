@@ -123,7 +123,7 @@ const sourceRoutes = `
 const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${WIDTH} ${HEIGHT}" role="img" aria-labelledby="memory-plan-title memory-plan-desc" class="memory-plan-svg">
   <title id="memory-plan-title">How dachshund files memory</title>
-  <desc id="memory-plan-desc">A top-down filing plan. Agent-native files enter a normalizer that resolves ten durable kinds and assigns each memory to one of four fixed categories. Evidence and Unclassified sit in a separate review tray.</desc>
+  <desc id="memory-plan-desc">A top-down filing plan. Agent-native files enter a normalizer that resolves ten durable kinds and assigns each memory to one of four fixed categories. Evidence remains the only separate supporting layer.</desc>
   <defs>
     <pattern id="plan-grid" width="18" height="18" patternUnits="userSpaceOnUse">
       <circle cx="1" cy="1" r="0.65" fill="#D8D7D1"/>
@@ -206,7 +206,7 @@ const svg = `
   <rect x="284" y="332" width="98" height="56" rx="7" fill="#EEF1EB" stroke="#D5DAD1"/>
   ${text(333, 352, '10 kinds', { size: 11, weight: 660, anchor: 'middle' })}
   ${text(333, 367, '4 categories', { size: 9.5, fill: '#686C62', anchor: 'middle' })}
-  ${mono(333, 380, '+ 2 trays', { size: 8.4, fill: '#7C8076', anchor: 'middle' })}
+  ${mono(333, 380, '+ evidence', { size: 8.4, fill: '#7C8076', anchor: 'middle' })}
 
   ${sourceRoutes}
   <path class="plan-route is-main" d="M396 198 H408"/>
@@ -215,24 +215,17 @@ const svg = `
 
   <g>
     <path class="plan-route is-aux" d="M333 388 V416 H414"/>
-    <rect x="418" y="352" width="214" height="88" rx="9" fill="#FCFCFA" stroke="#D9D6D4"/>
-    <path d="M428 357 H622" stroke="#8B6D76" stroke-width="3" stroke-linecap="round"/>
+    <rect x="418" y="352" width="448" height="88" rx="9" fill="#FCFCFA" stroke="#D9D6D4"/>
+    <path d="M428 357 H856" stroke="#8B6D76" stroke-width="3" stroke-linecap="round"/>
     ${mono(432, 376, 'EVIDENCE', { size: 9.5, fill: '#8B6D76' })}
     ${text(432, 395, 'Keep source evidence intact.', { size: 10.2, weight: 560, fill: '#313032' })}
-    ${text(432, 412, 'session summary · rollout · compaction', { size: 8.8, fill: '#75716F' })}
-    ${text(432, 426, 'workspace log · feedback event', { size: 8.8, fill: '#75716F' })}
-
-    <rect x="648" y="352" width="214" height="88" rx="9" fill="#FCFCFA" stroke="#D9D6D4"/>
-    <path d="M658 357 H852" stroke="#77716A" stroke-width="3" stroke-linecap="round"/>
-    ${mono(662, 376, 'UNCLASSIFIED', { size: 9.5, fill: '#77716A' })}
-    ${text(662, 395, 'Review before durable filing.', { size: 10.2, weight: 560, fill: '#313032' })}
-    ${text(662, 412, 'unknown · ambiguous · unsupported', { size: 8.8, fill: '#75716F' })}
-    ${mono(662, 427, 'NO FORCED GUESS', { size: 8.6, fill: '#8A867F' })}
+    ${text(432, 412, 'session summary · rollout · compaction · workspace log · feedback event', { size: 8.8, fill: '#75716F' })}
+    ${mono(432, 427, 'THE ONLY SEPARATE LAYER', { size: 8.6, fill: '#8A867F' })}
   </g>
 
   <g>
     <circle cx="24" cy="438" r="2.5" fill="#55745F"/>
-    ${text(34, 442, 'Kind is the concrete type. Category is the stable shelf.', { size: 10.5, weight: 560, fill: '#5D5A55' })}
+    ${text(34, 442, 'Kind is the concrete type. Category is the stable shelf. Untyped content defaults to Fact.', { size: 10.5, weight: 560, fill: '#5D5A55' })}
   </g>
 </svg>`
 

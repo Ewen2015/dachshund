@@ -80,8 +80,9 @@ dachshund category. The native model explains why an agent stored something;
 the category provides one cross-agent browsing layer. Ten durable kinds are
 grouped into Identity, Guidance, Knowledge, and Current work. Session summaries,
 rollouts, compactions, workspace logs, and feedback events form the Evidence
-layer; unresolved records remain Unclassified. Scope, authority, and status are
-orthogonal fields.
+layer. Untyped content is resolved deterministically into one of the durable
+kinds, with generic observations becoming Fact and source locators becoming
+Reference. Scope, authority, and status are orthogonal fields.
 
 Classification happens during import and is deterministic: no API key, model
 call, or embedding is required. See [Memory Taxonomy](MEMORY.md) for the full

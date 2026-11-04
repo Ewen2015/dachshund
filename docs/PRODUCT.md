@@ -72,7 +72,7 @@ workspace. It can be resized, maximized, or sent full screen when the user wants
 the wider library view. It is the library and control surface:
 
 - Memory feed grouped by recency, with a compact legend for Identity, Guidance,
-  Knowledge, Current work, and populated Evidence or Unclassified layers.
+  Knowledge, Current work, and populated Evidence.
 - Search and agent filters.
 - Memory detail with Markdown rendering and source provenance, as a right-side
   inspector that can expand into a full-window reading view.

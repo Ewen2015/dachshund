@@ -28,7 +28,7 @@ deterministic local library should not invent a model-based score.
    category, or overlap.
 5. **Series detail** - contribution bars with product marks and counts.
 6. **Category mix** - proportion of Identity, Guidance, Knowledge, Current work,
-   and any populated Evidence or Unclassified supporting layer.
+   and populated Evidence.
 7. **Cross-agent echoes** - the highest-overlap memories, with source marks and
    direct links into the library.
 

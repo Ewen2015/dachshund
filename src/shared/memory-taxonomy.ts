@@ -6,7 +6,6 @@ export type MemoryCategoryId =
   | 'knowledge'
   | 'current'
   | 'evidence'
-  | 'unclassified'
 
 export interface MemoryCategoryDefinition {
   id: MemoryCategoryId
@@ -75,14 +74,6 @@ export const AUXILIARY_CATEGORIES: MemoryCategoryDefinition[] = [
     description: 'Session summaries, rollouts, compactions, and logs retained as source evidence.',
     color: '#8B6D76',
     kinds: ['session_summary', 'task_rollout', 'compaction', 'workspace_log', 'feedback_event']
-  },
-  {
-    id: 'unclassified',
-    label: 'Unclassified',
-    shortLabel: 'Review',
-    description: 'Imported content whose native model does not justify a durable knowledge type yet.',
-    color: '#77716A',
-    kinds: ['unclassified']
   }
 ]
 
@@ -135,9 +126,7 @@ const KIND_ALIASES: Record<string, string> = {
   daily_log: 'workspace_log',
   feedback_event: 'feedback_event',
   'feedback-event': 'feedback_event',
-  correction_event: 'feedback_event',
-  unknown: 'unclassified',
-  unclassified: 'unclassified'
+  correction_event: 'feedback_event'
 }
 
 export const MEMORY_KIND_LABELS: Record<string, string> = {
@@ -155,26 +144,25 @@ export const MEMORY_KIND_LABELS: Record<string, string> = {
   task_rollout: 'Task rollout',
   compaction: 'Compaction',
   workspace_log: 'Workspace log',
-  feedback_event: 'Feedback event',
-  unclassified: 'Unclassified'
+  feedback_event: 'Feedback event'
 }
 
-function classifyFeedback(content: string): string {
+function classifyFeedback(content: string, fallback = 'fact'): string {
+  if (/(偏好|更喜欢|prefer|preference|default|默认|倾向于)/i.test(content)) {
+    return 'preference'
+  }
   if (
     /(必须|始终|永远|禁止|不要|不能|不得|never|must|always|do not|don't|avoid)/i.test(content)
   ) {
     return 'rule'
   }
-  if (/(偏好|更喜欢|prefer|preference|default|默认|倾向于)/i.test(content)) {
-    return 'preference'
-  }
   if (/(失败|教训|原因|导致|根因|learned|lesson|failed|because|root cause)/i.test(content)) {
     return 'insight'
   }
-  return 'unclassified'
+  return fallback
 }
 
-function classifyProject(content: string): string {
+function classifyProject(content: string, fallback = 'fact'): string {
   if (/(决定|已确定|采用|decision|decided|we chose|chosen approach)/i.test(content)) {
     return 'decision'
   }
@@ -186,22 +174,66 @@ function classifyProject(content: string): string {
   if (/(目标|里程碑|计划|下一步|goal|objective|milestone|next step)/i.test(content)) {
     return 'goal'
   }
-  if (/(链接|路径|资料|参考|reference|https?:\/\/|file:\/\/)/i.test(content)) {
+  if (
+    /(链接|路径|资料|参考|reference|https?:\/\/|file:\/\/|\/Users\/|~\/|\bpath\b|directory|folder)/i.test(
+      content
+    )
+  ) {
     return 'reference'
   }
-  return 'unclassified'
+  return fallback
 }
 
-export function inferTextKind(value: string, fallback = 'unclassified'): string {
-  const result = classifyFeedback(value)
-  return result === 'unclassified' ? fallback : result
+function classifyText(value: string, fallback = 'fact'): string {
+  const feedback = classifyFeedback(value, '')
+  if (feedback) return feedback
+  if (
+    /(我的名字|我叫|姓名|时区|timezone|time zone|称呼| pronouns?|role|职位|身份|expertise|专业领域|about me|关于我)/i.test(
+      value
+    )
+  ) {
+    return 'profile'
+  }
+  if (/(流程|步骤|工作流|procedure|workflow|steps|playbook|runbook)/i.test(value)) {
+    return 'procedure'
+  }
+  if (/(决定|已确定|采用|decision|decided|we chose|chosen approach)/i.test(value)) {
+    return 'decision'
+  }
+  if (/(目标|里程碑|计划|下一步|goal|objective|milestone|next step)/i.test(value)) {
+    return 'goal'
+  }
+  if (
+    /(约束|限制|截止|constraint|constrained to|limited to|out of scope|deadline|blocked|requires?|is due)/i.test(
+      value
+    )
+  ) {
+    return 'constraint'
+  }
+  if (
+    /(链接|路径|资料|参考|reference|https?:\/\/|file:\/\/|\/Users\/|~\/|\bpath\b|directory|folder)/i.test(
+      value
+    )
+  ) {
+    return 'reference'
+  }
+  if (/(失败|教训|原因|导致|根因|learned|lesson|failed|because|root cause)/i.test(value)) {
+    return 'insight'
+  }
+  return fallback
+}
+
+export function inferTextKind(value: string, fallback = 'fact'): string {
+  return classifyText(value, fallback)
 }
 
 export function normalizeMemoryKind(value: unknown, content = ''): string {
   const raw = typeof value === 'string' ? value.trim().toLowerCase() : ''
-  if (!raw) return 'unclassified'
+  if (!raw || raw === 'unknown' || raw === 'unclassified') {
+    return inferTextKind(content, 'fact')
+  }
   const key = raw.replace(/\s+/g, '-')
-  if (key === 'feedback' || key === 'correction') return classifyFeedback(content)
+  if (key === 'feedback' || key === 'correction') return classifyFeedback(content, 'fact')
   if (
     key === 'project' ||
     key === 'task' ||
@@ -209,16 +241,16 @@ export function normalizeMemoryKind(value: unknown, content = ''): string {
     key === 'task_group' ||
     key === 'project_memory'
   ) {
-    return classifyProject(content)
+    return classifyProject(content, 'fact')
   }
-  return KIND_ALIASES[key] ?? KIND_ALIASES[raw] ?? 'unclassified'
+  return KIND_ALIASES[key] ?? KIND_ALIASES[raw] ?? inferTextKind(content, 'fact')
 }
 
 export function categoryForKind(value: unknown): MemoryCategoryId {
   const kind = normalizeMemoryKind(value)
   return (
     ALL_MEMORY_CATEGORIES.find((category) => category.kinds.includes(kind))?.id ??
-    'unclassified'
+    'knowledge'
   )
 }
 
@@ -235,7 +267,8 @@ export function memoryCategoryCounts(
 export function categoryDefinition(value: unknown): MemoryCategoryDefinition {
   return (
     ALL_MEMORY_CATEGORIES.find((category) => category.id === value) ??
-    AUXILIARY_CATEGORIES[AUXILIARY_CATEGORIES.length - 1]
+    MEMORY_CATEGORIES.find((category) => category.id === 'knowledge') ??
+    ALL_MEMORY_CATEGORIES[0]
   )
 }
 
@@ -246,10 +279,6 @@ export function kindLabel(value: unknown): string {
 
 export function isEvidenceKind(value: unknown): boolean {
   return categoryForKind(value) === 'evidence'
-}
-
-export function isUnclassifiedKind(value: unknown): boolean {
-  return normalizeMemoryKind(value) === 'unclassified'
 }
 
 export function normalizeMemoryScope(value: unknown, project?: string | null): MemoryScope {
@@ -273,9 +302,8 @@ export function normalizeMemoryAuthority(value: unknown): MemoryAuthority {
     : 'agent_observed'
 }
 
-export function normalizeMemoryStatus(value: unknown, kind?: unknown): MemoryStatus {
+export function normalizeMemoryStatus(value: unknown, _kind?: unknown): MemoryStatus {
   if (value === 'active' || value === 'superseded' || value === 'archived') return value
-  if (normalizeMemoryKind(kind) === 'unclassified') return 'unclassified'
   return 'active'
 }
 
@@ -302,8 +330,7 @@ export function statusLabel(value: MemoryStatus): string {
   return {
     active: 'Active',
     superseded: 'Superseded',
-    archived: 'Archived',
-    unclassified: 'Needs review'
+    archived: 'Archived'
   }[value]
 }
 
@@ -333,10 +360,10 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
       { native: 'feedback outcome', description: 'A failed approach or reusable conclusion becomes an insight', category: 'knowledge', kinds: ['insight'], imported: true },
       { native: 'project topic', description: 'Goals, constraints, and decisions under Space scope', category: 'current', kinds: ['goal', 'constraint', 'decision'], imported: true },
       { native: 'reference topic', description: 'Where external information lives', category: 'knowledge', kinds: ['reference'], imported: true },
-      { native: 'local account topic', description: 'Untyped local topic without a knowledge type', category: 'unclassified', kinds: ['unclassified'], imported: true },
-      { native: 'local agent topic', description: 'Untyped local agent topic without a knowledge type', category: 'unclassified', kinds: ['unclassified'], imported: true },
+      { native: 'local account topic', description: 'Untyped local topic resolved into a durable kind', category: 'knowledge', kinds: ['fact', 'reference', 'insight'], imported: true },
+      { native: 'local agent topic', description: 'Untyped local agent topic resolved into a durable kind', category: 'knowledge', kinds: ['fact', 'reference', 'insight'], imported: true },
       { native: 'MEMORY.md', description: 'Index only; topic files hold the memory bodies', category: 'knowledge', kinds: ['reference'], imported: false },
-      { native: 'server-side Chat memory', description: 'Ordinary Chat topics stored on the account', category: 'unclassified', kinds: ['unclassified'], imported: false },
+      { native: 'server-side Chat memory', description: 'Ordinary Chat topics stored on the account', category: 'knowledge', kinds: ['fact'], imported: false },
       { native: 'cloud project memory', description: 'Cloud project memory absent from the local topic store', category: 'current', kinds: ['goal', 'constraint', 'decision'], imported: false }
     ]
   },
@@ -365,7 +392,7 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
       { native: 'rule', description: 'Local user or project rule', category: 'guidance', kinds: ['rule'], imported: true },
       { native: 'agent definition', description: 'Markdown or MDC agent guidance', category: 'guidance', kinds: ['rule'], imported: true },
       { native: 'AGENTS.md', description: 'Repository instruction outside the local Cursor home', category: 'guidance', kinds: ['rule'], imported: false },
-      { native: 'automation memory', description: 'Named MEMORIES.md entries owned by a cloud automation', category: 'unclassified', kinds: ['unclassified'], imported: false }
+      { native: 'automation memory', description: 'Named MEMORIES.md entries owned by a cloud automation', category: 'knowledge', kinds: ['fact', 'reference'], imported: false }
     ]
   },
   'deepseek-harness': {
@@ -377,7 +404,7 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
       { native: 'session event', description: 'Append-only task history used only as scan input', category: 'evidence', kinds: ['session_summary'], imported: false },
       { native: 'compaction summary', description: 'Model-generated summary of a shadowed context range', category: 'evidence', kinds: ['compaction'], imported: true },
       { native: 'user-global AGENTS.md', description: 'Instructions loaded from ~/.dsh/AGENTS.md', category: 'guidance', kinds: ['rule'], imported: true },
-      { native: 'MCP shared memory', description: 'dachshund tools expose the same shared library to DeepSeek Harness', category: 'unclassified', kinds: ['unclassified'], imported: false },
+      { native: 'MCP shared memory', description: 'dachshund tools expose the same shared library to DeepSeek Harness', category: 'knowledge', kinds: ['fact', 'reference', 'insight'], imported: false },
       { native: 'durable preference', description: 'Explicit remember, always, or preference cue', category: 'guidance', kinds: ['preference'], imported: true },
       { native: 'durable correction', description: 'Explicit correction becomes a rule, preference, or insight', category: 'guidance', kinds: ['rule', 'preference'], imported: true }
     ]
@@ -389,8 +416,8 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
     path: '~/Library/Application Support/Doubao/Default/.doubao/agent_mode/workspace',
     mappings: [
       { native: 'account memory', description: 'Probabilistic user-level recall', category: 'identity', kinds: ['profile'], imported: false },
-      { native: 'assistant memory', description: 'Context isolated per Doubao assistant', category: 'unclassified', kinds: ['unclassified'], imported: false },
-      { native: 'Agent Mode memory', description: 'Local workspace and session context without a reliable native type', category: 'unclassified', kinds: ['unclassified'], imported: true }
+      { native: 'assistant memory', description: 'Context isolated per Doubao assistant', category: 'knowledge', kinds: ['fact'], imported: false },
+      { native: 'Agent Mode memory', description: 'Local workspace and session context resolved into a durable kind', category: 'knowledge', kinds: ['fact', 'reference', 'insight'], imported: true }
     ]
   },
   'gemini-cli': {
@@ -411,7 +438,7 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
     path: '~/.copilot/memories + ~/.copilot/instructions',
     mappings: [
       { native: 'instructions', description: 'Local instruction Markdown', category: 'guidance', kinds: ['rule'], imported: true },
-      { native: 'local memory', description: 'Untyped local memory Markdown', category: 'unclassified', kinds: ['unclassified'], imported: true },
+      { native: 'local memory', description: 'Untyped local memory Markdown resolved into a durable kind', category: 'knowledge', kinds: ['fact', 'reference', 'insight'], imported: true },
       { native: 'AGENTS.md', description: 'Tool-native repository instruction', category: 'guidance', kinds: ['rule'], imported: false },
       { native: 'CLI session', description: 'Local and account-synced conversation history', category: 'evidence', kinds: ['session_summary'], imported: false }
     ]
@@ -423,7 +450,7 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
     path: '~/.hermes/memories/USER.md + MEMORY.md',
     mappings: [
       { native: 'USER.md', description: 'Profile and stable user context', category: 'identity', kinds: ['profile'], imported: true },
-      { native: 'MEMORY.md', description: 'Untyped agent notes remain unclassified until reviewed', category: 'unclassified', kinds: ['unclassified'], imported: true },
+      { native: 'MEMORY.md', description: 'Agent notes split by heading and resolved into durable kinds', category: 'knowledge', kinds: ['fact', 'reference', 'insight'], imported: true },
       { native: 'session history', description: 'Evidence not imported as durable memory', category: 'evidence', kinds: ['session_summary'], imported: false }
     ]
   },
@@ -434,7 +461,7 @@ export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
     path: '~/.config/opencode/AGENTS.md + memory',
     mappings: [
       { native: 'global AGENTS.md', description: 'Global OpenCode behavior', category: 'guidance', kinds: ['rule'], imported: true },
-      { native: 'memory Markdown', description: 'Untyped observed local memory files', category: 'unclassified', kinds: ['unclassified'], imported: true },
+      { native: 'memory Markdown', description: 'Untyped observed local memory files resolved into durable kinds', category: 'knowledge', kinds: ['fact', 'reference', 'insight'], imported: true },
       { native: 'project AGENTS.md', description: 'Repository-scoped instructions', category: 'guidance', kinds: ['rule'], imported: false },
       { native: 'session', description: 'Local interaction history', category: 'evidence', kinds: ['session_summary'], imported: false }
     ]
@@ -503,7 +530,7 @@ export function agentMemoryModel(agentId: string): AgentMemoryModel {
       summary:
         'This agent exposes local memory files without a documented native taxonomy. dachshund classifies each imported entry by its kind.',
       path: 'Local memory files',
-      mappings: [{ native: 'memory', description: 'Recognized local context', category: 'unclassified', kinds: ['unclassified'], imported: false }]
+      mappings: [{ native: 'memory', description: 'Recognized local context resolved into a durable kind', category: 'knowledge', kinds: ['fact', 'reference', 'insight'], imported: false }]
     }
   )
 }

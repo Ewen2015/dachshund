@@ -23,8 +23,8 @@ discover existing agent memory
 - A reusable landing view reachable from the brand mark in both app surfaces.
 - Local discovery for fourteen agent families.
 - Agent-specific read-only importers for all fourteen of them.
-- Four fixed knowledge categories, ten durable kinds, and separate Evidence and
-  Unclassified layers.
+- Four fixed knowledge categories, ten durable kinds, and a separate Evidence
+  layer. Untyped content resolves into an existing durable kind.
 - An in-app Guide with a top-down native-file → kind → category diagram,
   category focus states, classification guardrails, and orthogonal dimensions.
 - Orthogonal scope, authority, and lifecycle status on every memory record.
@@ -85,25 +85,24 @@ Verified in this repository:
 - Screenshot capture passes for all main views and the compact panel.
 - The packaged 22 px and 44 px menu bar templates keep transparent margins and
   are rejected by the build if the mark is clipped.
-- An isolated real scan identified 80 importable memories across 14 installed
-  agents. Hermes contributed 17 native entries. Pi, ZCode, and DeepSeek
-  Harness were detected and parsed; their transcript adapters correctly skipped
-  ordinary task prompts with no durable-memory signal.
+- A real synchronization after the taxonomy cleanup completed with 246 active
+  records and zero records in the removed unresolved category. Hermes
+  `MEMORY.md` entries were split and mapped into Identity and Knowledge.
 - An end-to-end MCP query against that imported library found a TRAE-authored
   memory through `memory_search` and returned it through `memory_context`.
 - The development Connectors screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.22-arm64.dmg` was produced on 2026-11-04.
+- `release/dachshund-0.1.23-arm64.dmg` was produced on 2026-11-04.
 - The packaged app launched against an isolated data directory and reported a
-  packaged version of `0.1.22`, rendered `.app-shell`, and kept its compact
-  panel configured with `visibleOnAllWorkspaces: true`.
-- The `0.1.22` DMG mounted read-only, contained a valid ad-hoc-signed app at
-  version `0.1.22`, and included an executable MCP bridge.
+  packaged version of `0.1.23` and rendered `.app-shell`; the separate panel
+  placement fixture passed with `visibleOnAllWorkspaces: true`.
+- The `0.1.23` DMG mounted read-only, contained a valid ad-hoc-signed app at
+  version `0.1.23`, and included an executable MCP bridge.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.22` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.23` passed the same
   five-tool MCP smoke test.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
@@ -369,7 +368,7 @@ token are not a defense against a compromised account.
 #### 0.1.22: Reviewable Consolidation
 
 - consolidate the memory model into four knowledge categories, ten durable
-  kinds, and separate Evidence and Unclassified layers;
+  kinds, and a separate Evidence layer;
 - add an in-app Guide that explains the model with a readable top-down filing
   plan, fixed category cards, and focusable routes;
 - dismiss transient sync notices after three seconds, while preserving the
@@ -379,6 +378,15 @@ token are not a defense against a compromised account.
 - synchronize every full-app, menu bar, Pulse, agent mapping, documentation,
   seed, and website surface with the same fixed category order;
 
+#### 0.1.23: Complete Durable Classification
+
+- removed the temporary Unclassified category, status, filter, and tag;
+- resolved legacy untyped records into existing durable kinds;
+- split Hermes `MEMORY.md` by heading for section-level classification;
+- kept the inspector from covering category and agent filters in compact mode;
+- synchronized the taxonomy contract, screenshots, research notes, and both
+  websites.
+
 ### Next
 
 - near-duplicate suggestions;
@@ -387,7 +395,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.23: Recall Quality
+#### 0.1.24: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -395,7 +403,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-#### 0.1.24: Distribution
+#### 0.1.25: Distribution
 
 - signed and notarized universal build;
 - update channel;

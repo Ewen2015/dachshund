@@ -13,33 +13,33 @@ truth; this matrix describes what the current importers actually do.
 | 3 | **Knowledge** | `fact`, `reference`, `insight` | Durable information and conclusions |
 | 4 | **Current work** | `goal`, `constraint`, `decision` | Active project or workspace state |
 | Aux | **Evidence** | `session_summary`, `task_rollout`, `compaction`, `workspace_log`, `feedback_event` | Chronological source material |
-| Aux | **Unclassified** | `unclassified` | Content that cannot yet be typed honestly |
 
 The right-hand category order never changes between agents. A native category
 can map many-to-one into one target category. A target category with no native
-equivalent stays visible and empty.
+equivalent stays visible and empty. Untyped content is still assigned to one of
+the four durable categories by content.
 
 ## Mapping matrix
 
 `Not imported` means the native concept exists or is known but is outside the
 current local adapter. `-` means no mapping is needed for that row.
 
-| Agent | Identity | Guidance | Knowledge | Current work | Evidence | Unclassified |
-| --- | --- | --- | --- | --- | --- | --- |
-| **Codex** | Split `memory_summary.md` identity section | Summary guidance; `Reusable knowledge` may become `procedure` | Summary knowledge; reusable insight | Explicit task-group goal, constraint, or decision | Task groups, raw threads, SQLite rollouts | Unmatched summary sections if no type is clear |
-| **Claude Code** | Typed `user` | Typed `feedback` -> preference/rule; `CLAUDE.md` and rules -> rule | Typed `reference`; feedback outcome -> insight | Typed `project` | Session transcripts: not imported | Untyped local memory |
-| **Claude Desktop** | Typed `user` topic | Typed `feedback` -> preference/rule or insight | Typed `reference`; feedback outcome -> insight | Typed `project` | - | Untyped local account/agent topics; server Chat memory: not imported |
-| **WorkBuddy** | `USER.md`, typed `user` | Typed `feedback`; `IDENTITY.md` -> rule | Typed `reference`; feedback outcome -> insight | Typed `project` | Dated workspace logs | Untyped workspace Markdown |
-| **TRAE** | `user_profile.md` | - | - | `project_memory.md` | `topics.md`, `session_memory_*.jsonl` | Rules: not imported |
-| **Doubao** | Account memory: not imported | - | - | - | - | Agent Mode workspace/session files; assistant memory: not imported |
-| **Hermes** | `USER.md` | - | - | - | Session history: not imported | `MEMORY.md` entries |
-| **Pi** | - | Explicit durable preference/rule | - | - | Compaction and branch summaries | - |
-| **ZCode** | Typed `user`; explicit preference | Typed `feedback`; explicit correction | Typed `reference`; feedback outcome -> insight | Typed `project` | Session/debug logs: not imported | Untyped project Markdown or durable text |
-| **DeepSeek Harness** | - | Durable preference/rule; `AGENTS.md` -> rule | - | `cwd` is scope only | Compaction summaries; raw sessions stay outside the import | - |
-| **Gemini CLI** | - | `GEMINI.md` -> rule | Added memories -> fact | - | Session history: not imported | - |
-| **Cursor** | - | Rules and agent definitions -> rule | - | - | - | Repository `AGENTS.md`, automation memory: not imported |
-| **GitHub Copilot** | - | Local instructions -> rule | - | - | CLI sessions: not imported | Untyped local memory Markdown |
-| **OpenCode** | - | Global `AGENTS.md` -> rule | - | - | Sessions: not imported | Observed memory Markdown |
+| Agent | Identity | Guidance | Knowledge | Current work | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| **Codex** | Split `memory_summary.md` identity section | Summary guidance; `Reusable knowledge` may become `procedure` | Summary knowledge; reusable insight; unmatched sections by content | Explicit task-group goal, constraint, or decision | Task groups, raw threads, SQLite rollouts |
+| **Claude Code** | Typed `user` | Typed `feedback` -> preference/rule; `CLAUDE.md` and rules -> rule | Typed `reference`; feedback outcome -> insight; untyped memory by content | Typed `project` | Session transcripts: not imported |
+| **Claude Desktop** | Typed `user` topic | Typed `feedback` -> preference/rule or insight | Typed `reference`; feedback outcome -> insight; untyped topics by content | Typed `project` | - |
+| **WorkBuddy** | `USER.md`, typed `user` | Typed `feedback`; `IDENTITY.md` -> rule | Typed `reference`; feedback outcome -> insight; untyped workspace Markdown by content | Typed `project` | Dated workspace logs |
+| **TRAE** | `user_profile.md` | Rules: not imported | Project memory resolved by content | `project_memory.md` | `topics.md`, `session_memory_*.jsonl` |
+| **Doubao** | Account memory: not imported | - | Agent Mode workspace/session files resolved by content | - | - |
+| **Hermes** | `USER.md` | - | `MEMORY.md` split by heading and resolved per section | - | Session history: not imported |
+| **Pi** | - | Explicit durable preference/rule | - | - | Compaction and branch summaries |
+| **ZCode** | Typed `user`; explicit preference | Typed `feedback`; explicit correction | Typed `reference`; feedback outcome -> insight; untyped text by content | Typed `project` | Session/debug logs: not imported |
+| **DeepSeek Harness** | - | Durable preference/rule; `AGENTS.md` -> rule | - | `cwd` is scope only | Compaction summaries; raw sessions stay outside the import |
+| **Gemini CLI** | - | `GEMINI.md` -> rule | Added memories -> fact | - | Session history: not imported |
+| **Cursor** | - | Rules and agent definitions -> rule | - | - | Repository `AGENTS.md`, automation memory: not imported |
+| **GitHub Copilot** | - | Local instructions -> rule | Untyped local memory Markdown resolved by content | - | CLI sessions: not imported |
+| **OpenCode** | - | Global `AGENTS.md` -> rule | Observed memory Markdown resolved by content | - | Sessions: not imported |
 
 ## Native source details
 
@@ -59,12 +59,12 @@ current local adapter. `-` means no mapping is needed for that row.
 | **WorkBuddy** | `memory/*.md` with `user`, `feedback`, `project`, `reference` | Yes | Normalized by native type and body |
 | **WorkBuddy** | Workspace `.workbuddy/memory/YYYY-MM-DD.md` | Yes | `workspace_log`; workspace label becomes scope |
 | **TRAE** | `memory/user_profile.md` | Yes | `profile` |
-| **TRAE** | `project_memory.md` | Yes | Goal, constraint, decision, reference, or unclassified |
+| **TRAE** | `project_memory.md` | Yes | Goal, constraint, decision, reference, or fact |
 | **TRAE** | `topics.md`, `session_memory_*.jsonl` | Yes | `session_summary` |
-| **Doubao** | Agent Mode global and session Markdown | Yes | `unclassified` until reviewed |
+| **Doubao** | Agent Mode global and session Markdown | Yes | Durable kind resolved from body content |
 | **Doubao** | account and per-assistant memory | No | Account-scoped; not exposed as stable local files |
 | **Hermes** | `USER.md` | Yes, split on `§` | `profile` |
-| **Hermes** | `MEMORY.md` | Yes, split on `§` | `unclassified` |
+| **Hermes** | `MEMORY.md` | Yes, split on `§` and `##` headings | Each section resolved to `profile`, `rule`, `preference`, `procedure`, `reference`, `fact`, or project kinds |
 | **Pi** | `compaction.summary` | Yes | `compaction` |
 | **Pi** | `branch_summary.summary` | Yes | `session_summary` |
 | **Pi** | User messages with an explicit durable cue | Yes | `preference` or `rule` |
@@ -78,9 +78,9 @@ current local adapter. `-` means no mapping is needed for that row.
 | **Gemini CLI** | `## Gemini Added Memories` | Yes | `fact` |
 | **Cursor** | `rules/`, `agents/` Markdown and MDC | Yes | `rule` |
 | **GitHub Copilot** | `instructions/` | Yes | `rule` |
-| **GitHub Copilot** | `memories/` | Yes | `unclassified` |
+| **GitHub Copilot** | `memories/` | Yes | Durable kind resolved from body content |
 | **OpenCode** | Global `AGENTS.md` | Yes | `rule` |
-| **OpenCode** | Local memory Markdown | Yes | `unclassified` |
+| **OpenCode** | Local memory Markdown | Yes | Durable kind resolved from body content |
 
 ## Type resolution
 
@@ -90,7 +90,7 @@ For Markdown-based agents, dachshund resolves kind in this order:
 2. frontmatter `type`;
 3. nested `metadata.type`;
 4. the adapter's file-role default;
-5. `unclassified`.
+5. deterministic content signals, with `fact` as the generic fallback.
 
 Legacy values are not copied forward blindly:
 
@@ -101,6 +101,7 @@ Legacy values are not copied forward blindly:
 - `episode` becomes `session_summary`.
 - `lesson` becomes `insight`.
 - `workflow` becomes `procedure`.
+- Legacy `unknown` and `unclassified` values are re-resolved from content.
 
 ## Important boundaries
 
@@ -110,8 +111,9 @@ Legacy values are not copied forward blindly:
   Evidence, Guidance, or Knowledge.
 - **History is not silently promoted.** Compaction and rollout text must be
   reviewed or explicitly rewritten before becoming durable knowledge.
-- **Unclassified is honest.** It is not rewritten as `fact` to make the UI look
-  complete.
+- **Every durable record has a shelf.** Untyped content is assigned the closest
+  durable kind instead of creating a review-only category; generic observations
+  become `fact` and source locators become `reference`.
 - **Not imported is explicit.** Account-only memory, server-side memory, raw
   transcripts, reasoning, and tool output are not presented as available local
   memory.

@@ -182,9 +182,9 @@ and notarized.
 
 Verified build:
 
-- output: `release/dachshund-0.1.22-arm64.dmg`
+- output: `release/dachshund-0.1.23-arm64.dmg`
 - SHA-256:
-  `bef0d478d9c4b616860546894562ba24ed52eeebc88bf9d382bfe994069bd8f3`
+  `055620d2e3b70e8c202c20fef3122898ca0389fe1c5fa4f395ba11767318021b`
 - packaged app launch and packaged MCP bridge smoke test pass
 - code signing: ad-hoc only
 - Gatekeeper assessment: fails without Developer ID signing and notarization

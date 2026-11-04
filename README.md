@@ -11,7 +11,7 @@ dachshund finds the memory files your agents already keep, brings them into one
 Markdown library, and serves that library back through MCP. No account, no cloud,
 no model requirement.
 
-[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.22/dachshund-0.1.22-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
+[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.23/dachshund-0.1.23-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -58,7 +58,7 @@ already remembers everything you need, you probably do not need dachshund.
 
 | Platform | Architecture | Package | Size | Download |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.22](https://github.com/Ewen2015/dachshund/releases/download/v0.1.22/dachshund-0.1.22-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.23](https://github.com/Ewen2015/dachshund/releases/download/v0.1.23/dachshund-0.1.23-arm64.dmg)** |
 
 **System requirement:** macOS on Apple Silicon
 
@@ -67,7 +67,7 @@ already remembers everything you need, you probably do not need dachshund.
 > **Open** on first launch.
 
 [All releases](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.22/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.23/SHA256SUMS)
 
 **Install**
 
@@ -88,7 +88,7 @@ into the app.
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.22/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.23/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -225,8 +225,8 @@ choice.
 
 Pulse is a memory-specific view, not a vanity usage dashboard. See which agents
 are growing the library, how much knowledge is echoed across agents, how memory
-is distributed across the four knowledge categories and supporting Evidence or
-Unclassified layers, and whether the library is getting stale. The same summary
+is distributed across the four knowledge categories and supporting Evidence
+layer, and whether the library is getting stale. The same summary
 is available from the menu bar panel.
 
 <img src="docs/screenshots/07-pulse.png" width="900" alt="dachshund Pulse tab with memory growth, cross-agent overlap and freshness">
@@ -236,9 +236,10 @@ is available from the menu bar panel.
 The **Guide** tab explains the shared memory model in the app, without sending
 you into implementation docs. A top-down filing plan shows how agent-native
 files become ten durable kinds, then land on one of four fixed shelves:
-Identity, Guidance, Knowledge, or Current work. Evidence and Unclassified stay
-in a separate review tray so raw history and uncertain imports do not silently
-become durable knowledge.
+Identity, Guidance, Knowledge, or Current work. Evidence stays in a separate
+review tray so raw history does not silently become durable knowledge. Untyped
+imports are still filed into an existing durable category: generic observations
+become Fact and source locators become Reference.
 
 The four category cards below the diagram can hover, focus, or click to isolate
 a route. Guide is available in top-tab and sidebar navigation; in the compact

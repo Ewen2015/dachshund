@@ -10,7 +10,7 @@
 dachshund 找到这些 Agent 已经写在本机的 Memory，把它们汇入一份 Markdown
 记忆库，再通过 MCP 提供给所有 Agent 使用。无需账号，无需上云，也不依赖模型
 
-[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.22/dachshund-0.1.22-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
+[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.23/dachshund-0.1.23-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -48,7 +48,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 
 | 平台 | 架构 | 安装包 | 大小 | 下载 |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.22](https://github.com/Ewen2015/dachshund/releases/download/v0.1.22/dachshund-0.1.22-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.23](https://github.com/Ewen2015/dachshund/releases/download/v0.1.23/dachshund-0.1.23-arm64.dmg)** |
 
 **系统要求：** Apple Silicon Mac
 
@@ -57,7 +57,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 > 选择“打开”
 
 [所有版本](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.22/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.23/SHA256SUMS)
 
 **安装**
 
@@ -76,7 +76,7 @@ SHA-256 用于确认下载的 DMG 与正式发布文件一致。它不是激活�
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.22/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.23/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -196,8 +196,8 @@ Agent 读取，也仍然保留 Codex 来源。第二个 Agent 写入完全相同
 ### Pulse：看清记忆的形状
 
 Pulse 不是一张为了好看而做的使用量报表。它能看出哪些 Agent 正在扩充记忆库、
-多少知识被多个 Agent 共同记住、Memory 在四个知识分类以及 Evidence /
-Unclassified 辅助层中的分布，以及记忆是否正在变旧。菜单栏小窗里也有同一组数据
+多少知识被多个 Agent 共同记住、Memory 在四个知识分类以及 Evidence 辅助层中的
+分布，以及记忆是否正在变旧。菜单栏小窗里也有同一组数据
 的紧凑视图
 
 <img src="docs/screenshots/07-pulse.png" width="900" alt="dachshund Pulse 页面，展示 Memory 增长、跨 Agent 重合和新鲜度">
@@ -206,8 +206,9 @@ Unclassified 辅助层中的分布，以及记忆是否正在变旧。菜单栏�
 
 **Guide** tab 在应用内解释统一记忆模型，不需要跳进实现文档。俯视分类台展示
 Agent 原生文件如何先归一化成十个 durable kind，再进入 Identity、Guidance、
-Knowledge、Current work 四个固定分类。Evidence 和 Unclassified 单独放在审核托盘，
-避免原始历史和无法可靠判断的内容默认变成长期知识。
+Knowledge、Current work 四个固定分类。Evidence 单独放在审核托盘，避免原始历史
+默认变成长期知识。没有原生类型的内容仍会归入已有 durable 分类：普通观察落到
+Fact，路径和资料指针落到 Reference。
 
 图下方的四张分类卡可以悬停、聚焦或点击，只保留一条分类路径。Guide 同时出现在
 顶部 tab 和侧边栏；菜单栏小窗仍只保留浏览与记录所需的紧凑界面。

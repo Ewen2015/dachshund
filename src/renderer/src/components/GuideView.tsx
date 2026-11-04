@@ -27,7 +27,7 @@ const dimensions = [
   },
   {
     label: 'Status',
-    values: 'Active · Superseded · Archived · Review',
+    values: 'Active · Superseded · Archived',
     copy: 'Whether the memory still participates in recall, without deleting its provenance.'
   }
 ]
@@ -50,8 +50,8 @@ const rules = [
   },
   {
     number: '04',
-    title: 'Unclear is an honest destination.',
-    copy: 'Unknown or ambiguous imports enter Unclassified for review instead of being forced into Fact.'
+    title: 'Untyped still gets a shelf.',
+    copy: 'When no native type exists, dachshund resolves the content into the closest durable kind. Generic observations become Fact; paths and source material become Reference.'
   }
 ]
 
@@ -74,8 +74,8 @@ export function GuideView() {
         <div className="guide-principle">
           <span>Fixed categories</span>
           <p>
-            Four durable shelves are always in the same order. Evidence and Unclassified sit
-            outside them as supporting layers.
+            Four durable shelves are always in the same order. Evidence sits outside them
+            as the only supporting layer.
           </p>
         </div>
       </section>

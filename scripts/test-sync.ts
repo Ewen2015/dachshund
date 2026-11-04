@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import matter from 'gray-matter'
 import { nextSyncDelay } from '../src/main/sync-schedule.ts'
 
 async function main(): Promise<void> {
@@ -274,8 +275,42 @@ async function main(): Promise<void> {
       'This source does not provide a defensible knowledge type.'
     ].join('\n')
   )
-  assert.equal(new Library().readFile(unknownFile)?.kind, 'unclassified')
-  assert.equal(new Library().readFile(unknownFile)?.status, 'unclassified')
+  const unknownLibrary = new Library()
+  assert.equal(unknownLibrary.readFile(unknownFile)?.kind, 'fact')
+  assert.equal(unknownLibrary.readFile(unknownFile)?.status, 'active')
+  unknownLibrary.syncToDb(store.db)
+  const normalizedUnknown = matter(fs.readFileSync(unknownFile, 'utf8')).data as Record<
+    string,
+    unknown
+  >
+  assert.equal(normalizedUnknown.kind, 'fact')
+  assert.equal(normalizedUnknown.status, 'active')
+
+  const legacyReviewFile = path.join(
+    process.env.DACHSHUND_LIBRARY!,
+    'memory',
+    'legacy-unclassified.md'
+  )
+  fs.writeFileSync(
+    legacyReviewFile,
+    [
+      '---',
+      'id: mem_legacy_unclassified',
+      'title: Legacy unclassified',
+      'kind: unclassified',
+      'status: unclassified',
+      '---',
+      '',
+      'The local release archive lives at /Users/example/releases/dachshund.'
+    ].join('\n')
+  )
+  unknownLibrary.syncToDb(store.db)
+  const normalizedReview = matter(fs.readFileSync(legacyReviewFile, 'utf8')).data as Record<
+    string,
+    unknown
+  >
+  assert.equal(normalizedReview.kind, 'reference')
+  assert.equal(normalizedReview.status, 'active')
 
   store.db.close()
   fs.rmSync(root, { recursive: true, force: true })

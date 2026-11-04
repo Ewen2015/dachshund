@@ -70,8 +70,9 @@ dachshund 不把四种原生类型直接照搬为一级分类，而是先归一�
 | Current work | `goal`, `constraint`, `decision` |
 
 另有 Evidence 辅助层（`session_summary`, `task_rollout`, `compaction`,
-`workspace_log`, `feedback_event`）和 Unclassified（`unclassified`）。它们有数据
-时出现在浏览与 Pulse 中，但不属于四个 durable 知识分类。
+`workspace_log`, `feedback_event`）。它有数据时出现在浏览与 Pulse 中，但不属于
+四个 durable 知识分类。缺少原生类型的内容仍会按正文归入已有 durable kind，
+不创建额外的待分类分类。
 
 这比直接复制四个原生类型多两层价值：
 
@@ -81,7 +82,7 @@ dachshund 不把四种原生类型直接照搬为一级分类，而是先归一�
 agent 现在是来源、徽标和过滤器，不是一级分类。主页面按时间排列并显示分类 tag，
 点击 legend 可以查看某个分类的全部 memory；agent 详情页再解释原生结构到
 dachshund 分类的映射；应用内 Guide 再用俯视分类台解释 native signal → kind →
-category，以及 Evidence / Unclassified 与三个正交字段的位置。
+category，以及 Evidence 与三个正交字段的位置。
 
 实现定义见
 [`src/shared/memory-taxonomy.ts`](../src/shared/memory-taxonomy.ts)，产品说明见
@@ -93,10 +94,10 @@ category，以及 Evidence / Unclassified 与三个正交字段的位置。
 
 - `scope`: `user / project / workspace / path / session`；
 - `authority`: `user_explicit / project_declared / agent_observed / inferred`；
-- `status`: `active / superseded / archived / unclassified`；
+- `status`: `active / superseded / archived`；
 - `project` 作为人类可读项目标签，与 scope 分离。
 
-早期 `confidence` 提案没有进入实现，因为 authority 与 Unclassified 已覆盖当前需要。
+早期 `confidence` 提案没有进入实现，因为 authority、status 和 kind 已覆盖当前需要。
 完全重复的来源会合并为多来源条目，语义近重复和冲突仍不自动裁决。
 
 ### 6. 跨 Agent 共享已落地为三条路径

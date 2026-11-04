@@ -160,7 +160,7 @@ function parseMarkdownRaw(
       (typeof data.type === 'string' && data.type) ||
       (typeof meta.type === 'string' && meta.type) ||
       defaults.kind ||
-      'unclassified',
+      '',
     body
   )
   return {
@@ -265,7 +265,7 @@ function importWorkBuddy(agent: AgentDefinition): ImportedMemory[] {
     (item) => item.endsWith('.md') && path.basename(item) !== 'MEMORY.md',
     120
   )) {
-    addFile(file, { kind: 'unclassified', tags: ['workbuddy', 'user-memory'] })
+    addFile(file, { tags: ['workbuddy', 'user-memory'] })
   }
 
   try {
@@ -324,7 +324,6 @@ function importDoubao(agent: AgentDefinition): ImportedMemory[] {
   return files
     .map(({ file, session }) =>
       parseMarkdownFile(file, agent, {
-        kind: 'unclassified',
         scope: session ? 'session' : 'workspace',
         authority: 'agent_observed',
         project: session ? `Doubao session ${session.slice(-6)}` : null,
@@ -551,7 +550,6 @@ function importClaude(agent: AgentDefinition): ImportedMemory[] {
   const projectMemories = memoryFiles
     .map((file) =>
       parseMarkdownFile(file, agent, {
-        kind: 'unclassified',
         authority: 'agent_observed',
         project: projectFromClaudeDir(file),
         tags: ['claude-code', 'auto-memory']
@@ -574,7 +572,6 @@ function importClaude(agent: AgentDefinition): ImportedMemory[] {
     80
   ).map((file) =>
     parseMarkdownFile(file, agent, {
-      kind: 'unclassified',
       authority: 'agent_observed',
       tags: ['claude-code', 'global-memory']
     })
@@ -635,7 +632,6 @@ function importClaudeDesktop(agent: AgentDefinition): ImportedMemory[] {
     for (const file of walk(sessionRoot, isClaudeDesktopMemoryFile)) {
       const space = claudeDesktopSpace(file)
       const memory = parseMarkdownFile(file, agent, {
-        kind: 'unclassified',
         scope: space ? 'project' : 'user',
         authority: 'agent_observed',
         project: space?.name ?? null,
@@ -893,7 +889,7 @@ function importCodexMarkdown(agent: AgentDefinition): ImportedMemory[] {
                           ? 'reference'
                   : /fact|knowledge/.test(headingKey)
                     ? 'fact'
-                    : inferTextKind(content, 'unclassified')
+                    : inferTextKind(content, 'fact')
         out.push({
           title: sectionTitle.length > 110 ? `${sectionTitle.slice(0, 107)}…` : sectionTitle,
           content,
@@ -914,7 +910,7 @@ function importCodexMarkdown(agent: AgentDefinition): ImportedMemory[] {
       out.push({
         title: 'Codex memory summary',
         content: summary,
-        kind: inferTextKind(summary, 'unclassified'),
+        kind: inferTextKind(summary, 'fact'),
         scope: 'user',
         authority: 'inferred',
         project: null,
@@ -1078,7 +1074,6 @@ function importCopilot(agent: AgentDefinition): ImportedMemory[] {
     ),
     ...memoryFiles.map((file) =>
       parseMarkdownFile(file, agent, {
-        kind: 'unclassified',
         authority: 'agent_observed',
         tags: ['copilot', 'local-memory']
       })
@@ -1104,7 +1099,6 @@ function importOpenCode(agent: AgentDefinition): ImportedMemory[] {
     ...(instruction ? [instruction] : []),
     ...memoryFiles.map((file) =>
       parseMarkdownFile(file, agent, {
-        kind: 'unclassified',
         authority: 'agent_observed',
         tags: ['opencode', 'local-memory']
       })
@@ -1119,6 +1113,37 @@ function memoryTitle(text: string, fallback: string): string {
       .map((line) => line.replace(/^#{1,6}\s+/, '').replace(/^[-*]\s+/, '').trim())
       .find(Boolean) ?? fallback
   return firstLine.length > 110 ? `${firstLine.slice(0, 107).trimEnd()}…` : firstLine
+}
+
+function markdownSubsections(
+  content: string
+): Array<{ title: string; content: string }> {
+  const headings = [...content.matchAll(/^##\s+(.+)$/gm)]
+  if (!headings.length) return []
+  return headings.map((heading, index) => {
+    const start = (heading.index ?? 0) + heading[0].length
+    const end = headings[index + 1]?.index ?? content.length
+    return {
+      title: heading[1].trim(),
+      content: content.slice(start, end).trim()
+    }
+  })
+}
+
+function hermesSectionKind(title: string, content: string): string {
+  if (/(用户|个人信息|profile|identity|about)/i.test(title)) return 'profile'
+  if (/(偏好|preference)/i.test(title)) return inferTextKind(content, 'preference')
+  if (/(规则|要求|rule|instruction)/i.test(title)) return inferTextKind(content, 'rule')
+  if (/(流程|步骤|procedure|workflow)/i.test(title)) {
+    return inferTextKind(content, 'procedure')
+  }
+  if (/(项目|project|current|当前)/i.test(title)) {
+    return normalizeMemoryKind('project', content)
+  }
+  if (/(环境|集成|integration|environment|setup)/i.test(title)) {
+    return inferTextKind(content, 'reference')
+  }
+  return inferTextKind(content, 'fact')
 }
 
 function durableMemoryText(input: string): boolean {
@@ -1140,21 +1165,7 @@ function durableMemoryText(input: string): boolean {
 }
 
 function memoryKind(input: string, fallback: string): string {
-  if (
-    /(不要再|不要|别用|别改|别再|别把|别在|别对|别只|别直接|禁止|避免|改为|换成|never|do not|don't|avoid|instead of|stop using)/i.test(
-      input
-    )
-  ) {
-    return 'rule'
-  }
-  if (
-    /(prefer|preference|always|以后|记住|偏好|喜欢|总是|默认|始终|from now on|remember)/i.test(
-      input
-    )
-  ) {
-    return 'preference'
-  }
-  return fallback
+  return inferTextKind(input, fallback)
 }
 
 function textContent(value: unknown): string {
@@ -1173,10 +1184,9 @@ function textContent(value: unknown): string {
 
 function importHermes(agent: AgentDefinition): ImportedMemory[] {
   const out: ImportedMemory[] = []
-  const sources = [
+  const sources: Array<{ file: string; kind?: string; tags: string[] }> = [
     {
       file: path.join(agent.home, 'memories', 'MEMORY.md'),
-      kind: 'unclassified',
       tags: ['hermes', 'memory']
     },
     {
@@ -1192,25 +1202,46 @@ function importHermes(agent: AgentDefinition): ImportedMemory[] {
     const { created, updated } = times(source.file)
     const entries = raw.split('\n§\n')
     entries.forEach((entry, index) => {
-      const content = entry.trim()
-      if (!content || content.length <= 20) return
-      if (/^\*Learn about the person you're helping\. Update this as you go\.\*$/i.test(content)) {
-        return
-      }
-      out.push({
-        title: memoryTitle(content, path.basename(source.file, '.md')),
-        content,
-        kind: source.kind,
-        scope: 'user',
-        authority: 'agent_observed',
-        project: null,
-        tags: source.tags,
-        createdAt: created,
-        updatedAt: updated,
-        agentId: agent.id,
-        agentName: agent.name,
-        sourcePath: source.file,
-        sourceRef: `${path.basename(source.file)}:${index + 1}`
+      const root = entry.trim()
+      if (!root) return
+      const rootTitle = memoryTitle(root, path.basename(source.file, '.md'))
+      const subsections = markdownSubsections(root)
+      const chunks = subsections.length
+        ? subsections
+        : [{ title: rootTitle, content: root }]
+      chunks.forEach((chunk, chunkIndex) => {
+        const content = chunk.content.trim()
+        if (!content || content.length < (subsections.length ? 3 : 20)) return
+        if (
+          /^\*Learn about the person you're helping\. Update this as you go\.\*$/i.test(
+            content
+          )
+        ) {
+          return
+        }
+        const title =
+          subsections.length && chunk.title !== rootTitle
+            ? `${rootTitle} · ${chunk.title}`
+            : chunk.title
+        out.push({
+          title: title.length > 110 ? `${title.slice(0, 107).trimEnd()}…` : title,
+          content: subsections.length ? `## ${chunk.title}\n\n${content}` : content,
+          kind:
+            source.kind ??
+            (subsections.length
+              ? hermesSectionKind(chunk.title, content)
+              : inferTextKind(content, 'fact')),
+          scope: 'user',
+          authority: 'agent_observed',
+          project: null,
+          tags: source.tags,
+          createdAt: created,
+          updatedAt: updated,
+          agentId: agent.id,
+          agentName: agent.name,
+          sourcePath: source.file,
+          sourceRef: `${path.basename(source.file)}:${index + 1}:${chunkIndex + 1}`
+        })
       })
     })
   }
@@ -1373,7 +1404,7 @@ function importZCodeSqlite(agent: AgentDefinition): ImportedMemory[] {
       out.push({
         title: memoryTitle(content, typeof row.title === 'string' ? row.title : 'ZCode memory'),
         content,
-        kind: memoryKind(content, 'unclassified'),
+        kind: memoryKind(content, 'fact'),
         scope: directory ? 'project' : 'session',
         authority: 'user_explicit',
         project: directory ? path.basename(directory) : null,

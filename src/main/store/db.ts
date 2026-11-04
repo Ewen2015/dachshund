@@ -121,7 +121,7 @@ export class Db {
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
         content TEXT NOT NULL,
-        kind TEXT NOT NULL DEFAULT 'unclassified',
+        kind TEXT NOT NULL DEFAULT 'fact',
         scope TEXT NOT NULL DEFAULT 'user',
         authority TEXT NOT NULL DEFAULT 'agent_observed',
         status TEXT NOT NULL DEFAULT 'active',
@@ -467,8 +467,7 @@ export class Db {
     limit = 100,
     includeArchived = false,
     agentId?: string,
-    includeEvidence = true,
-    includeUnclassified = true
+    includeEvidence = true
   ): MemorySummary[] {
     const clauses = includeArchived ? [] : ['m.archived = 0']
     const params: string[] = []
@@ -484,11 +483,7 @@ export class Db {
          ORDER BY m.updated_at DESC LIMIT ?`
       )
       .all(...params, limit) as Row[]
-    return this.filterMemoryLayers(
-      this.rowsToSummaries(rows),
-      includeEvidence,
-      includeUnclassified
-    )
+    return this.filterMemoryLayers(this.rowsToSummaries(rows), includeEvidence)
   }
 
   listPulseMemories(): PulseMemory[] {
@@ -508,18 +503,11 @@ export class Db {
     agentId?: string,
     limit = 60,
     includeArchived = false,
-    includeEvidence = true,
-    includeUnclassified = true
+    includeEvidence = true
   ): MemorySummary[] {
     const trimmed = query.trim()
     if (!trimmed) {
-      return this.listMemories(
-        limit,
-        includeArchived,
-        agentId,
-        includeEvidence,
-        includeUnclassified
-      )
+      return this.listMemories(limit, includeArchived, agentId, includeEvidence)
     }
 
     const results = new Map<string, MemorySummary>()
@@ -570,18 +558,16 @@ export class Db {
 
     let list = [...results.values()]
     if (agentId) list = list.filter((m) => m.sources.some((s) => s.agentId === agentId))
-    return this.filterMemoryLayers(list, includeEvidence, includeUnclassified).slice(0, limit)
+    return this.filterMemoryLayers(list, includeEvidence).slice(0, limit)
   }
 
   private filterMemoryLayers(
     memories: MemorySummary[],
-    includeEvidence: boolean,
-    includeUnclassified: boolean
+    includeEvidence: boolean
   ): MemorySummary[] {
     return memories.filter((memory) => {
       const category = categoryForKind(memory.kind)
       if (!includeEvidence && category === 'evidence') return false
-      if (!includeUnclassified && category === 'unclassified') return false
       return true
     })
   }

@@ -13,7 +13,7 @@ Each record has four independent dimensions:
    the shared library.
 3. **Scope**: `user`, `project`, `workspace`, `path`, or `session`.
 4. **Authority and status**: who established the record and whether it is
-   active, superseded, archived, or awaiting review.
+   active, superseded, or archived.
 
 ```text
 agent file or database
@@ -50,20 +50,20 @@ scope answers what work it belongs to.
 The fixed category order is Identity, Guidance, Knowledge, Current work. The
 category model does not vary by agent.
 
-## Supporting layers
+## Supporting layer
 
-Two supporting layers keep provenance and uncertainty out of the four durable
-knowledge categories:
+One supporting layer keeps provenance and raw chronology out of the four
+durable knowledge categories:
 
 | Layer | Kinds | Purpose |
 | --- | --- | --- |
 | **Evidence** | `session_summary`, `task_rollout`, `compaction`, `workspace_log`, `feedback_event` | Retains chronological source material without pretending it is durable knowledge |
-| **Unclassified** | `unclassified` | Preserves imported content whose native model does not justify a stronger type |
 
-Evidence and Unclassified are visible in browse, agent mapping, and Pulse
-surfaces when they contain records. They are visually marked as auxiliary and
-are excluded from MCP recall by default. The four knowledge categories remain
-visible even when their counts are zero.
+Evidence is visible in browse, agent mapping, and Pulse surfaces when it contains
+records. It is visually marked as auxiliary and is excluded from MCP recall by
+default. The four knowledge categories remain visible even when their counts are
+zero. Every durable record belongs to one of those four categories; there is no
+separate unresolved shelf.
 
 ## Why these boundaries
 
@@ -78,7 +78,10 @@ visible even when their counts are zero.
 - **Evidence** answers what happened. A session or rollout can later become a
   decision, insight, or reference through an explicit human action. dachshund
   does not silently promote history into a durable claim.
-- **Unclassified** is an honest holding state, not a synonym for fact.
+- **Untyped content still has a home.** When a native file does not expose a
+  kind, dachshund resolves the closest durable kind deterministically. Generic
+  observations become `fact`; paths, links, and source material become
+  `reference`.
 
 ## Scope, authority, and status
 
@@ -86,7 +89,7 @@ visible even when their counts are zero.
 | --- | --- | --- |
 | `scope` | `user`, `project`, `workspace`, `path`, `session` | Where the memory applies |
 | `authority` | `user_explicit`, `project_declared`, `agent_observed`, `inferred` | How strongly the source established the memory |
-| `status` | `active`, `superseded`, `archived`, `unclassified` | Current lifecycle state |
+| `status` | `active`, `superseded`, `archived` | Current lifecycle state |
 
 The `project` field remains a human-readable project or workspace label. It is
 not the same thing as the `project` scope. A Codex rollout can have project
@@ -100,7 +103,7 @@ Importers resolve kind in this order:
 2. frontmatter `type`;
 3. nested `metadata.type`;
 4. the adapter's file-role default;
-5. `unclassified` when no defensible type exists.
+5. deterministic content signals; generic fallback is `fact`.
 
 Common aliases are normalized before category lookup:
 
@@ -117,19 +120,20 @@ Common aliases are normalized before category lookup:
 | `session`, `session_memory`, `topic`, `history`, `branch_summary` | `session_summary` |
 | `rollout`, `thread` | `task_rollout` |
 | `daily_log` | `workspace_log` |
-| `unknown` | `unclassified` |
+| `unknown`, legacy `unclassified` | Re-resolved from content |
 
 Older values are content-aware:
 
-- `feedback` and `correction` become `rule`, `preference`, `insight`, or
-  `unclassified` from explicit signals in the body.
+- `feedback` and `correction` become `rule`, `preference`, `insight`, or `fact`
+  from explicit signals in the body.
 - `project`, `task`, `task_group`, and `project_memory` become `goal`,
-  `constraint`, `decision`, `reference`, or `unclassified` from the body.
+  `constraint`, `decision`, `reference`, or `fact` from the body.
 - `episode` becomes `session_summary`.
 - `lesson` becomes `insight`.
 - `workflow` becomes `procedure`.
 
-Unknown kinds are preserved as `unclassified`; they never masquerade as facts.
+Unknown kinds are re-resolved from content. A neutral, untyped observation lands
+in `fact`, while a path or source pointer lands in `reference`.
 
 ## Agent mapping
 
@@ -146,7 +150,7 @@ concrete native source, target kinds, and known limitations.
 
 Guide turns this contract into an inspectable product surface. Its top-down
 filing plan keeps native files, the normalizer, all ten durable kinds, the four
-fixed categories, and the two auxiliary layers legible in one view. Hovering,
+fixed categories, and the Evidence supporting layer legible in one view. Hovering,
 focusing, or selecting a category card isolates that route without changing the
 library.
 
@@ -156,7 +160,7 @@ library.
 
 - **All memory** is one timeline sorted by `updatedAt` descending.
 - **The category legend** is compact. It shows the four knowledge categories
-  and adds Evidence or Unclassified only when those layers contain records.
+  and adds Evidence only when that layer contains records.
 - **Cards and details** show Type, concrete kind, Scope, Authority, and Status.
   Category and scope are separate labels.
 - **Selecting a category then an agent** keeps the category active inside that
@@ -166,14 +170,13 @@ library.
 - **Pulse** reports the same four knowledge categories plus any auxiliary layer
   that contains data. Clicking a category returns to the filtered memory view.
 - **Guide** explains the model in-product with a top-down filing plan. The four
-  durable categories, two auxiliary layers, and the orthogonal Scope /
-  Authority / Status fields are shown together. Guide is explanatory only and
+  durable categories, Evidence layer, and the orthogonal Scope / Authority /
+  Status fields are shown together. Guide is explanatory only and
   never changes classification or filters.
 - **The menu bar panel** uses the same taxonomy and click-through behavior as
   the full app.
-- **MCP recall** includes durable knowledge by default and excludes Evidence and
-  Unclassified records unless a caller explicitly opts in through an internal
-  query path.
+- **MCP recall** includes durable knowledge by default and excludes Evidence
+  records unless a caller explicitly opts in through an internal query path.
 - **An echo is not a second memory.** Identical content from several agents
   remains one item with multiple sources.
 - **MCP writes keep caller provenance.** A write from Codex, Claude, Doubao, or
@@ -188,8 +191,8 @@ library.
 - Different wording is not merged automatically.
 - Source files remain read-only. Reclassifying or sharing a memory changes the
   dachshund copy, not the agent's native file.
-- Evidence and Unclassified are first-class records for review, but not durable
-  knowledge for prompt injection.
+- Evidence records are first-class records for review, but not durable knowledge
+  for prompt injection.
 
 The implementation lives in
 [`src/shared/memory-taxonomy.ts`](../src/shared/memory-taxonomy.ts). Research

@@ -6,7 +6,7 @@ export type MemoryAuthority =
   | 'project_declared'
   | 'agent_observed'
   | 'inferred'
-export type MemoryStatus = 'active' | 'superseded' | 'archived' | 'unclassified'
+export type MemoryStatus = 'active' | 'superseded' | 'archived'
 
 export interface AgentSummary {
   id: string
@@ -166,7 +166,6 @@ export interface SearchQuery {
   limit?: number
   includeArchived?: boolean
   includeEvidence?: boolean
-  includeUnclassified?: boolean
 }
 
 export interface CreateMemoryInput {

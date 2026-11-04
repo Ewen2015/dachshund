@@ -65,11 +65,16 @@ function testHermes(): void {
   write(
     path.join(home, 'memories', 'MEMORY.md'),
     [
-      '# Project context',
+      '# 个人记忆',
       '',
-      'Hermes should keep the local project path and release conventions.',
-      '§',
-      'The shared memory library lives in the user Documents directory.'
+      '## 用户',
+      '- 时区: Asia/Shanghai',
+      '',
+      '## 项目',
+      '- Local library: /Users/example/Documents/dachshund',
+      '',
+      '## 环境与集成',
+      '- Release verification uses /Users/example/scripts/verify-local.sh'
     ].join('\n')
   )
   write(
@@ -77,9 +82,12 @@ function testHermes(): void {
     '*Learn about the person you\'re helping. Update this as you go.*\n§\n**Preferred language:** concise Chinese'
   )
   const memories = importAgentMemories(agent)
-  assert.equal(memories.length, 3)
-  assert.ok(memories.some((memory) => memory.title === 'Project context'))
-  assert.ok(memories.some((memory) => memory.kind === 'profile'))
+  assert.equal(memories.length, 4)
+  assert.ok(memories.some((memory) => memory.title === '个人记忆 · 用户'))
+  assert.ok(memories.some((memory) => memory.title === '个人记忆 · 项目'))
+  assert.ok(memories.filter((memory) => memory.kind === 'profile').length >= 2)
+  assert.ok(memories.filter((memory) => memory.kind === 'reference').length >= 2)
+  assert.ok(memories.every((memory) => categoryForKind(memory.kind) !== 'evidence'))
   assert.ok(!memories.some((memory) => memory.content.includes('Learn about the person')))
 }
 
@@ -587,7 +595,12 @@ function testKindNormalization(): void {
   assert.equal(normalizeMemoryKind('correction', 'Always verify the local artifact.'), 'rule')
   assert.equal(normalizeMemoryKind('correction', 'Prefer concise Chinese.'), 'preference')
   assert.equal(normalizeMemoryKind('correction', 'The failure revealed the root cause.'), 'insight')
-  assert.equal(normalizeMemoryKind('correction', 'A neutral observation.'), 'unclassified')
+  assert.equal(normalizeMemoryKind('correction', 'A neutral observation.'), 'fact')
+  assert.equal(normalizeMemoryKind('unclassified', 'A neutral observation.'), 'fact')
+  assert.equal(
+    normalizeMemoryKind('unclassified', 'The archive lives at /Users/example/releases.'),
+    'reference'
+  )
   assert.equal(normalizeMemoryKind('task-group', 'The next goal is the local migration.'), 'goal')
   assert.equal(
     normalizeMemoryKind('task-group', 'The release is limited to version 0.1.x.'),
@@ -605,14 +618,15 @@ function testKindNormalization(): void {
   assert.equal(categoryForKind('decision'), 'current')
   assert.equal(categoryForKind('reference'), 'knowledge')
   assert.equal(categoryForKind('episode'), 'evidence')
-  assert.equal(categoryForKind('unrecognized-kind'), 'unclassified')
+  assert.equal(categoryForKind('unrecognized-kind'), 'knowledge')
 
   const durableKinds = MEMORY_CATEGORIES.flatMap((category) => category.kinds)
   assert.equal(durableKinds.length, 10)
   assert.equal(new Set(durableKinds).size, 10)
   const allKinds = ALL_MEMORY_CATEGORIES.flatMap((category) => category.kinds)
-  assert.equal(allKinds.length, 16)
-  assert.equal(new Set(allKinds).size, 16)
+  assert.equal(allKinds.length, 15)
+  assert.equal(new Set(allKinds).size, 15)
+  assert.ok(!ALL_MEMORY_CATEGORIES.some((category) => category.id === 'unclassified'))
   for (const category of ALL_MEMORY_CATEGORIES) {
     for (const kind of category.kinds) {
       assert.equal(normalizeMemoryKind(kind), kind)
@@ -1182,7 +1196,9 @@ function testDoubaoTaxonomy(): void {
 
   const memories = importAgentMemories(agent)
   assert.equal(memories.length, 2)
-  assert.ok(memories.every((memory) => memory.kind === 'unclassified'))
+  assert.ok(memories.some((memory) => memory.kind === 'constraint'))
+  assert.ok(memories.some((memory) => memory.kind === 'reference'))
+  assert.ok(memories.every((memory) => categoryForKind(memory.kind) !== 'evidence'))
 }
 
 function testInstructionsAndObservedMemory(): void {
@@ -1213,7 +1229,7 @@ function testInstructionsAndObservedMemory(): void {
   const copilotMemories = importAgentMemories(copilot)
   assert.equal(copilotMemories.length, 2)
   assert.ok(copilotMemories.some((memory) => memory.kind === 'rule'))
-  assert.ok(copilotMemories.some((memory) => memory.kind === 'unclassified'))
+  assert.ok(copilotMemories.some((memory) => memory.kind === 'reference'))
 
   const openCodeHome = path.join(root, 'opencode')
   const openCode = definition('opencode', 'OpenCode', openCodeHome, path.join(openCodeHome, 'opencode.json'))
@@ -1228,7 +1244,7 @@ function testInstructionsAndObservedMemory(): void {
   const openCodeMemories = importAgentMemories(openCode)
   assert.equal(openCodeMemories.length, 2)
   assert.ok(openCodeMemories.some((memory) => memory.kind === 'rule'))
-  assert.ok(openCodeMemories.some((memory) => memory.kind === 'unclassified'))
+  assert.ok(openCodeMemories.some((memory) => memory.kind === 'fact'))
 
 }
 

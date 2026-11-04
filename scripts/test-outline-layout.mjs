@@ -64,6 +64,48 @@ try {
   await page.locator('.memory-outline').waitFor({ state: 'visible' })
   await page.waitForTimeout(350)
 
+  const detailLayout = await page.evaluate(() => {
+    const box = (selector) => {
+      const element = document.querySelector(selector)
+      if (!element) return null
+      const bounds = element.getBoundingClientRect()
+      return {
+        left: bounds.left,
+        right: bounds.right,
+        width: bounds.width,
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth
+      }
+    }
+    return {
+      legend: box('.category-legend'),
+      agentFilter: box('.filter-row'),
+      main: box('.main'),
+      detail: box('.detail')
+    }
+  })
+
+  assert.ok(detailLayout.legend, 'category legend should be present beside the detail pane')
+  assert.ok(detailLayout.agentFilter, 'agent filters should be present beside the detail pane')
+  assert.ok(detailLayout.main, 'main content should expose its constrained width')
+  assert.ok(detailLayout.detail, 'detail pane should be present')
+  assert.ok(
+    detailLayout.main.right <= detailLayout.detail.left + 1,
+    `detail pane must not cover main content (${detailLayout.main.right} > ${detailLayout.detail.left})`
+  )
+  assert.ok(
+    detailLayout.legend.right <= detailLayout.detail.left + 1,
+    'the category legend frame must remain fully visible beside the detail pane'
+  )
+  assert.ok(
+    detailLayout.agentFilter.right <= detailLayout.detail.left + 1,
+    'agent filters must remain fully visible beside the detail pane'
+  )
+  assert.ok(
+    detailLayout.legend.scrollWidth <= detailLayout.legend.clientWidth + 1,
+    'category legend items should wrap instead of overflowing their frame'
+  )
+
   const sidebar = await page.evaluate(() => {
     const outline = document.querySelector('.memory-outline')
     const list = document.querySelector('.memory-outline-list')
@@ -181,7 +223,7 @@ try {
   assert.equal(expanded.nowrap, 'nowrap', 'expanded labels should retain one-line rhythm')
 
   await page.screenshot({ path: path.join(outputDir, 'outline-expanded.png') })
-  console.log(JSON.stringify({ sidebar, collapsedWidth, expanded }, null, 2))
+  console.log(JSON.stringify({ detailLayout, sidebar, collapsedWidth, expanded }, null, 2))
 } finally {
   await app.close()
 }

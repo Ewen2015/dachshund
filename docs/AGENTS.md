@@ -178,7 +178,8 @@ Workspace files named `YYYY-MM-DD.md` are dated logs, so they import as
 workspace. The workspace name is retained as separate scope. A purely
 date/time-named workspace is shown as `Session YYYY-MM-DD HH:mm` instead of
 being presented as a fabricated project name. Other workspace Markdown keeps its
-typed kind when present and otherwise remains `unclassified`.
+typed kind when present and otherwise resolves the closest durable kind from its
+body.
 
 MCP target: `~/.workbuddy/mcp.json`, under `mcpServers`.
 
@@ -191,11 +192,12 @@ Imported:
 - Agent Mode `memory/MEMORY.md`;
 - Markdown under Agent Mode `.sessions/<session>/memory/`.
 
-Empty memory files are ignored. Locally visible Agent Mode files import as
-`unclassified` because their native format does not expose a reliable knowledge
-type. Doubao account memory and per-assistant memory remain account-scoped and
-are not available to a local filesystem importer. Doubao can still use the
-shared library through the MCP connector below.
+Empty memory files are ignored. Locally visible Agent Mode files enter the
+shared model with a durable kind resolved from their body because their native
+format does not expose a reliable knowledge type. Doubao account memory and
+per-assistant memory remain account-scoped and are not available to a local
+filesystem importer. Doubao can still use the shared library through the MCP
+connector below.
 
 Doubao stores custom connectors in **Plugins / Skills (插件 · 技能) > Add (添加) >
 Custom connector (新建自定义连接器)** rather than a stable user-editable JSON
@@ -289,8 +291,11 @@ Imported:
 
 Hermes separates native memory entries with the literal delimiter `\n§\n`.
 dachshund splits on that delimiter and creates one shared memory per entry
-instead of treating the whole file as one item. Session JSON is intentionally
-not imported because it mixes durable context with transient tool output.
+instead of treating the whole file as one item. `MEMORY.md` entries with `##`
+headings are split again by section, so profile, project, environment, and
+reference content can be classified independently. Session JSON is
+intentionally not imported because it mixes durable context with transient tool
+output.
 
 MCP target: `~/.hermes/config.yaml`, under `mcp_servers.dachshund`. The YAML
 document is parsed before writing and a `.dachshund.bak` copy is created.
@@ -326,9 +331,9 @@ Imported:
 
 The Markdown files retain native `user`, `feedback`, `project`, and `reference`
 metadata as source evidence. Their shared kind is normalized from type and body;
-untyped files remain `unclassified`. The SQLite scan is a compatibility path for
-explicit durable user cues. Rollout debug logs are not imported because they
-duplicate requests and may contain provider payloads.
+untyped files resolve the closest durable kind from their body. The SQLite scan
+is a compatibility path for explicit durable user cues. Rollout debug logs are
+not imported because they duplicate requests and may contain provider payloads.
 
 MCP target: `~/.zcode/cli/config.json`, under `mcp.servers.dachshund`. ZCode uses
 a strict schema, so dachshund writes only `type`, `command`, `args`, `env`, and

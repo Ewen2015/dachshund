@@ -94,8 +94,7 @@ export class Store {
       query.agentId,
       query.limit ?? 80,
       query.includeArchived ?? false,
-      query.includeEvidence ?? true,
-      query.includeUnclassified ?? true
+      query.includeEvidence ?? true
     )
   }
 

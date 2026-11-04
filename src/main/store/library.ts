@@ -141,6 +141,7 @@ export class Library {
   }
 
   syncToDb(db: Db): number {
+    this.normalizeLegacyMetadata()
     const files = this.readAll()
     for (const file of files) {
       db.upsertMemory({
@@ -170,6 +171,33 @@ export class Library {
       }
     }
     return files.length
+  }
+
+  private normalizeLegacyMetadata(): void {
+    for (const file of listMarkdown(MEMORY_DIR)) {
+      try {
+        const raw = fs.readFileSync(file, 'utf8')
+        const parsed = matter(raw)
+        const data = parsed.data as Record<string, unknown>
+        const body = parsed.content.trim()
+        if (!body) continue
+        const rawKind =
+          typeof data.kind === 'string'
+            ? data.kind.trim().toLowerCase()
+            : typeof data.type === 'string'
+              ? data.type.trim().toLowerCase()
+              : ''
+        const rawStatus =
+          typeof data.status === 'string' ? data.status.trim().toLowerCase() : ''
+        const kind = normalizeMemoryKind(data.kind ?? data.type, body)
+        const status = normalizeMemoryStatus(data.status, kind)
+        if (kind === rawKind && status === rawStatus) continue
+        const memory = this.readFile(file)
+        if (memory) this.write(memory, file)
+      } catch {
+        // A malformed library file is skipped by readAll and left untouched.
+      }
+    }
   }
 
   write(file: MemoryFile, existingPath?: string | null): string {

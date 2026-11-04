@@ -92,15 +92,15 @@ the collar accent, not from decorative typography.
 - Pulse uses a range filter, a four-cell summary strip, one stacked bar chart and
   two compact memory-specific detail cards. See [PULSE.md](PULSE.md).
 - Category controls use the fixed order Identity, Guidance, Knowledge, Current
-  work. Evidence and Unclassified are visually secondary and appear only when
-  populated or selected. The legend is a filter, not a page section.
+  work. Evidence is visually secondary and appears only when populated or
+  selected. The legend is a filter, not a page section.
 - Guide is a read-only explanation surface, not another data view. It uses a
   top-down filing plan so the native-file, kind, and category relationship stays
   legible at the default window width; avoid decorative isometric perspective
   when it would shrink type or obscure routing.
 - Guide starts with the product model, then shows four fixed category cards,
-  the two auxiliary layers, the orthogonal Scope / Authority / Status fields,
-  and a short set of filing rules. Category hover, focus, and click only
+  the Evidence supporting layer, the orthogonal Scope / Authority / Status
+  fields, and a short set of filing rules. Category hover, focus, and click only
   highlight a route; they do not change data or filters.
 - Memory detail opens as a right-side inspector rather than replacing the feed.
   The inspector can expand into a full-window reading view; Escape collapses

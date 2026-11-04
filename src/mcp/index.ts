@@ -110,7 +110,7 @@ server.registerTool(
   {
     title: 'Search shared memory',
     description:
-      'Search the user’s local dachshund memory. Use this when prior preferences, rules, goals, constraints, decisions, facts, or insights from another AI agent could change the answer. Evidence and unclassified records are excluded by default. Results include which agents remembered each item.',
+      'Search the user’s local dachshund memory. Use this when prior preferences, rules, goals, constraints, decisions, facts, or insights from another AI agent could change the answer. Evidence records are excluded by default. Results include which agents remembered each item.',
     inputSchema: {
       query: z.string().describe('What to recall, in natural language or keywords'),
       limit: z.number().int().min(1).max(20).optional().describe('Maximum results (default 8)'),

@@ -171,7 +171,7 @@ Implementation and product context, not vendor contracts:
 
 | File | Used for |
 | --- | --- |
-| `src/shared/memory-taxonomy.ts` | Four knowledge categories, two auxiliary categories, ten durable kinds, six supporting kinds, native mapping structure |
+| `src/shared/memory-taxonomy.ts` | Four knowledge categories, one Evidence supporting category, ten durable kinds, five supporting kinds, native mapping structure |
 | `src/main/store/library.ts` | Markdown library layout, frontmatter, path generation |
 | `src/main/store/db.ts` | SQLite schema, exact-content hash, FTS |
 | `src/main/agents/importers.ts` | Product-specific paths and parsing heuristics |
