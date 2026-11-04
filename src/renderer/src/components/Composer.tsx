@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { CreateMemoryInput } from '../../../shared/types'
+import type { CreateMemoryInput, MemoryScope } from '../../../shared/types'
 import { MEMORY_CATEGORIES, kindLabel } from '../../../shared/memory-taxonomy'
 import { CloseIcon, SparkIcon } from './Icons'
 
@@ -15,6 +15,7 @@ export function Composer({
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [kind, setKind] = useState('fact')
+  const [scope, setScope] = useState<MemoryScope>('user')
   const [project, setProject] = useState('')
   const [tags, setTags] = useState('')
   const [saving, setSaving] = useState(false)
@@ -32,6 +33,9 @@ export function Composer({
         title: title.trim(),
         content: content.trim(),
         kind,
+        scope,
+        authority: 'user_explicit',
+        status: 'active',
         project: project.trim() || null,
         tags: tags
           .split(',')
@@ -106,6 +110,20 @@ export function Composer({
         </div>
 
         <div className="composer-fields">
+          <label>
+            <span>Scope</span>
+            <select
+              value={scope}
+              onChange={(event) => setScope(event.target.value as MemoryScope)}
+              aria-label="Memory scope"
+            >
+              <option value="user">User</option>
+              <option value="project">Project</option>
+              <option value="workspace">Workspace</option>
+              <option value="path">Path</option>
+              <option value="session">Session</option>
+            </select>
+          </label>
           <label>
             <span>Project</span>
             <input

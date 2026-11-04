@@ -259,11 +259,11 @@ agent-memory 聚合器。**
 - 自动写入但不做 review，会失去用户信任；
 - 把所有 agent 的规则和 agent 自动总结的记忆混为一类，会让分类越来越失真。
 
-因此，产品重点不应是继续增加一个 agent 图标，而是维护已经落地的五分类、
-十一 kind、原生 memory mapping，以及“导入回声 / MCP 写入 / 显式 Share”三条
-共享路径。分类后的 library、按时间的跨 agent 时间线、分类 legend 和 agent
-详情页共同构成当前体验；更强的 `authority / scope` 仍是研究提案，不是已发布
-schema。当前产品契约见
+因此，产品重点不应是继续增加一个 agent 图标，而是维护已经落地的四个知识
+分类、六个辅助 kind、原生 memory mapping，以及“导入回声 / MCP 写入 / 显式
+Share”三条共享路径。分类后的 library、按时间的跨 agent 时间线、分类 legend
+和 agent 详情页共同构成当前体验；`authority / scope / status` 已进入统一
+schema，但内容感知分类和跨 agent 映射仍需要持续校准。当前产品契约见
 [docs/MEMORY.md](../docs/MEMORY.md)，研究背景和替代模型见
 [dachshund-memory-taxonomy.md](dachshund-memory-taxonomy.md)。
 

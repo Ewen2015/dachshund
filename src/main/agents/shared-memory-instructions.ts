@@ -5,9 +5,9 @@ export const SHARED_MEMORY_MANAGED_BLOCK = [
   BEGIN_MARKER,
   '## Shared memory',
   '',
-  'Before answering when prior user preferences, decisions, project context, or lessons could affect the response, call the dachshund `memory_context` tool.',
+  'Before answering when prior preferences, rules, goals, constraints, decisions, facts, or insights could affect the response, call the dachshund `memory_context` tool.',
   '',
-  'Use `memory_remember` only for durable, self-contained information explicitly provided or confirmed by the user. Write stable preferences, decisions, project facts, workflows, and lessons. Never store raw transcripts, tool output, secrets, temporary task details, or speculative conclusions.',
+  'Use `memory_remember` only for durable, self-contained information explicitly provided or confirmed by the user. Write stable profiles, preferences, rules, procedures, goals, constraints, decisions, facts, references, and insights. Never store raw transcripts, tool output, secrets, temporary task details, or speculative conclusions.',
   '',
   'When the user corrects an earlier shared memory, save the correction and call `memory_forget` for the obsolete record if its id is known.',
   END_MARKER

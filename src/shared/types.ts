@@ -1,5 +1,12 @@
 export type AgentKind = 'cli' | 'editor' | 'desktop'
 export type McpMode = 'config' | 'manual' | null
+export type MemoryScope = 'user' | 'project' | 'workspace' | 'path' | 'session'
+export type MemoryAuthority =
+  | 'user_explicit'
+  | 'project_declared'
+  | 'agent_observed'
+  | 'inferred'
+export type MemoryStatus = 'active' | 'superseded' | 'archived' | 'unclassified'
 
 export interface AgentSummary {
   id: string
@@ -33,6 +40,9 @@ export interface MemorySummary {
   title: string
   excerpt: string
   kind: string
+  scope: MemoryScope
+  authority: MemoryAuthority
+  status: MemoryStatus
   project: string | null
   tags: string[]
   createdAt: number
@@ -155,12 +165,17 @@ export interface SearchQuery {
   agentId?: string
   limit?: number
   includeArchived?: boolean
+  includeEvidence?: boolean
+  includeUnclassified?: boolean
 }
 
 export interface CreateMemoryInput {
   title: string
   content: string
   kind?: string
+  scope?: MemoryScope
+  authority?: MemoryAuthority
+  status?: MemoryStatus
   project?: string | null
   tags?: string[]
   sourceAgentId?: string
@@ -171,6 +186,9 @@ export interface UpdateMemoryInput {
   title?: string
   content?: string
   kind?: string
+  scope?: MemoryScope
+  authority?: MemoryAuthority
+  status?: MemoryStatus
   project?: string | null
   tags?: string[]
   pinned?: boolean
@@ -220,6 +238,9 @@ export interface MemoryFile {
   title: string
   content: string
   kind: string
+  scope: MemoryScope
+  authority: MemoryAuthority
+  status: MemoryStatus
   project: string | null
   tags: string[]
   createdAt: number
@@ -233,6 +254,9 @@ export interface ImportedMemory {
   title: string
   content: string
   kind: string
+  scope?: MemoryScope
+  authority?: MemoryAuthority
+  status?: MemoryStatus
   project: string | null
   tags: string[]
   createdAt: number

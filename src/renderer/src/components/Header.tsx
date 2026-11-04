@@ -2,13 +2,14 @@ import type { RefObject } from 'react'
 import { MenuBarIcon, PlusIcon, SearchIcon, SidebarToggleIcon } from './Icons'
 import { Mark } from './Mark'
 
-type View = 'memory' | 'pulse' | 'agents' | 'connectors'
+type View = 'memory' | 'pulse' | 'agents' | 'guide' | 'connectors'
 
 const tabs: Array<{ id: View; label: string }> = [
   { id: 'memory', label: 'Memory' },
   { id: 'pulse', label: 'Pulse' },
   { id: 'agents', label: 'Agents' },
-  { id: 'connectors', label: 'Connectors' }
+  { id: 'connectors', label: 'Connectors' },
+  { id: 'guide', label: 'Guide' }
 ]
 
 export function Header({
@@ -75,7 +76,12 @@ export function Header({
         </nav>
       )}
       <div className="topbar-grow" />
-      <div className={`search-box ${view !== 'memory' ? 'quiet' : ''}`}>
+      <div
+        className={`search-box ${view !== 'memory' ? 'quiet' : ''}`}
+        onClick={() => {
+          if (view === 'memory') searchRef.current?.focus()
+        }}
+      >
         <SearchIcon size={14} />
         <input
           ref={searchRef}

@@ -47,7 +47,7 @@ export function SyncNotice({
 
   useEffect(() => {
     if (paused || expanded) return
-    const timer = window.setTimeout(() => dismissRef.current(), 5000)
+    const timer = window.setTimeout(() => dismissRef.current(), 3000)
     return () => window.clearTimeout(timer)
   }, [expanded, paused, result.finishedAt, result.startedAt])
 

@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import {
+  ALL_MEMORY_CATEGORIES,
   MEMORY_CATEGORIES,
   type MemoryCategoryId
 } from '../../../shared/memory-taxonomy'
@@ -28,13 +29,22 @@ export function CategoryLegend({
         <strong>All</strong>
         <small>{total}</small>
       </button>
-      {MEMORY_CATEGORIES.filter(
-        (category) => (counts[category.id] ?? 0) > 0 || selected === category.id
+      {ALL_MEMORY_CATEGORIES.filter(
+        (category) =>
+          MEMORY_CATEGORIES.some((item) => item.id === category.id) ||
+          (counts[category.id] ?? 0) > 0 ||
+          selected === category.id
       ).map((category) => (
         <button
           key={category.id}
           type="button"
-          className={`category-legend-item ${selected === category.id ? 'active' : ''}`}
+          className={`category-legend-item ${
+            selected === category.id ? 'active' : ''
+          } ${
+            MEMORY_CATEGORIES.some((item) => item.id === category.id)
+              ? ''
+              : 'is-auxiliary'
+          }`}
           style={{ '--category-color': category.color } as CSSProperties}
           onClick={() => onSelect(category.id)}
         >

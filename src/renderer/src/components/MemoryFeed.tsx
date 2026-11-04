@@ -2,6 +2,7 @@ import type { AgentSummary, Counts, MemorySummary } from '../../../shared/types'
 import {
   MEMORY_CATEGORIES,
   categoryForKind,
+  memoryCategoryCounts,
   type MemoryCategoryId
 } from '../../../shared/memory-taxonomy'
 import { AgentFilterBar } from './AgentFilterBar'
@@ -43,12 +44,7 @@ export function MemoryFeed({
   query: string
   onClearQuery: () => void
 }) {
-  const categoryCounts = Object.fromEntries(
-    MEMORY_CATEGORIES.map((item) => [
-      item.id,
-      memories.filter((memory) => categoryForKind(memory.kind) === item.id).length
-    ])
-  ) as Record<MemoryCategoryId, number>
+  const categoryCounts = memoryCategoryCounts(memories)
   const visible = [...memories]
     .filter(
       (memory) =>

@@ -37,6 +37,9 @@ async function main(): Promise<void> {
   const now = Date.now()
   const base = {
     kind: 'preference',
+    scope: 'user' as const,
+    authority: 'agent_observed' as const,
+    status: 'active' as const,
     project: null,
     tags: ['test'],
     createdAt: now - 60_000,
@@ -57,6 +60,10 @@ async function main(): Promise<void> {
 
   const memoryId = first.change?.memoryId
   assert.ok(memoryId)
+  const initialMemory = store.getMemory(memoryId)
+  assert.equal(initialMemory?.scope, 'user')
+  assert.equal(initialMemory?.authority, 'agent_observed')
+  assert.equal(initialMemory?.status, 'active')
 
   const duplicate = store.ingestImport({
     ...base,
@@ -67,7 +74,9 @@ async function main(): Promise<void> {
 
   const reclassified = store.ingestImport({
     ...base,
-    kind: 'episode',
+    kind: 'workspace_log',
+    scope: 'session',
+    authority: 'inferred',
     project: 'dachshund',
     tags: ['test', 'daily-log'],
     title: 'Use pnpm for this repository',
@@ -75,14 +84,19 @@ async function main(): Promise<void> {
   })
   assert.equal(reclassified.status, 'updated')
   const reclassifiedMemory = store.getMemory(memoryId)
-  assert.equal(reclassifiedMemory?.kind, 'episode')
+  assert.equal(reclassifiedMemory?.kind, 'workspace_log')
+  assert.equal(reclassifiedMemory?.scope, 'session')
+  assert.equal(reclassifiedMemory?.authority, 'inferred')
+  assert.equal(reclassifiedMemory?.status, 'active')
   assert.equal(reclassifiedMemory?.project, 'dachshund')
   assert.equal(reclassifiedMemory?.updatedAt, base.updatedAt)
   assert.equal(reclassifiedMemory?.sources.length, 1)
 
   const reclassifiedAgain = store.ingestImport({
     ...base,
-    kind: 'episode',
+    kind: 'workspace_log',
+    scope: 'session',
+    authority: 'inferred',
     project: 'dachshund',
     tags: ['test', 'daily-log'],
     title: 'Use pnpm for this repository',
@@ -141,8 +155,10 @@ async function main(): Promise<void> {
   assert.equal(promoted?.echoCount, 3)
   assert.ok(promoted?.sources.some((source) => source.agentId === 'dachshund'))
   assert.equal(store.archive(agentWrite.id), true)
+  assert.equal(store.getMemory(agentWrite.id)?.status, 'archived')
 
   assert.equal(store.archive(memoryId), true)
+  assert.equal(store.getMemory(memoryId)?.status, 'archived')
   const archivedScan = store.ingestImport({
     ...base,
     updatedAt: now,
@@ -214,6 +230,52 @@ async function main(): Promise<void> {
       'installed agents must be ordered by memory count'
     )
   }
+
+  const { Library } = await import('../src/main/store/library.ts')
+  const legacyFile = path.join(
+    process.env.DACHSHUND_LIBRARY!,
+    'memory',
+    'legacy-feedback.md'
+  )
+  fs.mkdirSync(path.dirname(legacyFile), { recursive: true })
+  fs.writeFileSync(
+    legacyFile,
+    [
+      '---',
+      'id: mem_legacy_feedback',
+      'title: Legacy feedback',
+      'kind: feedback',
+      'scope: workspace',
+      'authority: project_declared',
+      'status: active',
+      'project: dachshund',
+      'tags: [legacy]',
+      '---',
+      '',
+      'Always verify the packaged artifact before reporting a release as complete.'
+    ].join('\n')
+  )
+  const legacy = new Library().readFile(legacyFile)
+  assert.equal(legacy?.kind, 'rule')
+  assert.equal(legacy?.scope, 'workspace')
+  assert.equal(legacy?.authority, 'project_declared')
+  assert.equal(legacy?.status, 'active')
+
+  const unknownFile = path.join(process.env.DACHSHUND_LIBRARY!, 'memory', 'legacy-unknown.md')
+  fs.writeFileSync(
+    unknownFile,
+    [
+      '---',
+      'id: mem_legacy_unknown',
+      'title: Legacy unknown',
+      'kind: mystery-type',
+      '---',
+      '',
+      'This source does not provide a defensible knowledge type.'
+    ].join('\n')
+  )
+  assert.equal(new Library().readFile(unknownFile)?.kind, 'unclassified')
+  assert.equal(new Library().readFile(unknownFile)?.status, 'unclassified')
 
   store.db.close()
   fs.rmSync(root, { recursive: true, force: true })

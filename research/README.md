@@ -60,40 +60,44 @@ dachshund 不把四种原生类型直接照搬为一级分类，而是先归一�
 - 豆包的普通账号记忆不对 dachshund 暴露；当前本地 importer 只能覆盖可观察到的
   Agent Mode 文件。
 
-### 4. dachshund 当前分类已经落地为五类、十一 kind
+### 4. dachshund 当前分类已经落地为四个知识分类、十个 kind
 
 | 分类 | kind |
 | --- | --- |
-| About me / Identity | `profile`, `preference` |
-| Ways of working / Working | `rule`, `feedback`, `lesson`, `workflow` |
-| Projects | `project`, `decision` |
-| Facts & references / Facts | `fact`, `reference` |
-| History | `episode` |
+| Identity | `profile` |
+| Guidance | `preference`, `rule`, `procedure` |
+| Knowledge | `fact`, `reference`, `insight` |
+| Current work | `goal`, `constraint`, `decision` |
+
+另有 Evidence 辅助层（`session_summary`, `task_rollout`, `compaction`,
+`workspace_log`, `feedback_event`）和 Unclassified（`unclassified`）。它们有数据
+时出现在浏览与 Pulse 中，但不属于四个 durable 知识分类。
 
 这比直接复制四个原生类型多两层价值：
 
-- 能区分“用户是谁”和“agent 应该怎样工作”；
-- 能区分项目上下文、已做决定、长期事实和历史证据。
+- 能区分“用户是谁”“agent 应该怎样工作”“长期知识”和“当前工作”；
+- 能区分当前目标/约束/决定与历史证据，不再把 `project` 或 `episode` 当作知识类型。
 
 agent 现在是来源、徽标和过滤器，不是一级分类。主页面按时间排列并显示分类 tag，
 点击 legend 可以查看某个分类的全部 memory；agent 详情页再解释原生结构到
-dachshund 分类的映射。
+dachshund 分类的映射；应用内 Guide 再用俯视分类台解释 native signal → kind →
+category，以及 Evidence / Unclassified 与三个正交字段的位置。
 
 实现定义见
 [`src/shared/memory-taxonomy.ts`](../src/shared/memory-taxonomy.ts)，产品说明见
 [docs/MEMORY.md](../docs/MEMORY.md)。
 
-### 5. 仍处于研究阶段的方向
+### 5. 已落地的正交字段
 
-早期提案考虑过单独的 `authority`、`scope` 和 `confidence` 字段。这些概念对冲突
-处理和来源判断有价值，但**尚未进入当前数据模型**。现阶段：
+当前数据模型已经包含：
 
-- kind 和来源路径共同保留规则、偏好、总结和历史之间的差异；
-- `project` 是独立字段，但没有通用 scope 字段；
-- 完全重复的来源会合并为多来源条目，语义近重复和冲突不自动裁决；
-- 未知 kind 保守回退到 `fact`，不伪造推断置信度。
+- `scope`: `user / project / workspace / path / session`；
+- `authority`: `user_explicit / project_declared / agent_observed / inferred`；
+- `status`: `active / superseded / archived / unclassified`；
+- `project` 作为人类可读项目标签，与 scope 分离。
 
-后续只有在真实查询、审核和冲突处理证明有必要时，才评估增加这些字段。
+早期 `confidence` 提案没有进入实现，因为 authority 与 Unclassified 已覆盖当前需要。
+完全重复的来源会合并为多来源条目，语义近重复和冲突仍不自动裁决。
 
 ### 6. 跨 Agent 共享已落地为三条路径
 

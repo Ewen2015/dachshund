@@ -11,6 +11,7 @@ import { AgentsView } from './components/AgentsView'
 import { Composer } from './components/Composer'
 import { Header } from './components/Header'
 import { AgentMemoryView } from './components/AgentMemoryView'
+import { GuideView } from './components/GuideView'
 import { MemoryDetail } from './components/MemoryDetail'
 import { MemoryFeed } from './components/MemoryFeed'
 import { McpSetupDialog } from './components/McpSetupDialog'
@@ -24,7 +25,7 @@ import { UpdateNotice } from './components/UpdateNotice'
 import { useUpdater } from './lib/useUpdater'
 import type { MemoryCategoryId } from '../../shared/memory-taxonomy'
 
-type View = 'memory' | 'pulse' | 'agents' | 'connectors'
+type View = 'memory' | 'pulse' | 'agents' | 'guide' | 'connectors'
 
 export default function App() {
   const [state, setState] = useState<AppState | null>(null)
@@ -440,6 +441,7 @@ export default function App() {
                 }}
               />
             )}
+            {view === 'guide' && <GuideView />}
             {view === 'agents' && (
               <AgentsView
                 agents={state.agents}

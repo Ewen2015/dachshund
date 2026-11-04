@@ -39,13 +39,27 @@ async function body(req: http.IncomingMessage): Promise<Record<string, unknown>>
 }
 
 function contextBlock(
-  memories: Array<{ title: string; content: string; kind: string; project: string | null }>
+  memories: Array<{
+    title: string
+    content: string
+    kind: string
+    scope: string
+    authority: string
+    status: string
+    project: string | null
+  }>
 ): string {
   if (!memories.length) return 'No relevant memories were found on this Mac.'
   const sections = memories.map((memory, index) => {
     const project = memory.project ? ` · ${memory.project}` : ''
     const content = memory.content.length > 2200 ? `${memory.content.slice(0, 2200)}…` : memory.content
-    return `## ${index + 1}. ${memory.title}${project}\n\n${content}`
+    return [
+      `## ${index + 1}. ${memory.title}${project}`,
+      '',
+      `Kind: ${memory.kind} · Scope: ${memory.scope} · Authority: ${memory.authority} · Status: ${memory.status}`,
+      '',
+      content
+    ].join('\n')
   })
   return [
     '# dachshund memory',
@@ -165,7 +179,9 @@ export function startHttpServer(store: Store, version: string): Promise<{ runtim
         const memories = store.search({
           query: String(payload.query ?? ''),
           agentId: payload.agentId ? String(payload.agentId) : undefined,
-          limit: Math.min(Number(payload.limit ?? 8), 40)
+          limit: Math.min(Number(payload.limit ?? 8), 40),
+          includeEvidence: false,
+          includeUnclassified: false
         })
         json(res, 200, {
           memories: memories.map((memory) => ({
@@ -173,6 +189,9 @@ export function startHttpServer(store: Store, version: string): Promise<{ runtim
             title: memory.title,
             excerpt: memory.excerpt,
             kind: memory.kind,
+            scope: memory.scope,
+            authority: memory.authority,
+            status: memory.status,
             project: memory.project,
             tags: memory.tags,
             agents: [...new Set(memory.sources.map((source) => source.agentName))],
@@ -188,7 +207,9 @@ export function startHttpServer(store: Store, version: string): Promise<{ runtim
         const summaries = store.search({
           query: String(payload.query ?? ''),
           agentId: payload.agentId ? String(payload.agentId) : undefined,
-          limit: Math.min(Number(payload.limit ?? 8), 20)
+          limit: Math.min(Number(payload.limit ?? 8), 20),
+          includeEvidence: false,
+          includeUnclassified: false
         })
         const memories = summaries
           .map((summary) => store.getMemory(summary.id))
@@ -208,6 +229,11 @@ export function startHttpServer(store: Store, version: string): Promise<{ runtim
           title: String(payload.title ?? ''),
           content: String(payload.content ?? ''),
           kind: payload.kind ? String(payload.kind) : 'fact',
+          scope: payload.scope
+            ? (String(payload.scope) as CreateMemoryInput['scope'])
+            : undefined,
+          authority: 'user_explicit',
+          status: 'active',
           project: payload.project ? String(payload.project) : null,
           tags: Array.isArray(payload.tags) ? payload.tags.map(String) : [],
           sourceAgentId: agentId,

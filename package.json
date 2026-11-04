@@ -1,6 +1,6 @@
 {
   "name": "dachshund",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "All your agents. One memory.",
   "main": "./out/main/index.js",
   "author": "Ewen Wang",
@@ -9,11 +9,13 @@
   "scripts": {
     "dev": "node scripts/build-mcp.mjs && node scripts/make-icons.mjs && node scripts/build-status-helper.mjs && electron-vite dev",
     "icons:agents": "node scripts/fetch-agent-icons.mjs",
-    "build": "node scripts/fetch-agent-icons.mjs && node scripts/make-icons.mjs && node scripts/build-status-helper.mjs && electron-vite build && node scripts/build-mcp.mjs",
+    "build:guide": "node scripts/build-memory-taxonomy-figure.mjs",
+    "build": "node scripts/fetch-agent-icons.mjs && node scripts/make-icons.mjs && node scripts/build-memory-taxonomy-figure.mjs && node scripts/build-status-helper.mjs && electron-vite build && node scripts/build-mcp.mjs",
     "status-item:build": "node scripts/build-status-helper.mjs",
     "start": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "test:panel": "node --experimental-strip-types scripts/test-panel-placement.mjs",
+    "test:outline": "node scripts/test-outline-layout.mjs",
     "test:sync": "esbuild scripts/test-sync.ts --bundle --platform=node --format=cjs --outfile=out/test-sync.cjs && node out/test-sync.cjs",
     "dist:mac": "npm run build && electron-builder --mac dmg --arm64",
     "mcp": "node out/mcp/index.cjs",

@@ -23,6 +23,7 @@ import {
 } from '../src/main/agents/registry'
 import {
   AGENT_MEMORY_MODELS,
+  ALL_MEMORY_CATEGORIES,
   MEMORY_CATEGORIES,
   categoryForKind,
   normalizeMemoryKind
@@ -163,12 +164,10 @@ function testPi(): void {
   const memories = importAgentMemories(agent)
   assert.equal(memories.length, 4)
   assert.ok(memories.some((memory) => memory.tags.includes('compaction')))
-  assert.equal(
-    memories.filter((memory) => memory.kind === 'episode').length,
-    2
-  )
+  assert.ok(memories.some((memory) => memory.kind === 'compaction'))
+  assert.ok(memories.some((memory) => memory.kind === 'session_summary'))
   assert.ok(memories.some((memory) => memory.kind === 'preference'))
-  assert.ok(memories.some((memory) => memory.kind === 'feedback'))
+  assert.ok(memories.some((memory) => memory.kind === 'rule'))
   assert.ok(!memories.some((memory) => memory.content.includes('system prompt')))
 }
 
@@ -220,12 +219,12 @@ function testClaudeTaxonomy(): void {
   assert.equal(memories.length, 3)
   assert.ok(
     memories.some(
-      (memory) => memory.kind === 'profile' && categoryForKind(memory.kind) === 'about'
+      (memory) => memory.kind === 'profile' && categoryForKind(memory.kind) === 'identity'
     )
   )
   assert.equal(
     memories.filter(
-      (memory) => memory.kind === 'rule' && categoryForKind(memory.kind) === 'working'
+      (memory) => memory.kind === 'rule' && categoryForKind(memory.kind) === 'guidance'
     ).length,
     2
   )
@@ -271,7 +270,7 @@ function testClaudeDesktopTaxonomy(): void {
       'type: feedback',
       '---',
       '',
-      'Report exact local verification evidence before claiming a release is complete.'
+      'Always report exact local verification evidence before claiming a release is complete.'
     ].join('\n')
   )
   write(
@@ -283,7 +282,7 @@ function testClaudeDesktopTaxonomy(): void {
       'type: project',
       '---',
       '',
-      'The local memory migration stays on version 0.1.x.'
+      'The local memory migration is limited to version 0.1.x.'
     ].join('\n')
   )
   write(
@@ -339,7 +338,7 @@ function testClaudeDesktopTaxonomy(): void {
   assert.ok(
     memories.some(
       (memory) =>
-        memory.kind === 'feedback' &&
+        memory.kind === 'rule' &&
         memory.project === 'Memory research' &&
         memory.sourceRef === `space:${spaceId}`
     )
@@ -347,7 +346,7 @@ function testClaudeDesktopTaxonomy(): void {
   assert.ok(
     memories.some(
       (memory) =>
-        memory.kind === 'project' && memory.project === 'Memory research'
+        memory.kind === 'constraint' && memory.project === 'Memory research'
     )
   )
   assert.ok(
@@ -419,27 +418,32 @@ function testCodexRolloutTaxonomy(): void {
   const memories = importAgentMemories(agent)
   assert.equal(memories.length, 3)
   assert.equal(
-    memories.filter((memory) => memory.kind === 'episode').length,
+    memories.filter((memory) => memory.kind === 'task_rollout').length,
     2
   )
   assert.ok(
     memories.some(
       (memory) =>
-        memory.kind === 'episode' &&
+        memory.kind === 'task_rollout' &&
         memory.project === 'dachshun' &&
-        categoryForKind(memory.kind) === 'episodes'
+        categoryForKind(memory.kind) === 'evidence'
     )
   )
   assert.ok(
     memories.some(
       (memory) =>
-        memory.kind === 'lesson' &&
+        memory.kind === 'insight' &&
         memory.project === 'dachshun' &&
         memory.tags.includes('reusable-knowledge')
     )
   )
-  assert.ok(!memories.some((memory) => memory.content.includes('raw thread without') && memory.kind === 'lesson'))
-  assert.equal(categoryForKind('episode'), 'episodes')
+  assert.ok(
+    !memories.some(
+      (memory) =>
+        memory.content.includes('raw thread without') && memory.kind === 'insight'
+    )
+  )
+  assert.equal(categoryForKind('episode'), 'evidence')
 }
 
 function testCodexMarkdownScope(): void {
@@ -492,13 +496,33 @@ function testCodexMarkdownScope(): void {
       '- `scripts/test-agents.ts`'
     ].join('\n')
   )
+  write(
+    path.join(home, 'memories', 'memory_summary.md'),
+    [
+      '## Identity',
+      '',
+      'The user leads product direction and release quality.',
+      '',
+      '## Guidance',
+      '',
+      'Always verify rendered artifacts before reporting completion.',
+      '',
+      '## Knowledge',
+      '',
+      'The shared memory library is stored locally in Documents.',
+      '',
+      '## Current work',
+      '',
+      'The memory taxonomy migration is limited to the 0.1.x release line.'
+    ].join('\n')
+  )
 
   const memories = importAgentMemories(agent)
-  assert.equal(memories.length, 5)
+  assert.equal(memories.length, 9)
   assert.ok(
     memories.some(
       (memory) =>
-        memory.kind === 'episode' &&
+        memory.kind === 'task_rollout' &&
         memory.project === 'dachshun' &&
         memory.title === 'Dachsund delivery'
     )
@@ -506,7 +530,7 @@ function testCodexMarkdownScope(): void {
   assert.ok(
     memories.some(
       (memory) =>
-        memory.kind === 'episode' &&
+        memory.kind === 'task_rollout' &&
         memory.project === 'dachshun' &&
         memory.title === 'Validate Codex project scope extraction'
     )
@@ -517,13 +541,20 @@ function testCodexMarkdownScope(): void {
         memory.kind === 'decision' &&
         memory.project === 'dachshun' &&
         memory.title === 'Keep memory local' &&
-        categoryForKind(memory.kind) === 'projects'
+        categoryForKind(memory.kind) === 'current'
     )
   )
   assert.equal(
-    memories.filter((memory) => memory.kind === 'lesson' && memory.project === 'dachshun')
+    memories.filter((memory) => memory.kind === 'insight' && memory.project === 'dachshun')
       .length,
     2
+  )
+  const summaryMemories = memories.filter((memory) =>
+    memory.sourcePath.endsWith('memory_summary.md')
+  )
+  assert.deepEqual(
+    summaryMemories.map((memory) => memory.kind),
+    ['profile', 'rule', 'fact', 'constraint']
   )
 }
 
@@ -553,20 +584,36 @@ function testKindNormalization(): void {
   assert.equal(normalizeMemoryKind('user'), 'profile')
   assert.equal(normalizeMemoryKind('preferences'), 'preference')
   assert.equal(normalizeMemoryKind('instructions'), 'rule')
-  assert.equal(normalizeMemoryKind('correction'), 'feedback')
-  assert.equal(normalizeMemoryKind('task-group'), 'project')
+  assert.equal(normalizeMemoryKind('correction', 'Always verify the local artifact.'), 'rule')
+  assert.equal(normalizeMemoryKind('correction', 'Prefer concise Chinese.'), 'preference')
+  assert.equal(normalizeMemoryKind('correction', 'The failure revealed the root cause.'), 'insight')
+  assert.equal(normalizeMemoryKind('correction', 'A neutral observation.'), 'unclassified')
+  assert.equal(normalizeMemoryKind('task-group', 'The next goal is the local migration.'), 'goal')
+  assert.equal(
+    normalizeMemoryKind('task-group', 'The release is limited to version 0.1.x.'),
+    'constraint'
+  )
+  assert.equal(
+    normalizeMemoryKind('task-group', 'We decided to keep the library local.'),
+    'decision'
+  )
   assert.equal(normalizeMemoryKind('link'), 'reference')
-  assert.equal(normalizeMemoryKind('session_memory'), 'episode')
-  assert.equal(categoryForKind('feedback'), 'working')
-  assert.equal(categoryForKind('decision'), 'projects')
+  assert.equal(normalizeMemoryKind('lesson'), 'insight')
+  assert.equal(normalizeMemoryKind('workflow'), 'procedure')
+  assert.equal(normalizeMemoryKind('session_memory'), 'session_summary')
+  assert.equal(categoryForKind('preference'), 'guidance')
+  assert.equal(categoryForKind('decision'), 'current')
   assert.equal(categoryForKind('reference'), 'knowledge')
-  assert.equal(categoryForKind('episode'), 'episodes')
-  assert.equal(categoryForKind('unrecognized-kind'), 'knowledge')
+  assert.equal(categoryForKind('episode'), 'evidence')
+  assert.equal(categoryForKind('unrecognized-kind'), 'unclassified')
 
-  const kinds = MEMORY_CATEGORIES.flatMap((category) => category.kinds)
-  assert.equal(kinds.length, 11)
-  assert.equal(new Set(kinds).size, 11)
-  for (const category of MEMORY_CATEGORIES) {
+  const durableKinds = MEMORY_CATEGORIES.flatMap((category) => category.kinds)
+  assert.equal(durableKinds.length, 10)
+  assert.equal(new Set(durableKinds).size, 10)
+  const allKinds = ALL_MEMORY_CATEGORIES.flatMap((category) => category.kinds)
+  assert.equal(allKinds.length, 16)
+  assert.equal(new Set(allKinds).size, 16)
+  for (const category of ALL_MEMORY_CATEGORIES) {
     for (const kind of category.kinds) {
       assert.equal(normalizeMemoryKind(kind), kind)
       assert.equal(categoryForKind(kind), category.id)
@@ -645,7 +692,7 @@ function testZCode(): void {
       (memory) =>
         memory.kind === 'profile' &&
         memory.project === 'catalog' &&
-        categoryForKind(memory.kind) === 'about'
+        categoryForKind(memory.kind) === 'identity'
     )
   )
   assert.ok(
@@ -802,12 +849,12 @@ function testDeepSeekHarness(): void {
   assert.ok(
     memories.some(
       (memory) =>
-        memory.kind === 'episode' &&
+        memory.kind === 'compaction' &&
         memory.tags.includes('compaction-summary') &&
         memory.content.includes('durable delivery')
     )
   )
-  assert.ok(memories.some((memory) => memory.kind === 'feedback'))
+  assert.ok(memories.some((memory) => memory.kind === 'rule'))
 }
 
 function testWorkBuddyTaxonomy(): void {
@@ -821,7 +868,7 @@ function testWorkBuddyTaxonomy(): void {
   )
   write(
     path.join(home, 'memory', 'feedback.md'),
-    '---\ntype: feedback\ntitle: Verification\n---\n\nVerify the rendered artifact before claiming the change is complete.'
+    '---\ntype: feedback\ntitle: Verification\n---\n\nAlways verify the rendered artifact before claiming the change is complete.'
   )
   write(
     path.join(home, 'memory', 'project.md'),
@@ -862,13 +909,13 @@ function testWorkBuddyTaxonomy(): void {
     )
   )
   assert.ok(memories.some((memory) => memory.kind === 'profile'))
-  assert.ok(memories.some((memory) => memory.kind === 'feedback'))
-  assert.ok(memories.some((memory) => memory.kind === 'project'))
+  assert.ok(memories.some((memory) => memory.kind === 'rule'))
+  assert.ok(memories.some((memory) => memory.kind === 'constraint'))
   assert.ok(memories.some((memory) => memory.kind === 'reference'))
   assert.ok(
     memories.some(
       (memory) =>
-        memory.kind === 'episode' &&
+        memory.kind === 'workspace_log' &&
         memory.project === 'Session 2026-11-03 15:20' &&
         memory.tags.includes('daily-log')
     )
@@ -876,16 +923,16 @@ function testWorkBuddyTaxonomy(): void {
   assert.ok(
     memories.some(
       (memory) =>
-        memory.kind === 'project' &&
+        memory.kind === 'decision' &&
         memory.project === 'Budget Planning' &&
-        categoryForKind(memory.kind) === 'projects'
+        categoryForKind(memory.kind) === 'current'
     )
   )
   assert.ok(
     !memories.some(
       (memory) =>
         memory.project === 'Session 2026-11-03 15:20' &&
-        categoryForKind(memory.kind) === 'projects'
+        categoryForKind(memory.kind) === 'current'
     )
   )
   assert.ok(!memories.some((memory) => memory.content.includes('Memory Index')))
@@ -925,8 +972,8 @@ function testTraeTaxonomy(): void {
   const memories = importAgentMemories(agent)
   assert.equal(memories.length, 4)
   assert.ok(memories.some((memory) => memory.kind === 'profile'))
-  assert.ok(memories.some((memory) => memory.kind === 'project'))
-  assert.equal(memories.filter((memory) => memory.kind === 'episode').length, 2)
+  assert.ok(memories.some((memory) => memory.kind === 'constraint'))
+  assert.equal(memories.filter((memory) => memory.kind === 'session_summary').length, 2)
   assert.ok(
     memories
       .filter((memory) => memory.kind !== 'profile')
@@ -1135,7 +1182,7 @@ function testDoubaoTaxonomy(): void {
 
   const memories = importAgentMemories(agent)
   assert.equal(memories.length, 2)
-  assert.ok(memories.every((memory) => memory.kind === 'project'))
+  assert.ok(memories.every((memory) => memory.kind === 'unclassified'))
 }
 
 function testInstructionsAndObservedMemory(): void {
@@ -1166,7 +1213,7 @@ function testInstructionsAndObservedMemory(): void {
   const copilotMemories = importAgentMemories(copilot)
   assert.equal(copilotMemories.length, 2)
   assert.ok(copilotMemories.some((memory) => memory.kind === 'rule'))
-  assert.ok(copilotMemories.some((memory) => memory.kind === 'fact'))
+  assert.ok(copilotMemories.some((memory) => memory.kind === 'unclassified'))
 
   const openCodeHome = path.join(root, 'opencode')
   const openCode = definition('opencode', 'OpenCode', openCodeHome, path.join(openCodeHome, 'opencode.json'))
@@ -1181,7 +1228,7 @@ function testInstructionsAndObservedMemory(): void {
   const openCodeMemories = importAgentMemories(openCode)
   assert.equal(openCodeMemories.length, 2)
   assert.ok(openCodeMemories.some((memory) => memory.kind === 'rule'))
-  assert.ok(openCodeMemories.some((memory) => memory.kind === 'fact'))
+  assert.ok(openCodeMemories.some((memory) => memory.kind === 'unclassified'))
 
 }
 
@@ -1191,7 +1238,7 @@ function testAgentModelMappings(): void {
     assert.ok(model.title, `${agentId} needs a title`)
     assert.ok(model.mappings.length > 0, `${agentId} needs at least one mapping`)
     for (const mapping of model.mappings) {
-      const category = MEMORY_CATEGORIES.find((item) => item.id === mapping.category)
+      const category = ALL_MEMORY_CATEGORIES.find((item) => item.id === mapping.category)
       assert.ok(category, `${agentId} uses an unknown category: ${mapping.category}`)
       assert.equal(typeof mapping.imported, 'boolean', `${agentId} mapping needs import status`)
       assert.ok(mapping.kinds.length > 0, `${agentId} mapping needs at least one kind`)

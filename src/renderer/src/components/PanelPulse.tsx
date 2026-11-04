@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
 import type { AgentSummary, PulseMemory } from '../../../shared/types'
 import {
-  MEMORY_CATEGORIES,
+  ALL_MEMORY_CATEGORIES,
   categoryForKind,
+  memoryCategoryCounts,
   type MemoryCategoryId
 } from '../../../shared/memory-taxonomy'
 import { accentFor, uniqueSources } from '../lib/format'
@@ -99,9 +100,10 @@ export function PanelPulse({
 
   const maximum = niceMaximum(Math.max(1, ...buckets.map((bucket) => bucket.total)))
   const echoes = visible.filter((memory) => memory.echoCount > 1).length
-  const categoryCounts = MEMORY_CATEGORIES.map((category) => ({
+  const countsByCategory = memoryCategoryCounts(visible)
+  const categoryCounts = ALL_MEMORY_CATEGORIES.map((category) => ({
     ...category,
-    count: visible.filter((memory) => categoryForKind(memory.kind) === category.id).length
+    count: countsByCategory[category.id]
   })).filter((category) => category.count > 0)
   const activeAgentIds = new Set(
     visible.flatMap((memory) => uniqueSources(memory.sources).map((source) => source.agentId))
@@ -174,7 +176,7 @@ export function PanelPulse({
             <div
               className="panel-pulse-category-bar"
               role="img"
-              aria-label="Memory distribution across the five categories"
+              aria-label="Memory distribution across four knowledge categories plus supporting layers"
             >
               {categoryCounts
                 .filter((category) => category.count > 0)

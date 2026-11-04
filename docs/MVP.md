@@ -23,6 +23,11 @@ discover existing agent memory
 - A reusable landing view reachable from the brand mark in both app surfaces.
 - Local discovery for fourteen agent families.
 - Agent-specific read-only importers for all fourteen of them.
+- Four fixed knowledge categories, ten durable kinds, and separate Evidence and
+  Unclassified layers.
+- An in-app Guide with a top-down native-file → kind → category diagram,
+  category focus states, classification guardrails, and orthogonal dimensions.
+- Orthogonal scope, authority, and lifecycle status on every memory record.
 - Markdown library with YAML frontmatter.
 - SQLite index with FTS5 and BM25 search.
 - Exact content deduplication with multiple source echoes.
@@ -46,17 +51,18 @@ The MVP is considered healthy when:
 
 1. `npm run typecheck` passes.
 2. `npm run test:agents` passes fixture and config-writer checks.
-3. `npm run build` completes.
-4. `npm run test:mcp` passes in an isolated temporary home.
-5. Search finds a memory created through `memory_remember`.
-6. `memory_context` returns a labeled prompt block.
-7. `memory_forget` archives the memory and removes it from default search.
-8. The compact panel remains usable at 420 x 620 logical pixels.
-9. The compact panel opens above a macOS full-screen Space without switching
+3. `npm run test:sync` passes source-version and lifecycle transition checks.
+4. `npm run build` completes.
+5. `npm run test:mcp` passes in an isolated temporary home.
+6. Search finds a memory created through `memory_remember`.
+7. `memory_context` returns a labeled prompt block.
+8. `memory_forget` archives the memory and removes it from default search.
+9. The compact panel remains usable at 420 x 620 logical pixels.
+10. The compact panel opens above a macOS full-screen Space without switching
    away from it.
-10. The Connectors screen reports the correct MCP bridge path.
-11. `npm run dist:mac` produces a DMG.
-12. A packaged previous version can download a newer release, replace itself
+11. The Connectors screen reports the correct MCP bridge path.
+12. `npm run dist:mac` produces a DMG.
+13. A packaged previous version can download a newer release, replace itself
     in place, pass code-signature verification, and reopen.
 
 ## Current Verification
@@ -68,6 +74,11 @@ Verified in this repository:
   ZCode, DeepSeek Harness, and Claude Desktop. The DeepSeek Harness fixture
   covers multi-frame Zstandard, surface replacement, compaction summaries,
   user-global instructions, and the managed Cordis writer.
+- Agent fixtures cover the four knowledge categories, all six supporting kinds,
+  content-aware legacy migration, Codex summary section splitting, and stable
+  category ownership for every declared mapping.
+- Sync fixtures cover scope, authority, and status transitions, archived-state
+  preservation, and stale metadata reconciliation.
 - Production build passes.
 - Isolated MCP integration passes for search, context, remember, forget, and
   stats.
@@ -82,17 +93,17 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development Connectors screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.21-arm64.dmg` was produced on 2026-11-03.
+- `release/dachshund-0.1.22-arm64.dmg` was produced on 2026-11-04.
 - The packaged app launched against an isolated data directory and reported a
-  packaged version of `0.1.21`; its compact panel reported
-  `visibleOnAllWorkspaces: true`.
-- The `0.1.21` DMG mounted read-only, contained a valid ad-hoc-signed app at
-  version `0.1.21`, and included an executable MCP bridge.
+  packaged version of `0.1.22`, rendered `.app-shell`, and kept its compact
+  panel configured with `visibleOnAllWorkspaces: true`.
+- The `0.1.22` DMG mounted read-only, contained a valid ad-hoc-signed app at
+  version `0.1.22`, and included an executable MCP bridge.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.21` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.22` passed the same
   five-tool MCP smoke test.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
@@ -100,6 +111,14 @@ Verified in this repository:
   main window was in a native macOS full-screen Space.
 - Main-window and compact-panel screenshots pass at 920 x 700 and 420 x 620
   with the larger typography and complete category labels.
+- Guide screenshots pass for the complete top-down taxonomy figure and a
+  focused category route; the default top bar keeps the primary action visible.
+- A deterministic 28-heading Contents fixture passes compact, collapsed and
+  expanded layout checks; screenshots are written to `release/outline-*.png`.
+- The Guide layout remains readable at 800 x 600 without horizontal clipping,
+  and its category cards expose distinct hover, focus, and selected states.
+- Sync notices dismiss after approximately three seconds and retain their pause
+  behavior while hovered or keyboard-focused.
 - The full app keeps one active view while switching between compact top tabs
   and the optional Workspace / Insights / App sidebar layout; the same `Cmd+\`
   shortcut toggles both modes.
@@ -130,7 +149,7 @@ Verified in this repository:
 The DMG SHA-256 from this build is:
 
 ```text
-396608bd1c4bdd83aae7cc9e206124a952a864cb4b241b9465c16f0b48423a54
+bef0d478d9c4b616860546894562ba24ed52eeebc88bf9d382bfe994069bd8f3
 ```
 
 ## Known Limitations
@@ -347,9 +366,20 @@ token are not a defense against a compromised account.
 - added regression coverage and synchronized the window architecture and
   release documentation.
 
-### Next
-
 #### 0.1.22: Reviewable Consolidation
+
+- consolidate the memory model into four knowledge categories, ten durable
+  kinds, and separate Evidence and Unclassified layers;
+- add an in-app Guide that explains the model with a readable top-down filing
+  plan, fixed category cards, and focusable routes;
+- dismiss transient sync notices after three seconds, while preserving the
+  hover and keyboard pause needed to read details;
+- migrate legacy `feedback`, `project`, `episode`, `lesson`, and `workflow`
+  values without creating stronger categories than the source supports;
+- synchronize every full-app, menu bar, Pulse, agent mapping, documentation,
+  seed, and website surface with the same fixed category order;
+
+### Next
 
 - near-duplicate suggestions;
 - merge and split flows;

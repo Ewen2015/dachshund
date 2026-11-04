@@ -7,6 +7,11 @@ and build-time fetching rules.
 
 ## Support Matrix
 
+For the native-to-shared memory mapping across every supported Agent,
+including categories, concrete fields, fallback rules, and current limitations,
+see the
+[Agent Memory Mapping Matrix](AGENT_MEMORY_MAPPING.md).
+
 | Agent | Local memory import | MCP config | Imported sources |
 | --- | --- | --- | --- |
 | Claude Code | Yes | `~/.claude.json` | Project topic memory, written instructions, rules, and global memory |
@@ -41,8 +46,9 @@ Imported:
 - Markdown under `~/.claude/memory/` except the `MEMORY.md` index.
 
 The typed project files retain their native `user`, `feedback`, `project`, and
-`reference` frontmatter. Written instructions are imported as rules rather than
-as project memory.
+`reference` frontmatter as source evidence, then normalize into Identity,
+Guidance, Knowledge, or Current work by type and body. Written instructions are
+imported as rules rather than as project memory.
 
 MCP target: `~/.claude.json`, under `mcpServers`.
 
@@ -60,11 +66,12 @@ Imported:
   `stage1_outputs` schema is present.
 
 Task-group summaries and raw threads are chronological evidence, so they import
-as `episode` under History rather than automatically becoming current project
-state. `cwd:` or `cwd=` is extracted as the project scope and displayed
-separately from the category. A `task_group:` value is used only when no cwd is
-available. Explicit `Reusable knowledge` sections are imported as separate
-lessons under Ways of working; the surrounding thread remains History.
+as `task_rollout` in the Evidence layer rather than automatically becoming
+current project state. `memory_summary.md` is split by `##` headings and each
+section is filed by heading and content. `cwd:` or `cwd=` is extracted as project
+scope and displayed separately from the category. A `task_group:` value is used
+only when no cwd is available. Explicit `Reusable knowledge` sections become
+`insight` or `procedure`; the surrounding thread remains Evidence.
 
 MCP target: `~/.codex/config.toml`, as a managed
 `[mcp_servers.dachshund]` block.
@@ -134,7 +141,8 @@ Imported:
   `local-agent-mode-sessions/<account>/<org>/memory/memory/` and
   `local-agent-mode-sessions/<account>/<org>/agent/memory/`;
 - `user`, `feedback`, `project`, and `reference` frontmatter types through the
-  shared taxonomy.
+  source-aware taxonomy. Native type is evidence; the resulting kind is resolved
+  from type plus body.
 
 `MEMORY.md` is an index, not a memory body, and is skipped. The Space name in
 the sibling `spaces.json` becomes the memory's project label.
@@ -161,14 +169,16 @@ Imported:
 
 The importer strips WorkBuddy's trailing raw JSON metadata block before creating
 the shared memory. A typed memory file keeps its native `user`, `feedback`,
-`project`, or `reference` kind. `IDENTITY.md` is treated as assistant behavior
-and maps to Rules; `USER.md` maps to Profile.
+`project`, or `reference` type as provenance. The shared kind is resolved from
+that type and the body. `IDENTITY.md` maps to a guidance rule; `USER.md` maps to
+an identity profile.
 
-Workspace files named `YYYY-MM-DD.md` are dated logs, so they import as History
-episodes even when they are found in a project workspace. The workspace name is
-retained as the separate project scope. A purely date/time-named workspace is
-shown as `Session YYYY-MM-DD HH:mm` instead of being presented as a fabricated
-project name. Only explicitly typed `project` memory enters Projects.
+Workspace files named `YYYY-MM-DD.md` are dated logs, so they import as
+`workspace_log` in the Evidence layer even when they are found in a project
+workspace. The workspace name is retained as separate scope. A purely
+date/time-named workspace is shown as `Session YYYY-MM-DD HH:mm` instead of
+being presented as a fabricated project name. Other workspace Markdown keeps its
+typed kind when present and otherwise remains `unclassified`.
 
 MCP target: `~/.workbuddy/mcp.json`, under `mcpServers`.
 
@@ -181,9 +191,11 @@ Imported:
 - Agent Mode `memory/MEMORY.md`;
 - Markdown under Agent Mode `.sessions/<session>/memory/`.
 
-Empty memory files are ignored. Doubao account memory and per-assistant memory
-remain account-scoped and are not available to a local filesystem importer.
-Doubao can still use the shared library through the MCP connector below.
+Empty memory files are ignored. Locally visible Agent Mode files import as
+`unclassified` because their native format does not expose a reliable knowledge
+type. Doubao account memory and per-assistant memory remain account-scoped and
+are not available to a local filesystem importer. Doubao can still use the
+shared library through the MCP connector below.
 
 Doubao stores custom connectors in **Plugins / Skills (插件 · 技能) > Add (添加) >
 Custom connector (新建自定义连接器)** rather than a stable user-editable JSON
@@ -244,9 +256,9 @@ Imported:
 - `memory/projects/<project>/project_memory.md`.
 
 Session JSONL entries are converted into readable memory with `Outcome`,
-`Learned`, and `Actions` sections. Profile memory maps to About me; project
-memory maps to Projects; topic and session summaries map to History. TRAE rules
-are not imported.
+`Learned`, and `Actions` sections. Profile memory maps to Identity; project
+memory is resolved into Current work or Knowledge by its content; topic and
+session summaries map to the Evidence layer. TRAE rules are not imported.
 
 When both `~/.trae-cn` and `~/.trae` exist, current durable memory is read first
 and normalized by kind, project, source reference, and content. Duplicate
@@ -313,10 +325,10 @@ Imported:
   explicit durable preference or instruction.
 
 The Markdown files retain native `user`, `feedback`, `project`, and `reference`
-metadata when present and otherwise default conservatively to project memory.
-The SQLite scan is a compatibility path for explicit durable user cues. Rollout
-debug logs are not imported because they duplicate requests and may contain
-provider payloads.
+metadata as source evidence. Their shared kind is normalized from type and body;
+untyped files remain `unclassified`. The SQLite scan is a compatibility path for
+explicit durable user cues. Rollout debug logs are not imported because they
+duplicate requests and may contain provider payloads.
 
 MCP target: `~/.zcode/cli/config.json`, under `mcp.servers.dachshund`. ZCode uses
 a strict schema, so dachshund writes only `type`, `command`, `args`, `env`, and
@@ -336,7 +348,7 @@ Imported:
   large decoded frame does not truncate the rest of the session;
 - user messages whose source is the human user and whose text contains an
   explicit durable-memory cue;
-- `compaction/summary` events as History episodes;
+- `compaction/summary` events as `compaction` in the Evidence layer;
 - `~/.dsh/AGENTS.md` as a user-global rule, excluding dachshund's own managed
   instruction block.
 
@@ -378,10 +390,10 @@ idempotent managed block:
 - OpenCode: `~/.config/opencode/AGENTS.md`;
 - DeepSeek Harness: `~/.dsh/AGENTS.md`.
 
-The block asks the agent to call `memory_context` when preferences, decisions,
-project context, or lessons may matter and to call `memory_remember` only for
-durable, user-provided or confirmed information. Importers strip this block, so
-it never becomes a self-referential memory.
+The block asks the agent to call `memory_context` when identity, preferences,
+rules, facts, decisions, current goals, or constraints may matter and to call
+`memory_remember` only for durable, user-provided or confirmed information.
+Importers strip this block, so it never becomes a self-referential memory.
 
 ## What "Connect" Writes
 

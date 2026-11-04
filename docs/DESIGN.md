@@ -91,9 +91,24 @@ the collar accent, not from decorative typography.
 - Feed rows use a left rail and a high-density text block.
 - Pulse uses a range filter, a four-cell summary strip, one stacked bar chart and
   two compact memory-specific detail cards. See [PULSE.md](PULSE.md).
+- Category controls use the fixed order Identity, Guidance, Knowledge, Current
+  work. Evidence and Unclassified are visually secondary and appear only when
+  populated or selected. The legend is a filter, not a page section.
+- Guide is a read-only explanation surface, not another data view. It uses a
+  top-down filing plan so the native-file, kind, and category relationship stays
+  legible at the default window width; avoid decorative isometric perspective
+  when it would shrink type or obscure routing.
+- Guide starts with the product model, then shows four fixed category cards,
+  the two auxiliary layers, the orthogonal Scope / Authority / Status fields,
+  and a short set of filing rules. Category hover, focus, and click only
+  highlight a route; they do not change data or filters.
 - Memory detail opens as a right-side inspector rather than replacing the feed.
   The inspector can expand into a full-window reading view; Escape collapses
   the reading view before closing the inspector.
+- The Contents rail keeps a readable 168 to 184 px width in the compact
+  inspector, caps visual indentation after two levels, and uses single-line
+  ellipsis with complete hover and accessibility labels. Its rows never shrink
+  vertically, and the active section scrolls into view within the rail.
 - Agent memory views pair the native classification with an expandable,
   single-diagram explanation of the agent's write, persistence and recall path.
 - Agent lists use memory count descending as the primary order. Installed state,
@@ -127,7 +142,7 @@ blur.
 - **Ghost button:** white fill, 1 px border, black text.
 - **Tabs:** compact segmented control on `rgba(17,17,18,0.035)`. The optional
   sidebar groups the same destinations into Workspace, Insights and App
-  sections. Pulse belongs under Insights.
+  sections. Pulse and Guide belong under Insights.
 - **Agent identity:** real product marks in restrained white tiles; never used
   for large background fills.
 - **Memory mechanism:** one quiet diagram surface with a flow label and a
@@ -199,3 +214,8 @@ Review the app at its default 920 x 700 window, then confirm that it still
 adapts cleanly when enlarged or maximized. Review the compact panel at a logical
 420 x 620. Screenshots are captured at device scale on Retina, so 840 x 1240
 pixels is the expected compact-panel file size.
+
+Guide has two required screenshots: the full top-down taxonomy figure and a
+category-focus state. Verify that the five top tabs still leave the primary
+action visible at 920 x 700; the search field collapses to its icon at this
+width and expands when focused.

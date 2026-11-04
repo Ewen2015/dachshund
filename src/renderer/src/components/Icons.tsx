@@ -55,6 +55,16 @@ export function ConnectorsIcon({ size = 18, className }: IconProps) {
   )
 }
 
+export function GuideIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M5 4.5h9.5A2.5 2.5 0 0 1 17 7v12.5H7.5A2.5 2.5 0 0 1 5 17V4.5Z" />
+      <path d="M5 17a2.5 2.5 0 0 1 2.5-2.5H17" />
+      <path d="M9 8h4.5M9 11h3" />
+    </svg>
+  )
+}
+
 export function SearchIcon({ size = 16, className }: IconProps) {
   return (
     <svg {...base(size, className)}>

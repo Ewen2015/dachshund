@@ -1,0 +1,240 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" role="img" aria-labelledby="memory-plan-title memory-plan-desc" class="memory-plan-svg">
+  <title id="memory-plan-title">How dachshund files memory</title>
+  <desc id="memory-plan-desc">A top-down filing plan. Agent-native files enter a normalizer that resolves ten durable kinds and assigns each memory to one of four fixed categories. Evidence and Unclassified sit in a separate review tray.</desc>
+  <defs>
+    <pattern id="plan-grid" width="18" height="18" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.65" fill="#D8D7D1"/>
+    </pattern>
+    <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="135%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#171718" flood-opacity="0.055"/>
+    </filter>
+  </defs>
+  <style>
+    text {
+      font-family: "Instrument Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-variation-settings: "wdth" 100;
+    }
+    .plan-mono {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .plan-route {
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-dasharray: 3 4;
+      opacity: 0.52;
+    }
+    .plan-route.is-source {
+      stroke: #A6A39C;
+    }
+    .plan-route.is-aux {
+      stroke: #9B9690;
+    }
+  </style>
+
+  <rect width="900" height="500" fill="#F8F8F5"/>
+  <rect width="900" height="500" fill="url(#plan-grid)" opacity="0.63"/>
+
+
+    <g>
+      <text class="plan-mono" x="24" y="29" font-size="9.5" fill="#96938D" text-anchor="start">01</text>
+      <text x="46" y="29" font-size="10.5" font-weight="650" fill="#5F5D59" text-anchor="start">NATIVE FILES</text>
+    </g>
+
+    <g>
+      <text class="plan-mono" x="274" y="29" font-size="9.5" fill="#96938D" text-anchor="start">02</text>
+      <text x="296" y="29" font-size="10.5" font-weight="650" fill="#5F5D59" text-anchor="start">NORMALIZE</text>
+    </g>
+
+    <g>
+      <text class="plan-mono" x="418" y="29" font-size="9.5" fill="#96938D" text-anchor="start">03</text>
+      <text x="440" y="29" font-size="10.5" font-weight="650" fill="#5F5D59" text-anchor="start">FIXED CATEGORY</text>
+    </g>
+
+  <rect x="20" y="44" width="220" height="368" rx="12" fill="#FCFCFA" stroke="#DEDDD7"/>
+  <rect x="274" y="44" width="122" height="368" rx="12" fill="#FCFCFA" stroke="#DEDDD7" stroke-dasharray="4 5"/>
+
+
+    <g>
+      <rect x="39" y="85" width="176" height="46" rx="6" fill="#E9E9E4"/>
+      <rect x="36" y="81" width="176" height="46" rx="6" fill="#FFFFFF" stroke="#D8D7D1"/>
+      <path d="M48 92h12" stroke="#B8B6AF" stroke-width="1.2"/>
+      <text class="plan-mono" x="48" y="107" font-size="10.2" fill="#242425" text-anchor="start">USER.md</text>
+      <text x="48" y="121" font-size="9.2" font-weight="500" fill="#77736C" text-anchor="start">profile</text>
+    </g>
+
+    <g>
+      <rect x="39" y="144" width="176" height="46" rx="6" fill="#E9E9E4"/>
+      <rect x="36" y="140" width="176" height="46" rx="6" fill="#FFFFFF" stroke="#D8D7D1"/>
+      <path d="M48 151h12" stroke="#B8B6AF" stroke-width="1.2"/>
+      <text class="plan-mono" x="48" y="166" font-size="10.2" fill="#242425" text-anchor="start">FEEDBACK.md</text>
+      <text x="48" y="180" font-size="9.2" font-weight="500" fill="#77736C" text-anchor="start">preference · rule</text>
+    </g>
+
+    <g>
+      <rect x="39" y="203" width="176" height="46" rx="6" fill="#E9E9E4"/>
+      <rect x="36" y="199" width="176" height="46" rx="6" fill="#FFFFFF" stroke="#D8D7D1"/>
+      <path d="M48 210h12" stroke="#B8B6AF" stroke-width="1.2"/>
+      <text class="plan-mono" x="48" y="225" font-size="10.2" fill="#242425" text-anchor="start">PROJECT.md</text>
+      <text x="48" y="239" font-size="9.2" font-weight="500" fill="#77736C" text-anchor="start">goal · constraint</text>
+    </g>
+
+  <path d="M36 270 H216" stroke="#E1E0DA"/>
+  <text class="plan-mono" x="36" y="291" font-size="9.5" fill="#8C8982" text-anchor="start">OTHER AGENT FORMATS</text>
+  <g>
+    <rect x="36" y="302" width="176" height="26" rx="5" fill="#F1F1ED" stroke="#E1E0DA"/>
+    <text x="48" y="319" font-size="9.8" font-weight="500" fill="#76736D" text-anchor="start">Claude · Codex · WorkBuddy</text>
+  </g>
+  <g>
+    <rect x="36" y="334" width="176" height="26" rx="5" fill="#F1F1ED" stroke="#E1E0DA"/>
+    <text x="48" y="351" font-size="9.8" font-weight="500" fill="#76736D" text-anchor="start">Trae · Pi · DeepSeek Harness</text>
+  </g>
+  <g>
+    <rect x="36" y="366" width="176" height="26" rx="5" fill="#F1F1ED" stroke="#E1E0DA"/>
+    <text x="48" y="383" font-size="9.8" font-weight="500" fill="#76736D" text-anchor="start">Hermes · Doubao · MCP writes</text>
+  </g>
+
+  <g>
+    <circle cx="335" cy="111" r="29" fill="#F0F0EB" stroke="#C9C7C0"/>
+    <circle cx="335" cy="111" r="22" fill="#FFFFFF" stroke="#D7D5CF"/>
+    <text x="335" y="108" font-size="18" font-weight="690" fill="#171718" text-anchor="middle">10</text>
+    <text class="plan-mono" x="335" y="122" font-size="8.5" fill="#7C7972" text-anchor="middle">KINDS</text>
+  </g>
+
+  <path d="M286 154 H374" stroke="#E1E0DA"/>
+  <text class="plan-mono" x="289" y="177" font-size="9.2" fill="#77716A" text-anchor="start">01  KEEP SOURCE</text>
+  <text x="289" y="193" font-size="9.2" font-weight="500" fill="#74716B" text-anchor="start">Source retained.</text>
+  <path d="M286 208 H374" stroke="#E1E0DA"/>
+  <text class="plan-mono" x="289" y="231" font-size="9.2" fill="#77716A" text-anchor="start">02  RESOLVE KIND</text>
+  <text x="289" y="247" font-size="9.2" font-weight="500" fill="#74716B" text-anchor="start">Content decides.</text>
+  <path d="M286 262 H374" stroke="#E1E0DA"/>
+  <text class="plan-mono" x="289" y="285" font-size="9.2" fill="#77716A" text-anchor="start">03  ASSIGN SHELF</text>
+  <text x="289" y="301" font-size="9.2" font-weight="500" fill="#74716B" text-anchor="start">One fixed category.</text>
+
+  <rect x="284" y="332" width="98" height="56" rx="7" fill="#EEF1EB" stroke="#D5DAD1"/>
+  <text x="333" y="352" font-size="11" font-weight="660" fill="#171718" text-anchor="middle">10 kinds</text>
+  <text x="333" y="367" font-size="9.5" font-weight="500" fill="#686C62" text-anchor="middle">4 categories</text>
+  <text class="plan-mono" x="333" y="380" font-size="8.4" fill="#7C8076" text-anchor="middle">+ 2 trays</text>
+
+
+  <g class="plan-routes">
+    <path class="plan-route is-source" d="M214 104 H247 Q257 104 257 151 V198 H274"/>
+    <path class="plan-route is-source" d="M214 163 H257 V198 H274"/>
+    <path class="plan-route is-source" d="M214 222 H247 Q257 222 257 213 V198 H274"/>
+  </g>
+  <path class="plan-route is-main" d="M396 198 H408"/>
+  <path d="M408 194 L416 198 L408 202Z" fill="#8B8881"/>
+
+    <g data-bin="identity">
+      <g filter="url(#card-shadow)">
+        <rect x="418" y="58" width="218" height="128" rx="10" fill="#FFFFFF" stroke="#D7D5CF"/>
+        <path d="M428 58 H626" stroke="#B5542F" stroke-width="3" stroke-linecap="round"/>
+      </g>
+      <text class="plan-mono" x="432" y="80" font-size="9.5" fill="#B5542F" text-anchor="start">01</text>
+      <text x="432" y="101" font-size="14" font-weight="680" fill="#171718" text-anchor="start">IDENTITY</text>
+      <text x="622" y="80" font-size="9.5" font-weight="500" fill="#8B8881" text-anchor="end">who you are</text>
+      <text x="432" y="123" font-size="10.3" font-weight="500" fill="#6F6C66" text-anchor="start">Stable context about you</text>
+      <text x="432" y="136" font-size="10.3" font-weight="500" fill="#6F6C66" text-anchor="start">and your role.</text>
+
+    <g>
+      <rect x="432" y="149" width="51.9" height="22" rx="5" fill="#B5542F0D" stroke="#B5542F36"/>
+      <text x="438.5" y="163.5" font-size="9.3" font-weight="560" fill="#B5542F" text-anchor="start">profile</text>
+    </g>
+    </g>
+    <g data-bin="guidance">
+      <g filter="url(#card-shadow)">
+        <rect x="648" y="58" width="218" height="128" rx="10" fill="#FFFFFF" stroke="#D7D5CF"/>
+        <path d="M658 58 H856" stroke="#55745F" stroke-width="3" stroke-linecap="round"/>
+      </g>
+      <text class="plan-mono" x="662" y="80" font-size="9.5" fill="#55745F" text-anchor="start">02</text>
+      <text x="662" y="101" font-size="14" font-weight="680" fill="#171718" text-anchor="start">GUIDANCE</text>
+      <text x="852" y="80" font-size="9.5" font-weight="500" fill="#8B8881" text-anchor="end">how to work</text>
+      <text x="662" y="123" font-size="10.3" font-weight="500" fill="#6F6C66" text-anchor="start">Defaults, rules, and</text>
+      <text x="662" y="136" font-size="10.3" font-weight="500" fill="#6F6C66" text-anchor="start">repeatable ways to work.</text>
+
+    <g>
+      <rect x="662" y="149" width="69" height="22" rx="5" fill="#55745F0D" stroke="#55745F36"/>
+      <text x="668.5" y="163.5" font-size="9.3" font-weight="560" fill="#55745F" text-anchor="start">preference</text>
+    </g>
+    <g>
+      <rect x="736" y="149" width="44" height="22" rx="5" fill="#55745F0D" stroke="#55745F36"/>
+      <text x="742.5" y="163.5" font-size="9.3" font-weight="560" fill="#55745F" text-anchor="start">rule</text>
+    </g>
+    <g>
+      <rect x="785" y="149" width="63.300000000000004" height="22" rx="5" fill="#55745F0D" stroke="#55745F36"/>
+      <text x="791.5" y="163.5" font-size="9.3" font-weight="560" fill="#55745F" text-anchor="start">procedure</text>
+    </g>
+    </g>
+    <g data-bin="knowledge">
+      <g filter="url(#card-shadow)">
+        <rect x="418" y="200" width="218" height="128" rx="10" fill="#FFFFFF" stroke="#D7D5CF"/>
+        <path d="M428 200 H626" stroke="#9B7A4D" stroke-width="3" stroke-linecap="round"/>
+      </g>
+      <text class="plan-mono" x="432" y="222" font-size="9.5" fill="#9B7A4D" text-anchor="start">03</text>
+      <text x="432" y="243" font-size="14" font-weight="680" fill="#171718" text-anchor="start">KNOWLEDGE</text>
+      <text x="622" y="222" font-size="9.5" font-weight="500" fill="#8B8881" text-anchor="end">what is true</text>
+      <text x="432" y="265" font-size="10.3" font-weight="500" fill="#6F6C66" text-anchor="start">Durable facts, references,</text>
+      <text x="432" y="278" font-size="10.3" font-weight="500" fill="#6F6C66" text-anchor="start">and lessons.</text>
+
+    <g>
+      <rect x="432" y="291" width="44" height="22" rx="5" fill="#9B7A4D0D" stroke="#9B7A4D36"/>
+      <text x="438.5" y="305.5" font-size="9.3" font-weight="560" fill="#9B7A4D" text-anchor="start">fact</text>
+    </g>
+    <g>
+      <rect x="481" y="291" width="63.300000000000004" height="22" rx="5" fill="#9B7A4D0D" stroke="#9B7A4D36"/>
+      <text x="487.5" y="305.5" font-size="9.3" font-weight="560" fill="#9B7A4D" text-anchor="start">reference</text>
+    </g>
+    <g>
+      <rect x="549.3" y="291" width="51.9" height="22" rx="5" fill="#9B7A4D0D" stroke="#9B7A4D36"/>
+      <text x="555.8" y="305.5" font-size="9.3" font-weight="560" fill="#9B7A4D" text-anchor="start">insight</text>
+    </g>
+    </g>
+    <g data-bin="current">
+      <g filter="url(#card-shadow)">
+        <rect x="648" y="200" width="218" height="128" rx="10" fill="#FFFFFF" stroke="#D7D5CF"/>
+        <path d="M658 200 H856" stroke="#5F7089" stroke-width="3" stroke-linecap="round"/>
+      </g>
+      <text class="plan-mono" x="662" y="222" font-size="9.5" fill="#5F7089" text-anchor="start">04</text>
+      <text x="662" y="243" font-size="14" font-weight="680" fill="#171718" text-anchor="start">CURRENT WORK</text>
+      <text x="852" y="222" font-size="9.5" font-weight="500" fill="#8B8881" text-anchor="end">what is active</text>
+      <text x="662" y="265" font-size="10.3" font-weight="500" fill="#6F6C66" text-anchor="start">Active goals, constraints,</text>
+      <text x="662" y="278" font-size="10.3" font-weight="500" fill="#6F6C66" text-anchor="start">and decisions.</text>
+
+    <g>
+      <rect x="662" y="291" width="44" height="22" rx="5" fill="#5F70890D" stroke="#5F708936"/>
+      <text x="668.5" y="305.5" font-size="9.3" font-weight="560" fill="#5F7089" text-anchor="start">goal</text>
+    </g>
+    <g>
+      <rect x="711" y="291" width="69" height="22" rx="5" fill="#5F70890D" stroke="#5F708936"/>
+      <text x="717.5" y="305.5" font-size="9.3" font-weight="560" fill="#5F7089" text-anchor="start">constraint</text>
+    </g>
+    <g>
+      <rect x="785" y="291" width="57.6" height="22" rx="5" fill="#5F70890D" stroke="#5F708936"/>
+      <text x="791.5" y="305.5" font-size="9.3" font-weight="560" fill="#5F7089" text-anchor="start">decision</text>
+    </g>
+    </g>
+
+  <g>
+    <path class="plan-route is-aux" d="M333 388 V416 H414"/>
+    <rect x="418" y="352" width="214" height="88" rx="9" fill="#FCFCFA" stroke="#D9D6D4"/>
+    <path d="M428 357 H622" stroke="#8B6D76" stroke-width="3" stroke-linecap="round"/>
+    <text class="plan-mono" x="432" y="376" font-size="9.5" fill="#8B6D76" text-anchor="start">EVIDENCE</text>
+    <text x="432" y="395" font-size="10.2" font-weight="560" fill="#313032" text-anchor="start">Keep source evidence intact.</text>
+    <text x="432" y="412" font-size="8.8" font-weight="500" fill="#75716F" text-anchor="start">session summary · rollout · compaction</text>
+    <text x="432" y="426" font-size="8.8" font-weight="500" fill="#75716F" text-anchor="start">workspace log · feedback event</text>
+
+    <rect x="648" y="352" width="214" height="88" rx="9" fill="#FCFCFA" stroke="#D9D6D4"/>
+    <path d="M658 357 H852" stroke="#77716A" stroke-width="3" stroke-linecap="round"/>
+    <text class="plan-mono" x="662" y="376" font-size="9.5" fill="#77716A" text-anchor="start">UNCLASSIFIED</text>
+    <text x="662" y="395" font-size="10.2" font-weight="560" fill="#313032" text-anchor="start">Review before durable filing.</text>
+    <text x="662" y="412" font-size="8.8" font-weight="500" fill="#75716F" text-anchor="start">unknown · ambiguous · unsupported</text>
+    <text class="plan-mono" x="662" y="427" font-size="8.6" fill="#8A867F" text-anchor="start">NO FORCED GUESS</text>
+  </g>
+
+  <g>
+    <circle cx="24" cy="438" r="2.5" fill="#55745F"/>
+    <text x="34" y="442" font-size="10.5" font-weight="560" fill="#5D5A55" text-anchor="start">Kind is the concrete type. Category is the stable shelf.</text>
+  </g>
+</svg>

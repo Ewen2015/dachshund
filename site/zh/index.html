@@ -44,6 +44,7 @@
         <nav class="nav-links" aria-label="主导航">
           <a href="#why">为什么</a>
           <a href="#how">如何工作</a>
+          <a href="#guide">分类指南</a>
           <a href="#mcp">MCP</a>
           <a href="#privacy">隐私</a>
         </nav>
@@ -67,6 +68,7 @@
       <nav class="mobile-nav" data-mobile-nav aria-label="移动端导航">
         <a href="#why">为什么</a>
         <a href="#how">如何工作</a>
+        <a href="#guide">分类指南</a>
         <a href="#mcp">MCP</a>
         <a href="#privacy">隐私</a>
         <a href="../" hreflang="en">English</a>
@@ -91,7 +93,7 @@
               <span aria-hidden="true">↓</span>
             </a>
           </div>
-          <p class="hero-meta reveal reveal-delay-3">v0.1.21 · Apple Silicon · 免费开源</p>
+          <p class="hero-meta reveal reveal-delay-3">v0.1.22 · Apple Silicon · 免费开源</p>
         </div>
 
         <div class="hero-stage reveal reveal-delay-2" data-hero-stage>
@@ -107,8 +109,8 @@
             </div>
             <img
               src="../assets/images/memory-library.webp"
-              width="1900"
-              height="1183"
+              width="1840"
+              height="1400"
               alt="dachshund 记忆库，展示来自多个 Agent 的本地记忆"
             >
           </div>
@@ -204,9 +206,11 @@
             <div class="file-tree" aria-label="Markdown 记忆库示例">
               <p><span class="folder">dachshund/</span></p>
               <p><span class="indent">memory/</span></p>
-              <p><span class="indent-2">about-me/</span> <small>个人档案</small></p>
-              <p><span class="indent-2">projects/</span> <small>项目决策</small></p>
-              <p><span class="indent-2">working-together/</span> <small>协作规则</small></p>
+              <p><span class="indent-2">identity/</span> <small>个人档案</small></p>
+              <p><span class="indent-2">guidance/</span> <small>协作规则</small></p>
+              <p><span class="indent-2">knowledge/</span> <small>事实与洞察</small></p>
+              <p><span class="indent-2">current-work/</span> <small>项目决策</small></p>
+              <p><span class="indent-2">evidence/</span> <small>会话证据</small></p>
               <p><span class="indent">index.sqlite</span> <small>可重建</small></p>
             </div>
           </article>
@@ -264,12 +268,12 @@
           <p class="section-index">03 / 穿过工具边界</p>
           <h2>在一个 Agent 里开始。<br>让所有 Agent 都记住。</h2>
           <p>
-            Codex 试错得到的教训，不该让 Claude Code 再重新踩一次。dachshund 把某个 Agent 换来的经验，变成所有已连接 Agent 都能召回的共享记忆。打开导入的 memory 并选择 <strong>Share</strong>，即可保留一份 dachshund 管理的共享副本，原文件不动
+            Codex 试错得到的洞察，不该让 Claude Code 再重新踩一次。dachshund 把一份共享记忆连接给所有 Agent，并保留每个来源。打开导入的 memory 并选择 <strong>Share</strong>，即可保留一份 dachshund 管理的共享副本，原文件不动
           </p>
           <div class="segmented" role="tablist" aria-label="记忆示例">
             <button type="button" role="tab" aria-selected="true" data-memory-tab="decision">一个决定</button>
             <button type="button" role="tab" aria-selected="false" data-memory-tab="preference">一个偏好</button>
-            <button type="button" role="tab" aria-selected="false" data-memory-tab="lesson">一个教训</button>
+            <button type="button" role="tab" aria-selected="false" data-memory-tab="insight">一个洞察</button>
           </div>
         </div>
         <div class="memory-demo reveal reveal-delay-1" aria-live="polite">
@@ -317,7 +321,7 @@
           <img
             src="../assets/images/pulse.webp"
             width="1600"
-            height="996"
+            height="1217"
             alt="dachshund Pulse 页面，展示跨 Agent 重合和记忆新鲜度"
           >
           <div class="pulse-float pulse-float-a"><span>跨 Agent 回声</span><strong>8</strong><small>同一份知识，多个来源</small></div>
@@ -325,10 +329,30 @@
         </div>
       </section>
 
+      <section class="content-section section-shell pulse-section" id="guide">
+        <div class="section-heading section-heading-split reveal">
+          <div>
+            <p class="section-index">05 / 一套看得懂的分类模型</p>
+            <h2>每一条记忆，都有它的位置。</h2>
+          </div>
+          <p>
+            Guide 在应用内讲清归类逻辑：Agent 原生文件先归一化成十个 durable kind，再进入四个固定分类。Evidence 和 Unclassified 放在单独的审核托盘，不会被悄悄当成长期知识
+          </p>
+        </div>
+        <div class="pulse-stage reveal">
+          <img
+            src="../assets/images/guide.webp"
+            width="1600"
+            height="1217"
+            alt="dachshund Guide 俯视分类图，展示原生文件、十个 kind、四个分类以及 Evidence 和 Unclassified"
+          >
+        </div>
+      </section>
+
       <section class="menubar-section">
         <div class="section-shell menubar-grid">
           <div class="menubar-copy reveal">
-            <p class="section-index">05 / 常驻，但不打扰</p>
+            <p class="section-index">06 / 常驻，但不打扰</p>
             <h2>从想到一件事，到记下来，只差一个快捷键。</h2>
             <p>
               dachshund 住在 macOS 菜单栏。搜索 Agent 已经知道的内容、看一眼最近的跨 Agent 回声，或写下一条共享记忆，不用再打开第二个工作区。面板会在当前屏幕打开，并停留在你正在使用的 Space 上方。完整应用可以在顶部 tab 与 Magpie 式侧边栏之间切换
@@ -354,7 +378,7 @@
 
       <section class="content-section section-shell mcp-section" id="mcp">
         <div class="section-heading reveal">
-          <p class="section-index">06 / 不经过云端的 MCP</p>
+          <p class="section-index">07 / 不经过云端的 MCP</p>
           <h2>让记忆跟着问题一起出现。</h2>
           <p>
             连接后，任何 Agent 都可以搜索记忆、请求可直接放进 Prompt 的上下文块、写入持久记忆、归档共享副本，并查看记忆库统计。MCP 初始化和托管指令会告诉 Agent：在问题依赖既有上下文时，先查询共享记忆
@@ -376,7 +400,7 @@
       <section class="privacy-section" id="privacy">
         <div class="section-shell privacy-grid">
           <div class="privacy-copy reveal">
-            <p class="section-index">07 / 本地是架构，不是开关</p>
+            <p class="section-index">08 / 本地是架构，不是开关</p>
             <h2>你的记忆，不会离开这台 Mac。</h2>
             <p>没有一个可以关掉的托管记忆层。文件、索引和 MCP 服务都留在这台电脑上</p>
             <a class="button button-paper" href="https://github.com/Ewen2015/dachshund/blob/main/README.zh-CN.md#隐私">阅读隐私模型 <span aria-hidden="true">↗</span></a>
@@ -403,10 +427,10 @@
             </div>
           </div>
           <div class="download-actions">
-            <a class="button button-ink button-download" href="https://github.com/Ewen2015/dachshund/releases/download/v0.1.21/dachshund-0.1.21-arm64.dmg">
+            <a class="button button-ink button-download" href="https://github.com/Ewen2015/dachshund/releases/download/v0.1.22/dachshund-0.1.22-arm64.dmg">
               <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v10m0 0 4-4m-4 4L6 8M3 14v3h14v-3"/></svg>
               下载 macOS 版
-              <small>v0.1.21 · Apple Silicon</small>
+              <small>v0.1.22 · Apple Silicon</small>
             </a>
             <a class="button button-ghost" href="https://github.com/Ewen2015/dachshund">在 GitHub 查看</a>
             <p>免费开源 · MIT</p>

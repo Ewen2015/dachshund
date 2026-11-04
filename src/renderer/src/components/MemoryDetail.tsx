@@ -2,7 +2,13 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { MemoryDetail as MemoryDetailType } from '../../../shared/types'
-import { categoryDefinition, categoryForKind } from '../../../shared/memory-taxonomy'
+import {
+  authorityLabel,
+  categoryDefinition,
+  categoryForKind,
+  scopeLabel,
+  statusLabel
+} from '../../../shared/memory-taxonomy'
 import { formatDate, kindLabel, uniqueSources } from '../lib/format'
 import { AgentLogo } from './AgentLogo'
 import {
@@ -45,6 +51,7 @@ export function MemoryDetail({
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const proseRef = useRef<HTMLDivElement>(null)
+  const outlineItemRefs = useRef(new Map<string, HTMLButtonElement>())
   const outlineJumpRef = useRef<string | null>(null)
   const outlineJumpTimer = useRef<number | null>(null)
   const [outline, setOutline] = useState<OutlineItem[]>([])
@@ -59,6 +66,11 @@ export function MemoryDetail({
   useEffect(() => {
     setOutlineCollapsed(false)
   }, [memory.id])
+
+  useEffect(() => {
+    if (!activeOutlineId || outlineCollapsed) return
+    outlineItemRefs.current.get(activeOutlineId)?.scrollIntoView({ block: 'nearest' })
+  }, [activeOutlineId, outlineCollapsed])
 
   useEffect(
     () => () => {
@@ -190,21 +202,31 @@ export function MemoryDetail({
             </div>
             {!outlineCollapsed && (
               <div className="memory-outline-list">
-                {outline.map((item) => (
-                  <button
-                    className={`memory-outline-item ${
-                      activeOutlineId === item.id ? 'is-active' : ''
-                    }`}
-                    style={{ '--outline-depth': Math.max(0, item.level - 1) } as CSSProperties}
-                    type="button"
-                    key={item.id}
-                    onClick={() => jumpToHeading(item.id)}
-                    aria-current={activeOutlineId === item.id ? 'location' : undefined}
-                    title={item.text}
-                  >
-                    {item.text}
-                  </button>
-                ))}
+                {outline.map((item) => {
+                  const outlineDepth = Math.min(2, Math.max(0, item.level - 1))
+                  return (
+                    <button
+                      ref={(node) => {
+                        if (node) outlineItemRefs.current.set(item.id, node)
+                        else outlineItemRefs.current.delete(item.id)
+                      }}
+                      className={`memory-outline-item ${
+                        activeOutlineId === item.id ? 'is-active' : ''
+                      }`}
+                      style={{ '--outline-depth': outlineDepth } as CSSProperties}
+                      data-outline-level={item.level}
+                      data-outline-depth={outlineDepth}
+                      type="button"
+                      key={item.id}
+                      onClick={() => jumpToHeading(item.id)}
+                      aria-current={activeOutlineId === item.id ? 'location' : undefined}
+                      aria-label={item.text}
+                      title={item.text}
+                    >
+                      {item.text}
+                    </button>
+                  )
+                })}
               </div>
             )}
           </nav>
@@ -213,13 +235,20 @@ export function MemoryDetail({
         <div className="detail-scroll" ref={scrollRef}>
           <h2>{memory.title}</h2>
           <div className="detail-meta">
-            {memory.project && (
-              <span className="tag project-tag">
-                <FolderIcon size={12} />
-                <span className="meta-key">Scope</span>
-                {memory.project}
-              </span>
-            )}
+            <span className="tag project-tag">
+              <FolderIcon size={12} />
+              <span className="meta-key">Scope</span>
+              {scopeLabel(memory.scope)}
+              {memory.project ? ` · ${memory.project}` : ''}
+            </span>
+            <span className="tag">
+              <span className="meta-key">Authority</span>
+              {authorityLabel(memory.authority)}
+            </span>
+            <span className="tag">
+              <span className="meta-key">Status</span>
+              {statusLabel(memory.status)}
+            </span>
             {memory.tags.map((tag) => (
               <span className="tag" key={tag}>
                 {tag}

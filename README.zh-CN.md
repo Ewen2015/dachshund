@@ -10,7 +10,7 @@
 dachshund 找到这些 Agent 已经写在本机的 Memory，把它们汇入一份 Markdown
 记忆库，再通过 MCP 提供给所有 Agent 使用。无需账号，无需上云，也不依赖模型
 
-[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.21/dachshund-0.1.21-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
+[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.22/dachshund-0.1.22-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -48,7 +48,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 
 | 平台 | 架构 | 安装包 | 大小 | 下载 |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.21](https://github.com/Ewen2015/dachshund/releases/download/v0.1.21/dachshund-0.1.21-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.22](https://github.com/Ewen2015/dachshund/releases/download/v0.1.22/dachshund-0.1.22-arm64.dmg)** |
 
 **系统要求：** Apple Silicon Mac
 
@@ -57,7 +57,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 > 选择“打开”
 
 [所有版本](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.21/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.22/SHA256SUMS)
 
 **安装**
 
@@ -76,7 +76,7 @@ SHA-256 用于确认下载的 DMG 与正式发布文件一致。它不是激活�
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.21/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.22/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -123,9 +123,9 @@ Claude 通过 MCP 使用 dachshund 的共享记忆。Doubao 的自定义连接�
 的共享记忆，但豆包账号记忆和每个助手的独立记忆仍留在账号侧。
 
 DeepSeek Harness 按事件证据处理，而不是寻找一个原生 memory 文件。dachshund
-从人工输入中提取明确的长期线索，把 compaction summary 导入 History，把
+从人工输入中提取明确的长期线索，把 compaction summary 导入 Evidence，把
 `~/.dsh/AGENTS.md` 导入规则，再通过管理的 Cordis MCP 连接共享记忆库。原始
-session 和工具输出仍然只是证据，不会直接变成 memory。
+session 和工具输出仍然只是外部证据，不会直接变成长期 memory。
 
 具体路径和格式见 [Agent 集成](docs/AGENTS.md)，图标来源与许可见
 [Agent 图标](docs/AGENT_ICONS.md)
@@ -187,7 +187,7 @@ Agent 读取，也仍然保留 Codex 来源。第二个 Agent 写入完全相同
 的屏幕上打开，并停留在当前全屏 Space 上方，不会切换屏幕。使用
 `Cmd+Shift+M` 最小化到菜单栏，使用 `Cmd+Shift+D` 打开或关闭紧凑面板。完整应用
 可以在顶部 tab 与受 Magpie 产品设计启发的可选侧边栏之间切换：点击窗口左上角
-控制按钮旁的侧栏按钮，或按 `Cmd+\`。侧栏模式下，Pulse 归入 Insights。
+控制按钮旁的侧栏按钮，或按 `Cmd+\`。侧栏模式下，Pulse 与 Guide 归入 Insights。
 无论从完整应用还是菜单栏小窗，点击 dachshund logo 都可以重新进入 landing
 界面。侧边栏选择也会被记住
 
@@ -196,10 +196,23 @@ Agent 读取，也仍然保留 Codex 来源。第二个 Agent 写入完全相同
 ### Pulse：看清记忆的形状
 
 Pulse 不是一张为了好看而做的使用量报表。它能看出哪些 Agent 正在扩充记忆库、
-多少知识被多个 Agent 共同记住、Memory 在五类中的分布，以及记忆是否正在变旧。
-菜单栏小窗里也有同一组数据的紧凑视图
+多少知识被多个 Agent 共同记住、Memory 在四个知识分类以及 Evidence /
+Unclassified 辅助层中的分布，以及记忆是否正在变旧。菜单栏小窗里也有同一组数据
+的紧凑视图
 
 <img src="docs/screenshots/07-pulse.png" width="900" alt="dachshund Pulse 页面，展示 Memory 增长、跨 Agent 重合和新鲜度">
+
+### Guide：看清一条记忆为什么被放在这里
+
+**Guide** tab 在应用内解释统一记忆模型，不需要跳进实现文档。俯视分类台展示
+Agent 原生文件如何先归一化成十个 durable kind，再进入 Identity、Guidance、
+Knowledge、Current work 四个固定分类。Evidence 和 Unclassified 单独放在审核托盘，
+避免原始历史和无法可靠判断的内容默认变成长期知识。
+
+图下方的四张分类卡可以悬停、聚焦或点击，只保留一条分类路径。Guide 同时出现在
+顶部 tab 和侧边栏；菜单栏小窗仍只保留浏览与记录所需的紧凑界面。
+
+<img src="docs/screenshots/14-guide.png" width="900" alt="dachshund Guide 页面，用俯视分类台展示统一的 Memory 分类逻辑">
 
 ### 在同一个安静入口里完成更新
 
@@ -256,6 +269,7 @@ dachshund 的本地性来自架构，而不是配置开关
 | :-- | :-- |
 | **[产品](docs/PRODUCT.md)** | 产品定位、用户、界面和边界 |
 | **[Memory 分类](docs/MEMORY.md)** | 各 Agent 原生结构、统一分类和归类规则 |
+| **[Agent Memory 映射矩阵](docs/AGENT_MEMORY_MAPPING.md)** | 所有已支持 Agent 的并排映射 |
 | **[设计](docs/DESIGN.md)** | 视觉系统、布局、动效和无障碍 |
 | **[Pulse](docs/PULSE.md)** | Memory 可视化、指标定义和设计取舍 |
 | **[架构](docs/ARCHITECTURE.md)** | 进程、存储、MCP 和安全边界 |

@@ -17,7 +17,12 @@ import type {
   UpdateMemoryInput
 } from '../../shared/types'
 import { DISABLE_IMPORT, IS_DEMO, LIBRARY_DIR, ensureDirs } from '../paths'
-import { normalizeMemoryKind } from '../../shared/memory-taxonomy'
+import {
+  normalizeMemoryAuthority,
+  normalizeMemoryKind,
+  normalizeMemoryScope,
+  normalizeMemoryStatus
+} from '../../shared/memory-taxonomy'
 import { discoverAgents, refreshAgents } from '../agents/discovery'
 import { importAgentMemories } from '../agents/importers'
 import { installMcp } from '../agents/mcp-install'
@@ -88,7 +93,9 @@ export class Store {
       query.query ?? '',
       query.agentId,
       query.limit ?? 80,
-      query.includeArchived ?? false
+      query.includeArchived ?? false,
+      query.includeEvidence ?? true,
+      query.includeUnclassified ?? true
     )
   }
 
@@ -214,9 +221,18 @@ export class Store {
     if (record?.contentHash === hash) {
       const current = this.db.getMemory(record.memoryId)
       if (current) {
-        const nextKind = normalizeMemoryKind(memory.kind)
+        const nextKind = normalizeMemoryKind(memory.kind, content)
+        const nextScope = normalizeMemoryScope(memory.scope, memory.project)
+        const nextAuthority = normalizeMemoryAuthority(memory.authority)
+        const nextStatus = normalizeMemoryStatus(
+          current.archived ? 'archived' : memory.status,
+          nextKind
+        )
         const metadataChanged =
           current.kind !== nextKind ||
+          current.scope !== nextScope ||
+          current.authority !== nextAuthority ||
+          current.status !== nextStatus ||
           current.project !== memory.project ||
           current.title !== memory.title ||
           JSON.stringify([...current.tags].sort()) !==
@@ -273,7 +289,10 @@ export class Store {
       id,
       title: memory.title,
       content,
-      kind: normalizeMemoryKind(memory.kind),
+      kind: normalizeMemoryKind(memory.kind, content),
+      scope: normalizeMemoryScope(memory.scope, memory.project),
+      authority: normalizeMemoryAuthority(memory.authority),
+      status: normalizeMemoryStatus(memory.status, normalizeMemoryKind(memory.kind, content)),
       project: memory.project,
       tags: memory.tags.slice(0, 12),
       createdAt: memory.createdAt,
@@ -340,7 +359,13 @@ export class Store {
       id: previous.id,
       title: memory.title,
       content,
-      kind: normalizeMemoryKind(memory.kind),
+      kind: normalizeMemoryKind(memory.kind, content),
+      scope: normalizeMemoryScope(memory.scope, memory.project),
+      authority: normalizeMemoryAuthority(memory.authority),
+      status: normalizeMemoryStatus(
+        previous.archived ? 'archived' : memory.status,
+        normalizeMemoryKind(memory.kind, content)
+      ),
       project: memory.project,
       tags: memory.tags.slice(0, 12),
       createdAt: previous.createdAt,
@@ -440,7 +465,13 @@ export class Store {
       id: makeId('mem'),
       title,
       content,
-      kind: normalizeMemoryKind(input.kind),
+      kind: normalizeMemoryKind(input.kind, content),
+      scope: normalizeMemoryScope(input.scope, input.project ?? null),
+      authority: normalizeMemoryAuthority(input.authority ?? 'user_explicit'),
+      status: normalizeMemoryStatus(
+        input.status ?? 'active',
+        normalizeMemoryKind(input.kind, content)
+      ),
       project: input.project ?? null,
       tags: (input.tags ?? []).slice(0, 12),
       createdAt: now,
@@ -521,6 +552,9 @@ export class Store {
       title: current.title,
       content: current.content,
       kind: current.kind,
+      scope: current.scope,
+      authority: current.authority,
+      status: current.status,
       project: current.project,
       tags: current.tags,
       createdAt: current.createdAt,
@@ -548,7 +582,19 @@ export class Store {
       id,
       title: patch.title?.trim() || current.title,
       content: patch.content?.trim() ?? current.content,
-      kind: normalizeMemoryKind(patch.kind || current.kind),
+      kind: normalizeMemoryKind(
+        patch.kind || current.kind,
+        patch.content?.trim() ?? current.content
+      ),
+      scope: normalizeMemoryScope(
+        patch.scope ?? current.scope,
+        patch.project !== undefined ? patch.project : current.project
+      ),
+      authority: normalizeMemoryAuthority(patch.authority ?? current.authority),
+      status: normalizeMemoryStatus(
+        patch.status ?? current.status,
+        patch.kind || current.kind
+      ),
       project: patch.project !== undefined ? patch.project : current.project,
       tags: patch.tags ?? current.tags,
       createdAt: current.createdAt,
@@ -575,6 +621,9 @@ export class Store {
       title: current.title,
       content: current.content,
       kind: current.kind,
+      scope: current.scope,
+      authority: current.authority,
+      status: 'archived',
       project: current.project,
       tags: current.tags,
       createdAt: current.createdAt,

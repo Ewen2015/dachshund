@@ -1,7 +1,7 @@
 import type { Counts } from '../../../shared/types'
-import { AgentsIcon, ConnectorsIcon, MemoryIcon, PulseIcon } from './Icons'
+import { AgentsIcon, ConnectorsIcon, GuideIcon, MemoryIcon, PulseIcon } from './Icons'
 
-type View = 'memory' | 'pulse' | 'agents' | 'connectors'
+type View = 'memory' | 'pulse' | 'agents' | 'guide' | 'connectors'
 
 export function Sidebar({
   view,
@@ -48,6 +48,15 @@ export function Sidebar({
         >
           <PulseIcon size={17} />
           <span>Pulse</span>
+        </button>
+        <button
+          className={`app-sidebar-item ${view === 'guide' ? 'active' : ''}`}
+          onClick={() => onChange('guide')}
+          type="button"
+          aria-current={view === 'guide' ? 'page' : undefined}
+        >
+          <GuideIcon size={17} />
+          <span>Guide</span>
         </button>
       </div>
 

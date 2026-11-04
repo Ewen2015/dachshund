@@ -26,7 +26,9 @@ npm install
 | `npm start` | Preview the production Electron build |
 | `npm run typecheck` | Type-check main and renderer projects |
 | `npm run test:agents` | Validate the Hermes, Pi, ZCode and DeepSeek Harness importers and MCP writers |
+| `npm run test:sync` | Validate source versioning, lifecycle fields, and legacy Markdown migration |
 | `npm run test:panel` | Validate menu bar placement and full-screen Space visibility |
+| `npm run test:outline` | Validate dense Contents layout in compact and expanded detail views |
 | `npm run test:mcp` | Run isolated HTTP and MCP integration tests |
 | `npm run demo:seed` | Seed the stable demo memory library |
 | `npm run screenshot` | Capture the documented app screenshots |
@@ -137,6 +139,12 @@ npm run build
 npm run screenshot
 ```
 
+The taxonomy figure embedded in Guide is generated before the renderer build:
+
+```bash
+npm run build:guide
+```
+
 Output: `docs/screenshots/`
 
 Expected capture sizes:
@@ -174,9 +182,9 @@ and notarized.
 
 Verified build:
 
-- output: `release/dachshund-0.1.21-arm64.dmg`
+- output: `release/dachshund-0.1.22-arm64.dmg`
 - SHA-256:
-  `346b107b456a6d8e750936adaee99e0697d66b2c084bd0939064d7aea2f236e6`
+  `bef0d478d9c4b616860546894562ba24ed52eeebc88bf9d382bfe994069bd8f3`
 - packaged app launch and packaged MCP bridge smoke test pass
 - code signing: ad-hoc only
 - Gatekeeper assessment: fails without Developer ID signing and notarization

@@ -52,14 +52,13 @@ assert.deepEqual(
     'profile',
     'preference',
     'rule',
-    'feedback',
-    'lesson',
-    'workflow',
-    'project',
+    'procedure',
+    'goal',
+    'constraint',
     'decision',
     'fact',
     'reference',
-    'episode'
+    'insight'
   ]
 )
 
@@ -126,6 +125,7 @@ const typed = await client.callTool({
     content:
       'dachshund typed memory probe: the mobile release remains behind the desktop release until the reader is finished.',
     kind: 'decision',
+    scope: 'workspace',
     tags: ['integration', 'taxonomy']
   }
 })
@@ -138,6 +138,7 @@ const typedSearch = await client.callTool({
 const typedResults = JSON.parse(typedSearch.content[0].text)
 assert.equal(typedResults[0]?.title, 'dachshund typed memory probe')
 assert.equal(typedResults[0]?.kind, 'decision')
+assert.equal(typedResults[0]?.scope, 'workspace')
 assert.ok(typedResults[0]?.id)
 
 const context = await client.callTool({

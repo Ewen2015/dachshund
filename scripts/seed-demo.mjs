@@ -53,7 +53,7 @@ const memories = [
   {
     id: 'mem_demo_feedback',
     title: 'Do not mock the storage boundary',
-    kind: 'feedback',
+    kind: 'rule',
     project: 'dachshund',
     tags: ['testing', 'sqlite'],
     days: 7,
@@ -64,7 +64,7 @@ const memories = [
   {
     id: 'mem_demo_episode',
     title: 'Traced the missing menu bar update',
-    kind: 'episode',
+    kind: 'session_summary',
     project: 'dachshund',
     tags: ['session', 'updater'],
     days: 9,
@@ -97,7 +97,7 @@ const memories = [
   {
     id: 'mem_demo_auth',
     title: 'Auth stays behind a feature flag',
-    kind: 'project',
+    kind: 'constraint',
     project: 'Field Notes',
     tags: ['engineering', 'auth'],
     days: 2,
@@ -141,7 +141,7 @@ const memories = [
   {
     id: 'mem_demo_pdf',
     title: 'PDF export must keep footnotes',
-    kind: 'project',
+    kind: 'constraint',
     project: 'Field Notes',
     tags: ['export', 'quality'],
     days: 8,
@@ -163,7 +163,7 @@ const memories = [
   {
     id: 'mem_demo_quiet',
     title: 'Quiet interface, loud typography',
-    kind: 'lesson',
+    kind: 'insight',
     project: 'Field Notes',
     tags: ['design', 'taste'],
     days: 16,
@@ -174,13 +174,26 @@ const memories = [
   {
     id: 'mem_demo_bench',
     title: 'Benchmark before rewriting',
-    kind: 'lesson',
+    kind: 'insight',
     project: 'Field Notes',
     tags: ['engineering', 'performance'],
     days: 21,
     agents: ['codex'],
     content:
       'Do not rewrite the search index because it feels slow. Measure first with a real 500-document library. The last rewrite made startup 40ms faster and the code three times harder to read.'
+  },
+  {
+    id: 'mem_demo_outline',
+    title: 'Contents stress fixture',
+    kind: 'reference',
+    project: 'dachshund',
+    tags: ['markdown', 'outline', 'layout'],
+    days: 0,
+    agents: ['codex'],
+    content: fs.readFileSync(
+      path.join(root, 'scripts', 'fixtures', 'outline-stress.md'),
+      'utf8'
+    )
   }
 ]
 
@@ -219,6 +232,8 @@ for (const memory of memories) {
     id: memory.id,
     title: memory.title,
     kind: memory.kind,
+    scope: memory.project ? 'project' : 'user',
+    authority: 'agent_observed',
     tags: memory.tags,
     created,
     updated,

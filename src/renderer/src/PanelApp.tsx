@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { AppState, MemorySummary, ScanResult } from '../../shared/types'
 import {
+  ALL_MEMORY_CATEGORIES,
   MEMORY_CATEGORIES,
   categoryDefinition,
   categoryForKind,
+  memoryCategoryCounts,
+  scopeLabel,
   type MemoryCategoryId
 } from '../../shared/memory-taxonomy'
 import { AgentStack } from './components/AgentStack'
@@ -76,12 +79,7 @@ export default function PanelApp() {
   if (!state) return <div className="panel-shell loading-shell" />
 
   const installed = sortAgentsByMemory(state.agents.filter((agent) => agent.installed))
-  const categoryCounts = Object.fromEntries(
-    MEMORY_CATEGORIES.map((item) => [
-      item.id,
-      memories.filter((memory) => categoryForKind(memory.kind) === item.id).length
-    ])
-  ) as Record<MemoryCategoryId, number>
+  const categoryCounts = memoryCategoryCounts(memories)
   const filteredMemories = memories.filter(
     (memory) => category === null || categoryForKind(memory.kind) === category
   )
@@ -234,13 +232,20 @@ export default function PanelApp() {
               <i />
               <span>All</span>
             </button>
-            {MEMORY_CATEGORIES.filter(
-              (item) => categoryCounts[item.id] > 0 || category === item.id
+            {ALL_MEMORY_CATEGORIES.filter(
+              (item) =>
+                MEMORY_CATEGORIES.some((known) => known.id === item.id) ||
+                categoryCounts[item.id] > 0 ||
+                category === item.id
             ).map((item) => (
               <button
                 type="button"
                 key={item.id}
-                className={`panel-category ${category === item.id ? 'active' : ''}`}
+                className={`panel-category ${category === item.id ? 'active' : ''} ${
+                  MEMORY_CATEGORIES.some((known) => known.id === item.id)
+                    ? ''
+                    : 'is-auxiliary'
+                }`}
                 onClick={() => setCategory(item.id)}
                 title={`${item.label}: ${categoryCounts[item.id]}`}
               >
@@ -296,6 +301,10 @@ export default function PanelApp() {
                         {memoryCategory.shortLabel}
                       </span>
                       <span>{kindLabel(memory.kind)}</span>
+                      <span className="pm-scope">
+                        {scopeLabel(memory.scope)}
+                        {memory.project ? ` · ${memory.project}` : ''}
+                      </span>
                       <span className="pm-time">{relativeTime(memory.updatedAt)}</span>
                       {memory.echoCount > 1 && <span className="pm-echo">{memory.echoCount} agents</span>}
                     </div>

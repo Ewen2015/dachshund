@@ -2,11 +2,13 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import type { AgentSummary, MemorySummary } from '../../../shared/types'
 import {
+  ALL_MEMORY_CATEGORIES,
   MEMORY_CATEGORIES,
   agentMemoryModel,
   categoryDefinition,
   categoryForKind,
   kindLabel,
+  memoryCategoryCounts,
   type MemoryCategoryId
 } from '../../../shared/memory-taxonomy'
 import { AgentFilterBar } from './AgentFilterBar'
@@ -64,12 +66,7 @@ export function AgentMemoryView({
     }
   }, [diagramOpen])
 
-  const categoryCounts = Object.fromEntries(
-    MEMORY_CATEGORIES.map((item) => [
-      item.id,
-      memories.filter((memory) => categoryForKind(memory.kind) === item.id).length
-    ])
-  ) as Record<MemoryCategoryId, number>
+  const categoryCounts = memoryCategoryCounts(memories)
   const visible = [...memories]
     .filter(
       (memory) =>
@@ -145,12 +142,15 @@ export function AgentMemoryView({
             <span />
             <span>dachshund memory</span>
           </div>
-          {MEMORY_CATEGORIES.map((category) => {
+          {ALL_MEMORY_CATEGORIES.map((category) => {
             const mappings = model.mappings.filter((mapping) => mapping.category === category.id)
             const target = categoryDefinition(category.id)
+            const auxiliary = !MEMORY_CATEGORIES.some((item) => item.id === category.id)
             return (
               <div
-                className={`mapping-row ${mappings.length === 0 ? 'is-empty' : ''}`}
+                className={`mapping-row ${mappings.length === 0 ? 'is-empty' : ''} ${
+                  auxiliary ? 'is-auxiliary' : ''
+                }`}
                 key={category.id}
                 aria-label={
                   mappings.length === 0

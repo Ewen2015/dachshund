@@ -6,12 +6,21 @@ import type {
   AgentSummary,
   Counts,
   MemoryDetail,
+  MemoryAuthority,
   MemoryFile,
+  MemoryScope,
   MemorySource,
   MemorySummary,
+  MemoryStatus,
   PulseMemory
 } from '../../shared/types'
-import { normalizeMemoryKind } from '../../shared/memory-taxonomy'
+import {
+  categoryForKind,
+  normalizeMemoryAuthority,
+  normalizeMemoryKind,
+  normalizeMemoryScope,
+  normalizeMemoryStatus
+} from '../../shared/memory-taxonomy'
 import { DB_PATH } from '../paths'
 
 type Row = Record<string, unknown>
@@ -67,6 +76,9 @@ export interface UpsertMemoryInput {
   title: string
   content: string
   kind: string
+  scope: MemoryScope
+  authority: MemoryAuthority
+  status: MemoryStatus
   project: string | null
   tags: string[]
   createdAt: number
@@ -109,7 +121,10 @@ export class Db {
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
         content TEXT NOT NULL,
-        kind TEXT NOT NULL DEFAULT 'fact',
+        kind TEXT NOT NULL DEFAULT 'unclassified',
+        scope TEXT NOT NULL DEFAULT 'user',
+        authority TEXT NOT NULL DEFAULT 'agent_observed',
+        status TEXT NOT NULL DEFAULT 'active',
         project TEXT,
         tags TEXT NOT NULL DEFAULT '[]',
         created_at INTEGER NOT NULL,
@@ -122,6 +137,7 @@ export class Db {
       );
       CREATE INDEX IF NOT EXISTS idx_memories_hash ON memories(hash);
       CREATE INDEX IF NOT EXISTS idx_memories_updated ON memories(updated_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_memories_kind ON memories(kind);
 
       CREATE TABLE IF NOT EXISTS sources (
         memory_id TEXT NOT NULL,
@@ -167,6 +183,26 @@ export class Db {
         tags,
         project
       );
+    `)
+    const columns = this.db.prepare('PRAGMA table_info(memories)').all() as Row[]
+    const names = new Set(columns.map((column) => str(column.name)))
+    if (!names.has('scope')) {
+      this.db.exec("ALTER TABLE memories ADD COLUMN scope TEXT NOT NULL DEFAULT 'user'")
+    }
+    if (!names.has('authority')) {
+      this.db.exec(
+        "ALTER TABLE memories ADD COLUMN authority TEXT NOT NULL DEFAULT 'agent_observed'"
+      )
+    }
+    if (!names.has('status')) {
+      this.db.exec("ALTER TABLE memories ADD COLUMN status TEXT NOT NULL DEFAULT 'active'")
+    }
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_memories_status ON memories(status);
+      UPDATE memories
+      SET scope = CASE WHEN project IS NOT NULL AND project != '' THEN 'project' ELSE 'user' END
+      WHERE scope IS NULL OR scope = '';
+      UPDATE memories SET status = 'archived' WHERE archived = 1 AND status != 'archived';
     `)
   }
 
@@ -287,15 +323,21 @@ export class Db {
 
   upsertMemory(input: UpsertMemoryInput): void {
     const hash = contentHash(input.content)
-    const kind = normalizeMemoryKind(input.kind)
+    const kind = normalizeMemoryKind(input.kind, input.content)
+    const scope = normalizeMemoryScope(input.scope, input.project)
+    const authority = normalizeMemoryAuthority(input.authority)
+    const status = normalizeMemoryStatus(input.status, kind)
     this.db
       .prepare(`
-        INSERT INTO memories(id, title, content, kind, project, tags, created_at, updated_at, archived, pinned, hash, origin, file_path)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'shared', ?)
+        INSERT INTO memories(id, title, content, kind, scope, authority, status, project, tags, created_at, updated_at, archived, pinned, hash, origin, file_path)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'shared', ?)
         ON CONFLICT(id) DO UPDATE SET
           title = excluded.title,
           content = excluded.content,
           kind = excluded.kind,
+          scope = excluded.scope,
+          authority = excluded.authority,
+          status = excluded.status,
           project = excluded.project,
           tags = excluded.tags,
           created_at = excluded.created_at,
@@ -310,11 +352,14 @@ export class Db {
         input.title,
         input.content,
         kind,
+        scope,
+        authority,
+        status,
         input.project,
         JSON.stringify(input.tags),
         input.createdAt,
         input.updatedAt,
-        input.archived ? 1 : 0,
+        input.archived || status === 'archived' ? 1 : 0,
         input.pinned ? 1 : 0,
         hash,
         input.filePath ?? null
@@ -351,6 +396,9 @@ export class Db {
       title: memory.title,
       content: memory.content,
       kind: memory.kind,
+      scope: memory.scope,
+      authority: memory.authority,
+      status: memory.status,
       project: memory.project,
       tags: memory.tags,
       createdAt: memory.createdAt,
@@ -384,7 +432,11 @@ export class Db {
   }
 
   archive(id: string): boolean {
-    const result = this.db.prepare('UPDATE memories SET archived = 1, updated_at = ? WHERE id = ?').run(Date.now(), id)
+    const result = this.db
+      .prepare(
+        "UPDATE memories SET archived = 1, status = 'archived', updated_at = ? WHERE id = ?"
+      )
+      .run(Date.now(), id)
     this.reindex(id)
     return result.changes > 0
   }
@@ -396,7 +448,10 @@ export class Db {
       id,
       title: patch.title ?? current.title,
       content: patch.content ?? current.content,
-      kind: normalizeMemoryKind(patch.kind ?? current.kind),
+      kind: normalizeMemoryKind(patch.kind ?? current.kind, patch.content ?? current.content),
+      scope: patch.scope ?? current.scope,
+      authority: patch.authority ?? current.authority,
+      status: patch.status ?? current.status,
       project: patch.project !== undefined ? patch.project : current.project,
       tags: patch.tags ?? current.tags,
       createdAt: current.createdAt,
@@ -408,7 +463,13 @@ export class Db {
     return this.getMemory(id)
   }
 
-  listMemories(limit = 100, includeArchived = false, agentId?: string): MemorySummary[] {
+  listMemories(
+    limit = 100,
+    includeArchived = false,
+    agentId?: string,
+    includeEvidence = true,
+    includeUnclassified = true
+  ): MemorySummary[] {
     const clauses = includeArchived ? [] : ['m.archived = 0']
     const params: string[] = []
     if (agentId) {
@@ -423,13 +484,17 @@ export class Db {
          ORDER BY m.updated_at DESC LIMIT ?`
       )
       .all(...params, limit) as Row[]
-    return this.rowsToSummaries(rows)
+    return this.filterMemoryLayers(
+      this.rowsToSummaries(rows),
+      includeEvidence,
+      includeUnclassified
+    )
   }
 
   listPulseMemories(): PulseMemory[] {
     const rows = this.db
       .prepare(
-        `SELECT id, title, kind, created_at, updated_at
+        `SELECT id, title, content, kind, created_at, updated_at
          FROM memories
          WHERE archived = 0
          ORDER BY updated_at DESC`
@@ -438,10 +503,23 @@ export class Db {
     return this.rowsToPulseMemories(rows)
   }
 
-  search(query: string, agentId?: string, limit = 60, includeArchived = false): MemorySummary[] {
+  search(
+    query: string,
+    agentId?: string,
+    limit = 60,
+    includeArchived = false,
+    includeEvidence = true,
+    includeUnclassified = true
+  ): MemorySummary[] {
     const trimmed = query.trim()
     if (!trimmed) {
-      return this.listMemories(limit, includeArchived, agentId)
+      return this.listMemories(
+        limit,
+        includeArchived,
+        agentId,
+        includeEvidence,
+        includeUnclassified
+      )
     }
 
     const results = new Map<string, MemorySummary>()
@@ -492,7 +570,20 @@ export class Db {
 
     let list = [...results.values()]
     if (agentId) list = list.filter((m) => m.sources.some((s) => s.agentId === agentId))
-    return list.slice(0, limit)
+    return this.filterMemoryLayers(list, includeEvidence, includeUnclassified).slice(0, limit)
+  }
+
+  private filterMemoryLayers(
+    memories: MemorySummary[],
+    includeEvidence: boolean,
+    includeUnclassified: boolean
+  ): MemorySummary[] {
+    return memories.filter((memory) => {
+      const category = categoryForKind(memory.kind)
+      if (!includeEvidence && category === 'evidence') return false
+      if (!includeUnclassified && category === 'unclassified') return false
+      return true
+    })
   }
 
   counts(): Counts {
@@ -627,7 +718,10 @@ export class Db {
         id,
         title: str(row.title),
         excerpt: excerptOf(str(row.content)),
-        kind: normalizeMemoryKind(str(row.kind, 'fact')),
+        kind: normalizeMemoryKind(str(row.kind), str(row.content)),
+        scope: normalizeMemoryScope(str(row.scope), str(row.project) || null),
+        authority: normalizeMemoryAuthority(str(row.authority)),
+        status: normalizeMemoryStatus(str(row.status), str(row.kind)),
         project: str(row.project) || null,
         tags: parseTags(row.tags),
         createdAt: num(row.created_at),
@@ -650,7 +744,7 @@ export class Db {
       return {
         id,
         title: str(row.title),
-        kind: normalizeMemoryKind(str(row.kind, 'fact')),
+        kind: normalizeMemoryKind(str(row.kind), str(row.content)),
         createdAt: num(row.created_at),
         updatedAt: num(row.updated_at),
         sources,

@@ -43,7 +43,7 @@ dachshund.
 ## Job To Be Done
 
 > When I switch from one agent to another, help me carry forward the
-> preferences, decisions, project context, and lessons already learned, without
+> preferences, decisions, active project context, and insights already learned, without
 > uploading my memory or adopting a new model provider.
 
 ## Product Principles
@@ -71,15 +71,19 @@ The full window opens as a compact 920 x 700 Mac app rather than a browser-sized
 workspace. It can be resized, maximized, or sent full screen when the user wants
 the wider library view. It is the library and control surface:
 
-- Memory feed grouped by recency.
+- Memory feed grouped by recency, with a compact legend for Identity, Guidance,
+  Knowledge, Current work, and populated Evidence or Unclassified layers.
 - Search and agent filters.
 - Memory detail with Markdown rendering and source provenance, as a right-side
   inspector that can expand into a full-window reading view.
 - Agent memory views that explain each native model, show its storage path,
-  map it into the shared taxonomy, and expose an expandable mechanism diagram.
+  map it against the fixed dachshund categories, and expose an expandable
+  mechanism diagram.
 - A clickable brand mark that returns to the first-run landing view without
   resetting onboarding or local data.
 - Pulse: growth, agent contribution, overlap, category mix and freshness.
+- Guide: a visual explanation of how native memory signals become durable
+  kinds and how those kinds map into the four fixed dachshund categories.
 - New-memory composer.
 - Agent discovery, sharing toggles, and MCP connection controls.
 - Connectors, library path, privacy model, and index rebuild.
@@ -152,6 +156,8 @@ dachshund is not currently:
 - A connected agent can recall a memory written by a different connected agent.
 - Users can find and understand their memory library without any proprietary
   export step.
+- A new user can explain the difference between kind, category, scope, and
+  evidence after opening Guide, without reading repository documentation.
 - The core workflow works with networking disabled except loopback.
 - The app remains understandable in the 420 x 620 menu bar surface.
 

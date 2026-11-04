@@ -45,6 +45,10 @@ Each file contains YAML frontmatter and Markdown:
 id: mem_example
 title: Paper before pixels
 kind: preference
+scope: project
+authority: user_explicit
+status: active
+project: Field Notes
 tags:
   - design
   - product
@@ -73,8 +77,11 @@ memory.
 
 Imported memory keeps the source agent's native structure and a normalized
 dachshund category. The native model explains why an agent stored something;
-the category provides one cross-agent browsing layer. The eleven kinds are
-grouped into About me, Ways of working, Projects, Facts & references, and History.
+the category provides one cross-agent browsing layer. Ten durable kinds are
+grouped into Identity, Guidance, Knowledge, and Current work. Session summaries,
+rollouts, compactions, workspace logs, and feedback events form the Evidence
+layer; unresolved records remain Unclassified. Scope, authority, and status are
+orthogonal fields.
 
 Classification happens during import and is deterministic: no API key, model
 call, or embedding is required. See [Memory Taxonomy](MEMORY.md) for the full

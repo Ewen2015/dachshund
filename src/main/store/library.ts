@@ -2,7 +2,12 @@ import fs from 'node:fs'
 import path from 'node:path'
 import matter from 'gray-matter'
 import type { MemoryFile, MemorySource } from '../../shared/types'
-import { normalizeMemoryKind } from '../../shared/memory-taxonomy'
+import {
+  normalizeMemoryAuthority,
+  normalizeMemoryKind,
+  normalizeMemoryScope,
+  normalizeMemoryStatus
+} from '../../shared/memory-taxonomy'
 import { MEMORY_DIR } from '../paths'
 import { Db, makeId } from './db'
 
@@ -102,24 +107,30 @@ export class Library {
       const id = typeof data.id === 'string' && data.id ? data.id : makeId()
       const tags = asTags(data.tags)
       const sources = asSources(data.sources, file)
-      const storedKind = normalizeMemoryKind(data.kind)
+      const rawKind = typeof data.kind === 'string' ? data.kind.trim().toLowerCase() : ''
+      const storedKind = normalizeMemoryKind(data.kind, body)
       const kind =
-        storedKind === 'lesson' &&
+        (rawKind === 'lesson' || rawKind === 'episode' || storedKind === 'insight') &&
         tags.includes('codex') &&
         tags.includes('rollout') &&
         sources.some((source) => source.agentId === 'codex')
-          ? 'episode'
+          ? 'task_rollout'
           : storedKind
+      const project = typeof data.project === 'string' && data.project ? data.project : null
+      const status = normalizeMemoryStatus(data.status, kind)
       return {
         id,
         title,
         content: body,
         kind,
-        project: typeof data.project === 'string' && data.project ? data.project : null,
+        scope: normalizeMemoryScope(data.scope, project),
+        authority: normalizeMemoryAuthority(data.authority),
+        status,
+        project,
         tags,
         createdAt: toTime(data.created, stats.birthtimeMs || fallbackTime),
         updatedAt: toTime(data.updated, fallbackTime),
-        archived: data.status === 'archived' || data.archived === true,
+        archived: status === 'archived' || data.archived === true,
         pinned: data.pinned === true,
         sources,
         filePath: file
@@ -137,6 +148,9 @@ export class Library {
         title: file.title,
         content: file.content,
         kind: file.kind,
+        scope: file.scope,
+        authority: file.authority,
+        status: file.status,
         project: file.project,
         tags: file.tags,
         createdAt: file.createdAt,
@@ -165,11 +179,13 @@ export class Library {
     const frontmatter: Record<string, unknown> = {
       id: file.id,
       title: file.title,
-      kind: normalizeMemoryKind(file.kind),
+      kind: normalizeMemoryKind(file.kind, file.content),
+      scope: normalizeMemoryScope(file.scope, file.project),
+      authority: normalizeMemoryAuthority(file.authority),
       tags: file.tags,
       created: new Date(file.createdAt).toISOString(),
       updated: new Date(file.updatedAt).toISOString(),
-      status: file.archived ? 'archived' : 'active',
+      status: file.archived ? 'archived' : normalizeMemoryStatus(file.status, file.kind),
       pinned: file.pinned,
       sources: file.sources.map((source) =>
         source.ref

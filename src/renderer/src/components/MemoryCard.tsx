@@ -1,6 +1,11 @@
 import type { MemorySummary } from '../../../shared/types'
 import type { CSSProperties } from 'react'
-import { categoryDefinition, categoryForKind } from '../../../shared/memory-taxonomy'
+import {
+  categoryDefinition,
+  categoryForKind,
+  scopeLabel,
+  statusLabel
+} from '../../../shared/memory-taxonomy'
 import { accentFor, kindLabel, relativeTime, uniqueSources } from '../lib/format'
 import { AgentLogo } from './AgentLogo'
 import { AgentStack } from './AgentStack'
@@ -50,6 +55,12 @@ export function MemoryCard({
           </span>
           <span className="kicker-sep" />
           <span>{kindLabel(memory.kind)}</span>
+          {memory.status !== 'active' && (
+            <>
+              <span className="kicker-sep" />
+              <span>{statusLabel(memory.status)}</span>
+            </>
+          )}
           <span className="kicker-sep" />
           <span>{relativeTime(memory.updatedAt)}</span>
         </div>
@@ -57,12 +68,11 @@ export function MemoryCard({
         <p>{memory.excerpt}</p>
         <div className="card-foot">
           <div className="card-tags">
-            {memory.project && (
-              <span className="tag project-tag">
-                <span className="meta-key">Scope</span>
-                {memory.project}
-              </span>
-            )}
+            <span className="tag project-tag">
+              <span className="meta-key">Scope</span>
+              {scopeLabel(memory.scope)}
+              {memory.project ? ` · ${memory.project}` : ''}
+            </span>
             {memory.tags.slice(0, 2).map((tag) => (
               <span className="tag" key={tag}>
                 {tag}

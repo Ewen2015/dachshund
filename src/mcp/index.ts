@@ -88,7 +88,7 @@ const server = new McpServer({
   version: packageJson.version
 }, {
   instructions:
-    'Before answering when prior user preferences, decisions, project context, or lessons could affect the response, call memory_context. Save durable, confirmed information with memory_remember. These memories are local to this Mac and may come from other agents.'
+    'Before answering when prior user preferences, rules, goals, constraints, decisions, facts, or insights could affect the response, call memory_context. Save durable, confirmed information with memory_remember. These memories are local to this Mac and may come from other agents.'
 })
 
 server.server.oninitialized = () => {
@@ -110,7 +110,7 @@ server.registerTool(
   {
     title: 'Search shared memory',
     description:
-      'Search the user’s local dachshund memory. Use this when prior preferences, decisions, project context, or lessons from another AI agent could change the answer. Results include which agents remembered each item.',
+      'Search the user’s local dachshund memory. Use this when prior preferences, rules, goals, constraints, decisions, facts, or insights from another AI agent could change the answer. Evidence and unclassified records are excluded by default. Results include which agents remembered each item.',
     inputSchema: {
       query: z.string().describe('What to recall, in natural language or keywords'),
       limit: z.number().int().min(1).max(20).optional().describe('Maximum results (default 8)'),
@@ -161,25 +161,29 @@ server.registerTool(
           'profile',
           'preference',
           'rule',
-          'feedback',
-          'lesson',
-          'workflow',
-          'project',
+          'procedure',
+          'goal',
+          'constraint',
           'decision',
           'fact',
           'reference',
-          'episode'
+          'insight'
         ])
         .optional(),
+      scope: z
+        .enum(['user', 'project', 'workspace', 'path', 'session'])
+        .optional()
+        .describe('Optional scope; defaults to project when project is supplied'),
       project: z.string().optional().describe('Project path or short project name'),
       tags: z.array(z.string()).max(12).optional()
     }
   },
-  async ({ content, title, kind, project, tags }) => {
+  async ({ content, title, kind, scope, project, tags }) => {
     const result = await call<{ id: string; title: string }>('/api/mcp/remember', {
       content,
       title: title ?? '',
       kind: kind ?? 'fact',
+      scope,
       project: project ?? null,
       tags: tags ?? [],
       agentId: clientAgentId

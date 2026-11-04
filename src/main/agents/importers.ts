@@ -3,8 +3,19 @@ import path from 'node:path'
 import { zstdDecompressSync } from 'node:zlib'
 import matter from 'gray-matter'
 import { DatabaseSync } from 'node:sqlite'
-import type { ImportedMemory } from '../../shared/types'
-import { normalizeMemoryKind } from '../../shared/memory-taxonomy'
+import type {
+  ImportedMemory,
+  MemoryAuthority,
+  MemoryScope,
+  MemoryStatus
+} from '../../shared/types'
+import {
+  inferTextKind,
+  normalizeMemoryAuthority,
+  normalizeMemoryKind,
+  normalizeMemoryScope,
+  normalizeMemoryStatus
+} from '../../shared/memory-taxonomy'
 import { expandHome } from '../paths'
 import type { AgentDefinition } from './registry'
 import { stripSharedMemoryInstructions } from './shared-memory-instructions'
@@ -98,7 +109,14 @@ function toTime(value: unknown, fallback: number): number {
 function parseMarkdownFile(
   file: string,
   agent: AgentDefinition,
-  defaults: { kind?: string; project?: string | null; tags?: string[] } = {}
+  defaults: {
+    kind?: string
+    scope?: MemoryScope
+    authority?: MemoryAuthority
+    status?: MemoryStatus
+    project?: string | null
+    tags?: string[]
+  } = {}
 ): ImportedMemory | null {
   const raw = readText(file)
   if (!raw) return null
@@ -109,7 +127,14 @@ function parseMarkdownRaw(
   file: string,
   agent: AgentDefinition,
   raw: string,
-  defaults: { kind?: string; project?: string | null; tags?: string[] } = {}
+  defaults: {
+    kind?: string
+    scope?: MemoryScope
+    authority?: MemoryAuthority
+    status?: MemoryStatus
+    project?: string | null
+    tags?: string[]
+  } = {}
 ): ImportedMemory | null {
   const parsed = matter(stripSharedMemoryInstructions(raw))
   const body = parsed.content.trim()
@@ -126,20 +151,26 @@ function parseMarkdownRaw(
     (typeof data.name === 'string' && humanize(data.name)) ||
     firstHeading(body) ||
     humanize(path.basename(file, path.extname(file)))
+  const project =
+    (typeof data.project === 'string' && data.project) ||
+    defaults.project ||
+    null
+  const kind = normalizeMemoryKind(
+    (typeof data.kind === 'string' && data.kind) ||
+      (typeof data.type === 'string' && data.type) ||
+      (typeof meta.type === 'string' && meta.type) ||
+      defaults.kind ||
+      'unclassified',
+    body
+  )
   return {
     title: title.length > 110 ? `${title.slice(0, 107).trimEnd()}…` : title,
     content: body,
-    kind: normalizeMemoryKind(
-      (typeof data.kind === 'string' && data.kind) ||
-        (typeof data.type === 'string' && data.type) ||
-        (typeof meta.type === 'string' && meta.type) ||
-        defaults.kind ||
-        'fact'
-    ),
-    project:
-      (typeof data.project === 'string' && data.project) ||
-      defaults.project ||
-      null,
+    kind,
+    scope: normalizeMemoryScope(data.scope || defaults.scope, project),
+    authority: normalizeMemoryAuthority(data.authority || defaults.authority),
+    status: normalizeMemoryStatus(data.status || defaults.status, kind),
+    project,
     tags: [...new Set([...asTags(data.tags ?? meta.tags), ...(defaults.tags ?? [])])],
     createdAt: toTime(data.created, created),
     updatedAt: toTime(data.updated, updated),
@@ -202,6 +233,9 @@ function importWorkBuddy(agent: AgentDefinition): ImportedMemory[] {
     file: string,
     defaults: {
       kind?: string
+      scope?: MemoryScope
+      authority?: MemoryAuthority
+      status?: MemoryStatus
       project?: string | null
       tags?: string[]
       forceKind?: string
@@ -219,6 +253,7 @@ function importWorkBuddy(agent: AgentDefinition): ImportedMemory[] {
 
   addFile(path.join(agent.home, 'IDENTITY.md'), {
     kind: 'rule',
+    authority: 'project_declared',
     tags: ['workbuddy', 'assistant-identity']
   })
   addFile(path.join(agent.home, 'USER.md'), {
@@ -230,7 +265,7 @@ function importWorkBuddy(agent: AgentDefinition): ImportedMemory[] {
     (item) => item.endsWith('.md') && path.basename(item) !== 'MEMORY.md',
     120
   )) {
-    addFile(file, { kind: 'profile', tags: ['workbuddy', 'user-memory'] })
+    addFile(file, { kind: 'unclassified', tags: ['workbuddy', 'user-memory'] })
   }
 
   try {
@@ -255,10 +290,11 @@ function importWorkBuddy(agent: AgentDefinition): ImportedMemory[] {
     )) {
       const dailyLog = isWorkBuddyDailyLog(file)
       addFile(file, {
-        kind: 'episode',
+        kind: 'workspace_log',
+        scope: dailyLog ? 'session' : 'workspace',
         project,
         tags: ['workbuddy', 'workspace-memory', ...(dailyLog ? ['daily-log'] : [])],
-        ...(dailyLog ? { forceKind: 'episode' } : {})
+        ...(dailyLog ? { forceKind: 'workspace_log' } : {})
       })
     }
   }
@@ -288,7 +324,9 @@ function importDoubao(agent: AgentDefinition): ImportedMemory[] {
   return files
     .map(({ file, session }) =>
       parseMarkdownFile(file, agent, {
-        kind: 'project',
+        kind: 'unclassified',
+        scope: session ? 'session' : 'workspace',
+        authority: 'agent_observed',
         project: session ? `Doubao session ${session.slice(-6)}` : null,
         tags: ['doubao', 'agent-mode']
       })
@@ -374,7 +412,9 @@ function traeSessionMemory(
   return {
     title: title.length > 110 ? `${title.slice(0, 107).trimEnd()}…` : title,
     content,
-    kind: 'episode',
+    kind: 'session_summary',
+    scope: project ? 'project' : 'session',
+    authority: 'agent_observed',
     project,
     tags: ['trae', 'session-memory'],
     createdAt: timestamp,
@@ -409,7 +449,9 @@ function importTraeTopics(
     memories.push({
       title: summary.length > 110 ? `${summary.slice(0, 107).trimEnd()}…` : summary,
       content: summary,
-      kind: 'episode',
+      kind: 'session_summary',
+      scope: project ? 'project' : 'session',
+      authority: 'agent_observed',
       project,
       tags: ['trae', 'topic-summary'],
       createdAt: timestamp,
@@ -441,7 +483,7 @@ function importTrae(agent: AgentDefinition): ImportedMemory[] {
     const profile = parseMarkdownFile(
       path.join(root, 'memory', 'user_profile.md'),
       agent,
-      { kind: 'profile', tags: ['trae', 'user-profile'] }
+      { kind: 'profile', authority: 'agent_observed', tags: ['trae', 'user-profile'] }
     )
     if (profile) add(profile)
 
@@ -453,6 +495,7 @@ function importTrae(agent: AgentDefinition): ImportedMemory[] {
     for (const file of projectMemories) {
       const memory = parseMarkdownFile(file, agent, {
         kind: 'project',
+        authority: 'agent_observed',
         project: projectFromTraeDir(file, 1),
         tags: ['trae', 'project-memory']
       })
@@ -508,7 +551,8 @@ function importClaude(agent: AgentDefinition): ImportedMemory[] {
   const projectMemories = memoryFiles
     .map((file) =>
       parseMarkdownFile(file, agent, {
-        kind: 'project',
+        kind: 'unclassified',
+        authority: 'agent_observed',
         project: projectFromClaudeDir(file),
         tags: ['claude-code', 'auto-memory']
       })
@@ -520,6 +564,7 @@ function importClaude(agent: AgentDefinition): ImportedMemory[] {
   const instructions = instructionFiles.map((file) =>
     parseMarkdownFile(file, agent, {
       kind: 'rule',
+      authority: 'user_explicit',
       tags: ['claude-code', 'instructions']
     })
   )
@@ -529,7 +574,8 @@ function importClaude(agent: AgentDefinition): ImportedMemory[] {
     80
   ).map((file) =>
     parseMarkdownFile(file, agent, {
-      kind: 'fact',
+      kind: 'unclassified',
+      authority: 'agent_observed',
       tags: ['claude-code', 'global-memory']
     })
   )
@@ -589,7 +635,9 @@ function importClaudeDesktop(agent: AgentDefinition): ImportedMemory[] {
     for (const file of walk(sessionRoot, isClaudeDesktopMemoryFile)) {
       const space = claudeDesktopSpace(file)
       const memory = parseMarkdownFile(file, agent, {
-        kind: space ? 'project' : 'fact',
+        kind: 'unclassified',
+        scope: space ? 'project' : 'user',
+        authority: 'agent_observed',
         project: space?.name ?? null,
         tags: [
           'claude-desktop',
@@ -665,11 +713,20 @@ function codexReusableKnowledge(section: string): string[] {
 
 function codexTaskGroupKind(section: string): string {
   const explicit = section.match(/^(?:kind|type):\s*([a-z_-]+)\s*$/im)?.[1]
-  if (!explicit) return 'episode'
-  const kind = normalizeMemoryKind(explicit)
-  return ['project', 'decision', 'lesson', 'feedback', 'episode'].includes(kind)
+  if (!explicit) return 'task_rollout'
+  const kind = normalizeMemoryKind(explicit, section)
+  return [
+    'goal',
+    'constraint',
+    'decision',
+    'rule',
+    'preference',
+    'insight',
+    'procedure',
+    'task_rollout'
+  ].includes(kind)
     ? kind
-    : 'episode'
+    : 'task_rollout'
 }
 
 function codexKnowledgeMemories(input: {
@@ -685,10 +742,15 @@ function codexKnowledgeMemories(input: {
 }): ImportedMemory[] {
   return codexReusableKnowledge(input.body).map((content, index) => {
     const title = `${input.title} · reusable knowledge`
+    const kind = /(^|\n)\s*(?:1\.|[-*]\s+step|##\s+(?:steps|procedure|workflow))/i.test(content)
+      ? 'procedure'
+      : inferTextKind(content, 'insight')
     return {
       title: title.length > 110 ? `${title.slice(0, 107).trimEnd()}…` : title,
       content,
-      kind: 'lesson',
+      kind,
+      scope: input.project ? 'project' : 'user',
+      authority: 'agent_observed',
       project: input.project,
       tags: [...new Set([...input.tags, 'codex', 'reusable-knowledge'])],
       createdAt: input.createdAt,
@@ -720,6 +782,8 @@ function importCodexMarkdown(agent: AgentDefinition): ImportedMemory[] {
         title,
         content: body,
         kind: codexTaskGroupKind(body),
+        scope: project ? 'project' : 'user',
+        authority: 'agent_observed',
         project,
         tags,
         createdAt: created,
@@ -768,7 +832,9 @@ function importCodexMarkdown(agent: AgentDefinition): ImportedMemory[] {
       out.push({
         title,
         content: body,
-        kind: 'episode',
+        kind: 'task_rollout',
+        scope: project ? 'project' : 'user',
+        authority: 'agent_observed',
         project,
         tags,
         createdAt: created,
@@ -798,19 +864,69 @@ function importCodexMarkdown(agent: AgentDefinition): ImportedMemory[] {
   const summary = readText(summaryFile)
   if (summary) {
     const { created, updated } = times(summaryFile)
-    out.push({
-      title: 'Codex profile and preferences',
-      content: summary,
-      kind: 'profile',
-      project: null,
-      tags: ['profile', 'preferences'],
-      createdAt: created,
-      updatedAt: updated,
-      agentId: agent.id,
-      agentName: agent.name,
-      sourcePath: summaryFile,
-      sourceRef: 'codex:memory-summary'
-    })
+    const headings = [...summary.matchAll(/^##\s+(.+)$/gm)]
+    if (headings.length) {
+      headings.forEach((heading, index) => {
+        const sectionTitle = heading[1].trim()
+        const start = (heading.index ?? 0) + heading[0].length
+        const end = headings[index + 1]?.index ?? summary.length
+        const content = summary.slice(start, end).trim()
+        if (!content) return
+        const headingKey = sectionTitle.toLowerCase()
+        const kind = /profile|user|about|identity/.test(headingKey)
+          ? 'profile'
+          : /preference/.test(headingKey)
+            ? 'preference'
+            : /rule|instruction/.test(headingKey)
+              ? normalizeMemoryKind(headingKey, content)
+              : /workflow|procedure|steps/.test(headingKey)
+                ? 'procedure'
+                : /goal|milestone/.test(headingKey)
+                  ? 'goal'
+                  : /constraint|limit|boundary/.test(headingKey)
+                    ? 'constraint'
+                    : /decision/.test(headingKey)
+                      ? 'decision'
+                      : /current|active work|project/.test(headingKey)
+                        ? normalizeMemoryKind('project', content)
+                        : /index|reference|link/.test(headingKey)
+                          ? 'reference'
+                  : /fact|knowledge/.test(headingKey)
+                    ? 'fact'
+                    : inferTextKind(content, 'unclassified')
+        out.push({
+          title: sectionTitle.length > 110 ? `${sectionTitle.slice(0, 107)}…` : sectionTitle,
+          content,
+          kind,
+          scope: 'user',
+          authority: 'inferred',
+          project: null,
+          tags: ['codex', 'memory-summary'],
+          createdAt: created,
+          updatedAt: updated,
+          agentId: agent.id,
+          agentName: agent.name,
+          sourcePath: summaryFile,
+          sourceRef: `codex:memory-summary:${index + 1}`
+        })
+      })
+    } else {
+      out.push({
+        title: 'Codex memory summary',
+        content: summary,
+        kind: inferTextKind(summary, 'unclassified'),
+        scope: 'user',
+        authority: 'inferred',
+        project: null,
+        tags: ['codex', 'memory-summary'],
+        createdAt: created,
+        updatedAt: updated,
+        agentId: agent.id,
+        agentName: agent.name,
+        sourcePath: summaryFile,
+        sourceRef: 'codex:memory-summary'
+      })
+    }
   }
   return out
 }
@@ -844,7 +960,9 @@ function importCodexSqlite(agent: AgentDefinition): ImportedMemory[] {
         out.push({
           title,
           content,
-          kind: 'episode',
+          kind: 'task_rollout',
+          scope: project ? 'project' : 'user',
+          authority: 'agent_observed',
           project,
           tags,
           createdAt: generated,
@@ -897,6 +1015,7 @@ function importGemini(agent: AgentDefinition): ImportedMemory[] {
     const parsed = instructions
       ? parseMarkdownRaw(file, agent, instructions, {
           kind: 'rule',
+          authority: 'user_explicit',
           tags: ['gemini', 'instructions']
         })
       : null
@@ -910,6 +1029,8 @@ function importGemini(agent: AgentDefinition): ImportedMemory[] {
         title: 'Gemini added memories',
         content: added,
         kind: 'fact',
+        scope: 'user',
+        authority: 'agent_observed',
         project: null,
         tags: ['gemini', 'added-memory'],
         createdAt: created,
@@ -930,7 +1051,9 @@ function importCursor(agent: AgentDefinition): ImportedMemory[] {
     walk(root, (file) => file.endsWith('.mdc') || file.endsWith('.md'), 300)
   )
   return files
-    .map((file) => parseMarkdownFile(file, agent, { kind: 'rule' }))
+    .map((file) =>
+      parseMarkdownFile(file, agent, { kind: 'rule', authority: 'user_explicit' })
+    )
     .filter((item): item is ImportedMemory => Boolean(item))
 }
 
@@ -949,12 +1072,14 @@ function importCopilot(agent: AgentDefinition): ImportedMemory[] {
     ...instructionFiles.map((file) =>
       parseMarkdownFile(file, agent, {
         kind: 'rule',
+        authority: 'user_explicit',
         tags: ['copilot', 'instructions']
       })
     ),
     ...memoryFiles.map((file) =>
       parseMarkdownFile(file, agent, {
-        kind: 'fact',
+        kind: 'unclassified',
+        authority: 'agent_observed',
         tags: ['copilot', 'local-memory']
       })
     )
@@ -964,6 +1089,7 @@ function importCopilot(agent: AgentDefinition): ImportedMemory[] {
 function importOpenCode(agent: AgentDefinition): ImportedMemory[] {
   const instruction = parseMarkdownFile(path.join(agent.home, 'AGENTS.md'), agent, {
     kind: 'rule',
+    authority: 'user_explicit',
     tags: ['opencode', 'instructions']
   })
   const memoryFiles = [
@@ -978,7 +1104,8 @@ function importOpenCode(agent: AgentDefinition): ImportedMemory[] {
     ...(instruction ? [instruction] : []),
     ...memoryFiles.map((file) =>
       parseMarkdownFile(file, agent, {
-        kind: 'fact',
+        kind: 'unclassified',
+        authority: 'agent_observed',
         tags: ['opencode', 'local-memory']
       })
     )
@@ -1018,7 +1145,7 @@ function memoryKind(input: string, fallback: string): string {
       input
     )
   ) {
-    return 'feedback'
+    return 'rule'
   }
   if (
     /(prefer|preference|always|以后|记住|偏好|喜欢|总是|默认|始终|from now on|remember)/i.test(
@@ -1049,7 +1176,7 @@ function importHermes(agent: AgentDefinition): ImportedMemory[] {
   const sources = [
     {
       file: path.join(agent.home, 'memories', 'MEMORY.md'),
-      kind: 'fact',
+      kind: 'unclassified',
       tags: ['hermes', 'memory']
     },
     {
@@ -1074,6 +1201,8 @@ function importHermes(agent: AgentDefinition): ImportedMemory[] {
         title: memoryTitle(content, path.basename(source.file, '.md')),
         content,
         kind: source.kind,
+        scope: 'user',
+        authority: 'agent_observed',
         project: null,
         tags: source.tags,
         createdAt: created,
@@ -1130,7 +1259,9 @@ function importPi(agent: AgentDefinition): ImportedMemory[] {
         out.push({
           title: memoryTitle(content, fallbackTitle),
           content,
-          kind: 'episode',
+          kind: event.type === 'compaction' ? 'compaction' : 'session_summary',
+          scope: project ? 'project' : 'session',
+          authority: 'agent_observed',
           project,
           tags: ['pi', event.type === 'branch_summary' ? 'branch-summary' : 'compaction'],
           createdAt: timestamp,
@@ -1155,6 +1286,8 @@ function importPi(agent: AgentDefinition): ImportedMemory[] {
         title: memoryTitle(content, fallbackTitle),
         content,
         kind: memoryKind(content, 'preference'),
+        scope: project ? 'project' : 'session',
+        authority: 'user_explicit',
         project,
         tags: ['pi', 'durable-user-context'],
         createdAt: toTime(message.timestamp, timestamp),
@@ -1183,6 +1316,7 @@ function importZCodeMarkdown(agent: AgentDefinition): ImportedMemory[] {
       const project = relative[0] || null
       return parseMarkdownFile(file, agent, {
         kind: 'project',
+        authority: 'agent_observed',
         project,
         tags: ['zcode', 'markdown-memory']
       })
@@ -1239,7 +1373,9 @@ function importZCodeSqlite(agent: AgentDefinition): ImportedMemory[] {
       out.push({
         title: memoryTitle(content, typeof row.title === 'string' ? row.title : 'ZCode memory'),
         content,
-        kind: memoryKind(content, 'project'),
+        kind: memoryKind(content, 'unclassified'),
+        scope: directory ? 'project' : 'session',
+        authority: 'user_explicit',
         project: directory ? path.basename(directory) : null,
         tags: ['zcode', 'durable-user-context'],
         createdAt: timestamp,
@@ -1517,6 +1653,7 @@ function importDeepSeekHarness(agent: AgentDefinition): ImportedMemory[] {
       stripSharedMemoryInstructions(instructions),
       {
         kind: 'rule',
+        authority: 'user_explicit',
         tags: ['deepseek-harness', 'user-global-instructions']
       }
     )
@@ -1555,6 +1692,8 @@ function importDeepSeekHarness(agent: AgentDefinition): ImportedMemory[] {
         ),
         content,
         kind: memoryKind(content, 'preference'),
+        scope: snapshot.project ? 'project' : 'session',
+        authority: 'user_explicit',
         project: snapshot.project,
         tags,
         createdAt: cue.time,
@@ -1578,7 +1717,9 @@ function importDeepSeekHarness(agent: AgentDefinition): ImportedMemory[] {
           snapshot.title ?? `DeepSeek Harness session ${snapshot.sessionId.slice(-6)}`
         ),
         content,
-        kind: 'episode',
+        kind: 'compaction',
+        scope: snapshot.project ? 'project' : 'session',
+        authority: 'inferred',
         project: snapshot.project,
         tags: ['deepseek-harness', 'compaction-summary'],
         createdAt: compaction.time,
@@ -1647,7 +1788,10 @@ export function importAgentMemories(agent: AgentDefinition): ImportedMemory[] {
     const key = `${memory.agentId}:${memory.sourcePath}:${memory.sourceRef ?? ''}:${memory.content}`
     if (seen.has(key)) return false
     seen.add(key)
-    memory.kind = normalizeMemoryKind(memory.kind)
+    memory.kind = normalizeMemoryKind(memory.kind, memory.content)
+    memory.scope = normalizeMemoryScope(memory.scope, memory.project)
+    memory.authority = normalizeMemoryAuthority(memory.authority)
+    memory.status = normalizeMemoryStatus(memory.status, memory.kind)
     return memory.content.trim().length > 20
   })
 }

@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
 import type { AgentSummary, Counts, PulseMemory } from '../../../shared/types'
 import {
-  MEMORY_CATEGORIES,
+  ALL_MEMORY_CATEGORIES,
   categoryForKind,
+  memoryCategoryCounts,
   type MemoryCategoryId
 } from '../../../shared/memory-taxonomy'
 import { accentFor, relativeTime, uniqueSources } from '../lib/format'
@@ -245,12 +246,13 @@ export function PulseView({
     }
 
     if (breakdown === 'category') {
-      return MEMORY_CATEGORIES.map((category) => ({
+      const countsByCategory = memoryCategoryCounts(visible)
+      return ALL_MEMORY_CATEGORIES.map((category) => ({
         id: category.id,
         label: category.label,
         color: category.color,
         categoryId: category.id,
-        count: visible.filter((memory) => categoryForKind(memory.kind) === category.id).length
+        count: countsByCategory[category.id]
       }))
         .filter((item) => item.count > 0)
         .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
@@ -282,9 +284,10 @@ export function PulseView({
   )
 
   const categoryCounts = useMemo(() => {
-    return MEMORY_CATEGORIES.map((category) => ({
+    const countsByCategory = memoryCategoryCounts(visible)
+    return ALL_MEMORY_CATEGORIES.map((category) => ({
       ...category,
-      count: visible.filter((memory) => categoryForKind(memory.kind) === category.id).length
+      count: countsByCategory[category.id]
     }))
       .filter((category) => category.count > 0)
       .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
@@ -415,7 +418,7 @@ export function PulseView({
             {breakdown === 'agent'
               ? 'A memory can count once for each source agent.'
               : breakdown === 'category'
-                ? 'A memory belongs to one of the five dachshund categories.'
+                ? 'Durable memories use four stable categories; Evidence and Unclassified stay in supporting layers.'
                 : 'Memories with multiple sources or an explicit dachshund shared copy.'}
           </p>
           <span>{visible.length} memories</span>

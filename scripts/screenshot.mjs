@@ -13,15 +13,15 @@ fs.writeFileSync(
   updateManifest,
   JSON.stringify(
     {
-      tag_name: 'v0.1.21',
-      name: 'dachshund v0.1.21',
-      body: 'A refreshed dachshund mark, collapsible memory outline, and clearer agent taxonomy mappings.',
-      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.21',
+      tag_name: 'v0.1.22',
+      name: 'dachshund v0.1.22',
+      body: 'A new Guide view, a reviewable memory taxonomy, and calmer sync feedback.',
+      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.22',
       assets: [
         {
-          name: 'dachshund-0.1.21-arm64.dmg',
+          name: 'dachshund-0.1.22-arm64.dmg',
           browser_download_url:
-            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.21/dachshund-0.1.21-arm64.dmg'
+            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.22/dachshund-0.1.22-arm64.dmg'
         }
       ]
     },
@@ -118,7 +118,7 @@ await page.getByRole('button', { name: 'Open Claude Code memory' }).click()
 await page.waitForTimeout(600)
 await page.screenshot({ path: path.join(shots, '09-agent-memory.png') })
 
-await page.locator('.category-legend-item').filter({ hasText: 'Ways of working' }).click()
+await page.locator('.category-legend-item').filter({ hasText: 'Guidance' }).click()
 await page.waitForTimeout(350)
 await page.screenshot({ path: path.join(shots, '10-agent-category.png') })
 
@@ -135,6 +135,17 @@ await page.waitForTimeout(250)
 await page.getByRole('button', { name: 'Connectors', exact: true }).click()
 await page.waitForTimeout(500)
 await page.screenshot({ path: path.join(shots, '05-connectors.png') })
+
+await page.getByRole('button', { name: 'Guide', exact: true }).click()
+await page.waitForTimeout(550)
+await page.locator('.guide-figure-panel').scrollIntoViewIfNeeded()
+await page.waitForTimeout(250)
+await page.screenshot({ path: path.join(shots, '14-guide.png') })
+await page.locator('.guide-category-card').filter({ hasText: 'Guidance' }).click()
+await page.waitForTimeout(350)
+await page.locator('.guide-figure-panel').scrollIntoViewIfNeeded()
+await page.waitForTimeout(250)
+await page.screenshot({ path: path.join(shots, '15-guide-focus.png') })
 
 await page.getByRole('button', { name: 'Pulse', exact: true }).click()
 await page.waitForTimeout(650)

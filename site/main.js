@@ -76,9 +76,9 @@ const englishExamples = {
       "Prefer a field-journal feel: warm paper, ink, hairline rules and one quiet accent. Remove a visual element when it starts to feel like software.",
     tags: ["design", "typography"],
   },
-  lesson: {
+  insight: {
     agents: ["codex-color.svg", "geminicli-color.svg"],
-    kind: "Lesson",
+    kind: "Insight",
     title: "Test the packaged app, not only the dev build.",
     text:
       "The integration worked in Electron preview but failed after packaging because the MCP entry used a source path. Verify the shipped resource path.",
@@ -101,9 +101,9 @@ const chineseExamples = {
     text: "界面要像纸质田野笔记：暖纸色、墨色、细分隔线和唯一重点色。元素开始像软件界面时，就把它删掉。",
     tags: ["设计", "排版"],
   },
-  lesson: {
+  insight: {
     agents: ["codex-color.svg", "geminicli-color.svg"],
-    kind: "教训",
+    kind: "洞察",
     title: "打包前通过，不代表打包后也能用",
     text: "集成在 Electron 预览里正常，打包后却因为 MCP 使用了源码路径而失败。验证必须针对真正发布的资源路径。",
     tags: ["打包", "mcp", "测试"],
