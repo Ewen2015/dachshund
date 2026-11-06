@@ -125,9 +125,33 @@ async function main(): Promise<void> {
   })
   assert.equal(echo.status, 'unchanged')
 
+  const echoVariant = {
+    ...base,
+    agentId: 'opencode',
+    agentName: 'OpenCode',
+    sourcePath: '/tmp/fixture/AGENTS.md',
+    sourceRef: 'opencode:instructions',
+    title: 'An echo must not rename the memory',
+    kind: 'fact' as const,
+    tags: ['test', 'echo'],
+    content: 'Always use pnpm for package installation in this repository. Never invoke npm.'
+  }
+  assert.equal(store.ingestImport(echoVariant).status, 'unchanged')
+  assert.equal(store.getMemory(memoryId)?.title, 'Use pnpm and never npm')
+  assert.equal(store.ingestImport(echoVariant).status, 'unchanged')
+  assert.equal(store.getMemory(memoryId)?.title, 'Use pnpm and never npm')
+
+  const paddedTitle = store.ingestImport({
+    ...base,
+    updatedAt: now,
+    title: 'Use pnpm and never npm   ',
+    content: 'Always use pnpm for package installation in this repository. Never invoke npm.'
+  })
+  assert.equal(paddedTitle.status, 'unchanged')
+
   const active = store.search({ limit: 10 })
   assert.equal(active.length, 1)
-  assert.equal(active[0].sources.length, 2)
+  assert.equal(active[0].sources.length, 3)
 
   const agentWrite = store.rememberShared({
     title: 'MCP attribution probe',
@@ -311,6 +335,50 @@ async function main(): Promise<void> {
   >
   assert.equal(normalizedReview.kind, 'reference')
   assert.equal(normalizedReview.status, 'active')
+
+  const codexKnowledgeFile = path.join(
+    process.env.DACHSHUND_LIBRARY!,
+    'memory',
+    'codex-knowledge.md'
+  )
+  fs.writeFileSync(
+    codexKnowledgeFile,
+    [
+      '---',
+      'id: mem_codex_knowledge',
+      'title: Reusable rollout knowledge',
+      'kind: insight',
+      'tags: [codex, rollout, reusable-knowledge]',
+      'sources:',
+      '  - agent: codex',
+      '    path: /tmp/raw_memories.md',
+      '    ref: "thread:knowledge:1"',
+      '---',
+      '',
+      'Reusable knowledge extracted from a Codex rollout thread.'
+    ].join('\n')
+  )
+  assert.equal(new Library().readFile(codexKnowledgeFile)?.kind, 'insight')
+
+  const codexThreadFile = path.join(process.env.DACHSHUND_LIBRARY!, 'memory', 'codex-thread.md')
+  fs.writeFileSync(
+    codexThreadFile,
+    [
+      '---',
+      'id: mem_codex_thread',
+      'title: Legacy Codex rollout',
+      'kind: insight',
+      'tags: [codex, rollout]',
+      'sources:',
+      '  - agent: codex',
+      '    path: /tmp/raw_memories.md',
+      '    ref: thread-1',
+      '---',
+      '',
+      'A whole-thread rollout record that predates the task_rollout kind.'
+    ].join('\n')
+  )
+  assert.equal(new Library().readFile(codexThreadFile)?.kind, 'task_rollout')
 
   store.db.close()
   fs.rmSync(root, { recursive: true, force: true })

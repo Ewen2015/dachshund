@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto'
 import type {
   AppState,
   CreateMemoryInput,
@@ -26,7 +25,14 @@ import {
 import { discoverAgents, refreshAgents } from '../agents/discovery'
 import { importAgentMemories } from '../agents/importers'
 import { installMcp } from '../agents/mcp-install'
-import { Db, contentHash, makeId, sourceKeyFor, type SourceRecord } from './db'
+import {
+  Db,
+  contentHash,
+  makeId,
+  memoryIdForSource,
+  sourceKeyFor,
+  type SourceRecord
+} from './db'
 import { Library, slugify } from './library'
 
 export const SYNC_INTERVAL_MINUTES = 60
@@ -131,6 +137,10 @@ export class Store {
     let attemptedAgents = 0
     let fatal = false
     const changeKeys = new Set<string>()
+    // Count memories, not import operations: several sources can echo one
+    // memory during a single scan and that must still read as one change.
+    const addedIds = new Set<string>()
+    const updatedIds = new Set<string>()
 
     try {
       this.library.syncToDb(this.db)
@@ -152,13 +162,13 @@ export class Store {
             let changed = 0
             for (const memory of imported) {
               const outcome = this.ingestImport(memory)
-              if (outcome.status === 'added') result.added += 1
-              else if (outcome.status === 'updated') result.updated += 1
-              else if (outcome.status === 'unchanged') result.unchanged += 1
+              if (outcome.status === 'unchanged') result.unchanged += 1
               if (outcome.change) {
                 const key = `${outcome.change.change}:${outcome.change.memoryId}`
                 if (!changeKeys.has(key)) {
                   changeKeys.add(key)
+                  if (outcome.change.change === 'added') addedIds.add(outcome.change.memoryId)
+                  else updatedIds.add(outcome.change.memoryId)
                   changed += 1
                   if (result.changes.length < MAX_SCAN_CHANGES) result.changes.push(outcome.change)
                 }
@@ -192,6 +202,8 @@ export class Store {
       })
     }
 
+    result.added = addedIds.size
+    result.updated = updatedIds.size
     result.finishedAt = Date.now()
     result.ok = !fatal && (attemptedAgents === 0 || result.failures.length < attemptedAgents)
     this.db.setMeta('lastSyncAttemptAt', String(result.finishedAt))
@@ -204,7 +216,10 @@ export class Store {
     return { state: this.state(), result }
   }
 
-  ingestImport(memory: ImportedMemory): IngestOutcome {
+  ingestImport(input: ImportedMemory): IngestOutcome {
+    // The Markdown frontmatter round-trip trims titles, so compare the
+    // normalized form or an unchanged source would look edited on every scan.
+    const memory = { ...input, title: input.title.trim() }
     const content = memory.content.trim()
     if (content.length < 30) return { status: 'skipped' }
     const hash = contentHash(content)
@@ -227,15 +242,24 @@ export class Store {
           current.archived ? 'archived' : memory.status,
           nextKind
         )
+        // Identical content may arrive from several sources with different
+        // titles, tags or kinds. Only the source that created the memory (or,
+        // for older records without a source-derived id, the source seen first)
+        // may restamp it; otherwise echoes would alternate the metadata on every
+        // scan and each refresh would report phantom updates.
+        const ownsPresentation =
+          current.id === memoryIdForSource(sourceKey) ||
+          this.db.oldestSourceKeyFor(current.id) === sourceKey
         const metadataChanged =
-          current.kind !== nextKind ||
-          current.scope !== nextScope ||
-          current.authority !== nextAuthority ||
-          current.status !== nextStatus ||
-          current.project !== memory.project ||
-          current.title !== memory.title ||
-          JSON.stringify([...current.tags].sort()) !==
-            JSON.stringify([...memory.tags.slice(0, 12)].sort())
+          ownsPresentation &&
+          (current.kind !== nextKind ||
+            current.scope !== nextScope ||
+            current.authority !== nextAuthority ||
+            current.status !== nextStatus ||
+            current.project !== memory.project ||
+            current.title !== memory.title ||
+            JSON.stringify([...current.tags].sort()) !==
+              JSON.stringify([...memory.tags.slice(0, 12)].sort()))
         this.attachImportedSource(current.id, memory)
         if (metadataChanged) {
           const updated = this.updateImportedMemory(current, memory, content, false)
@@ -279,11 +303,7 @@ export class Store {
       return { status: 'unchanged' }
     }
 
-    const stable = createHash('sha1')
-      .update(`source|${sourceKey}`)
-      .digest('hex')
-      .slice(0, 16)
-    const id = `mem_${stable}`
+    const id = memoryIdForSource(sourceKey)
     const file: MemoryFile = {
       id,
       title: memory.title,

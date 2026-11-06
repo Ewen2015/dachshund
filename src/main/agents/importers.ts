@@ -821,7 +821,9 @@ function importCodexMarkdown(agent: AgentDefinition): ImportedMemory[] {
       const body = rest.join('\n').trim()
       if (!body) continue
       const description = body.match(/^description:\s*(.+)$/m)?.[1]?.trim()
-      const title = description ? description.slice(0, 110) : `Codex thread ${threadId.slice(0, 8)}`
+      const title = description
+        ? description.slice(0, 110).trimEnd()
+        : `Codex thread ${threadId.slice(0, 8)}`
       const project = codexProject(body)
       const tags = [
         ...new Set([

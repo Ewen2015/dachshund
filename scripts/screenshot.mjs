@@ -13,15 +13,15 @@ fs.writeFileSync(
   updateManifest,
   JSON.stringify(
     {
-      tag_name: 'v0.1.24',
-      name: 'dachshund v0.1.24',
+      tag_name: 'v0.1.25',
+      name: 'dachshund v0.1.25',
       body: 'A cleaner taxonomy, reliable legacy reclassification, and a detail view that no longer covers the library.',
-      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.24',
+      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.25',
       assets: [
         {
-          name: 'dachshund-0.1.24-arm64.dmg',
+          name: 'dachshund-0.1.25-arm64.dmg',
           browser_download_url:
-            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.24/dachshund-0.1.24-arm64.dmg'
+            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.25/dachshund-0.1.25-arm64.dmg'
         }
       ]
     },

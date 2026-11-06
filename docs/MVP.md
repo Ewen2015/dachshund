@@ -92,17 +92,24 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development Connectors screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.24-arm64.dmg` was produced on 2026-11-06.
+- Three consecutive scans of a cloned real library reported zero additions, zero
+  updates, and zero changes after the first post-upgrade presentation pass.
+- Two consecutive manual refreshes in the built app reported
+  `0 memories added · 0 memories updated`.
+- Sync fixtures cover echo metadata ownership, repeated echo imports, trailing
+  whitespace in titles, and Codex reusable-knowledge slices that must stay
+  `insight`.
+- `release/dachshund-0.1.25-arm64.dmg` was produced on 2026-11-06.
 - The packaged app launched against an isolated data directory and reported a
-  packaged version of `0.1.24` and rendered `.app-shell`; the separate panel
+  packaged version of `0.1.25` and rendered `.app-shell`; the separate panel
   placement fixture passed with `visibleOnAllWorkspaces: true`.
-- The `0.1.24` DMG mounted read-only, contained a valid ad-hoc-signed app at
-  version `0.1.24`, and included an executable MCP bridge.
+- The `0.1.25` DMG mounted read-only, contained a valid ad-hoc-signed app at
+  version `0.1.25`, and included an executable MCP bridge.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.24` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.25` passed the same
   five-tool MCP smoke test.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
@@ -148,7 +155,7 @@ Verified in this repository:
 The DMG SHA-256 from this build is:
 
 ```text
-bef0d478d9c4b616860546894562ba24ed52eeebc88bf9d382bfe994069bd8f3
+0c2d7c60f75bbbe604e040be61d80cba28e66c51777b36001fb4d0290dd2ac50
 ```
 
 ## Known Limitations
@@ -398,6 +405,19 @@ token are not a defense against a compromised account.
 - synchronized the Agent, taxonomy, README, research, screenshot, and website
   surfaces with the merged identity.
 
+#### 0.1.25: Accurate Refresh Counts
+
+- kept one source authoritative for the presentation of a memory echoed by
+  several sources, so rescans no longer alternate titles, tags, and kinds;
+- narrowed the legacy Codex rollout migration to whole-thread records so
+  reusable-knowledge slices stay `insight`;
+- normalized titles before comparison so Markdown frontmatter round-trips do not
+  count as edits;
+- counted unique memories added or updated per scan, and showed an explicit
+  `0 memories added · 0 memories updated` when nothing changed;
+- added sync fixtures for echo ownership, repeated imports, padded titles, and
+  Codex knowledge slices.
+
 ### Next
 
 - near-duplicate suggestions;
@@ -406,7 +426,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.24: Recall Quality
+#### 0.1.26: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -414,7 +434,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-#### 0.1.25: Distribution
+#### 0.1.27: Distribution
 
 - signed and notarized universal build;
 - update channel;

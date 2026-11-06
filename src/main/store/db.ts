@@ -60,6 +60,14 @@ export function sourceKeyFor(
     .digest('hex')
 }
 
+/**
+ * Imported memories derive their id from the source that created them, so the
+ * id is also a durable record of which source owns the memory's presentation.
+ */
+export function memoryIdForSource(sourceKey: string): string {
+  return `mem_${createHash('sha1').update(`source|${sourceKey}`).digest('hex').slice(0, 16)}`
+}
+
 export function makeId(prefix = 'mem'): string {
   return `${prefix}_${Date.now().toString(36)}${randomBytes(4).toString('hex')}`
 }
@@ -671,6 +679,25 @@ export class Db {
       .prepare('SELECT * FROM source_records WHERE source_key = ?')
       .get(sourceKey) as Row | undefined
     return row ? this.rowToSourceRecord(row) : null
+  }
+
+  /**
+   * One memory can hold several sources with identical content. Each source may
+   * project that content with its own title, tags and kind, so only one of them
+   * may define the memory's presentation. For memories without a source-derived
+   * id, the source seen first owns it; that choice never changes, so echoes
+   * cannot rewrite metadata on every refresh.
+   */
+  oldestSourceKeyFor(memoryId: string): string | null {
+    const row = this.db
+      .prepare(`
+        SELECT source_key FROM source_records
+        WHERE memory_id = ?
+        ORDER BY first_seen_at ASC, source_key ASC
+        LIMIT 1
+      `)
+      .get(memoryId) as Row | undefined
+    return row ? str(row.source_key) || null : null
   }
 
   upsertSourceRecord(input: SourceRecord): void {

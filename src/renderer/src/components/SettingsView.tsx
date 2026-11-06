@@ -85,7 +85,7 @@ export function SettingsView({
                 {state.sync.lastSuccessfulSyncAt
                   ? relativeTime(state.sync.lastSuccessfulSyncAt)
                   : 'Not completed yet'}
-                {state.sync.lastResult && state.sync.lastResult.added + state.sync.lastResult.updated > 0
+                {state.sync.lastResult
                   ? ` · ${state.sync.lastResult.added} added, ${state.sync.lastResult.updated} updated`
                   : ''}
               </span>

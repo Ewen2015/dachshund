@@ -109,13 +109,18 @@ export class Library {
       const sources = asSources(data.sources, file)
       const rawKind = typeof data.kind === 'string' ? data.kind.trim().toLowerCase() : ''
       const storedKind = normalizeMemoryKind(data.kind, body)
-      const kind =
+      // Legacy Codex rollout records were filed as insight before task_rollout
+      // existed. Reusable-knowledge slices of a rollout are deliberately
+      // insights, so only migrate the whole-thread records.
+      const legacyCodexRollout =
         (rawKind === 'lesson' || rawKind === 'episode' || storedKind === 'insight') &&
         tags.includes('codex') &&
         tags.includes('rollout') &&
-        sources.some((source) => source.agentId === 'codex')
-          ? 'task_rollout'
-          : storedKind
+        sources.some(
+          (source) =>
+            source.agentId === 'codex' && !(source.ref ?? '').includes(':knowledge:')
+        )
+      const kind = legacyCodexRollout ? 'task_rollout' : storedKind
       const project = typeof data.project === 'string' && data.project ? data.project : null
       const status = normalizeMemoryStatus(data.status, kind)
       return {

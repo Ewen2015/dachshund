@@ -5,14 +5,12 @@ import { ChevronRightIcon, CloseIcon, RefreshIcon } from './Icons'
 
 function summary(result: ScanResult): string {
   if (!result.ok) return 'Sync failed · last success preserved'
-  const changed: string[] = []
-  if (result.added > 0) {
-    changed.push(`${result.added} ${result.added === 1 ? 'memory' : 'memories'} added`)
-  }
-  if (result.updated > 0) {
-    changed.push(`${result.updated} ${result.updated === 1 ? 'memory' : 'memories'} updated`)
-  }
-  if (!changed.length) return 'Already up to date'
+  // Always report this refresh's delta, including zero, so a scan with no new
+  // source changes cannot look like another full import.
+  const changed: string[] = [
+    `${result.added} ${result.added === 1 ? 'memory' : 'memories'} added`,
+    `${result.updated} ${result.updated === 1 ? 'memory' : 'memories'} updated`
+  ]
   if (result.failures.length) {
     changed.push(
       `${result.failures.length} ${result.failures.length === 1 ? 'agent' : 'agents'} could not be read`
