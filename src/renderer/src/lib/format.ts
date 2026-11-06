@@ -2,8 +2,7 @@ import type { AgentSummary, MemorySource } from '../../../shared/types'
 import { kindLabel as taxonomyKindLabel } from '../../../shared/memory-taxonomy'
 
 export const AGENT_ACCENTS: Record<string, string> = {
-  'claude-code': '#C0663B',
-  'claude-desktop': '#B86A3F',
+  claude: '#C0663B',
   codex: '#2E2B27',
   'gemini-cli': '#4C6F91',
   cursor: '#66765A',
@@ -30,7 +29,7 @@ export function displayHomePath(target: string): string {
 
 export function initials(name: string, id = ''): string {
   if (id === 'codex') return 'CX'
-  if (id === 'claude-code') return 'CL'
+  if (id === 'claude') return 'CL'
   if (id === 'gemini-cli') return 'GM'
   if (id === 'cursor') return 'CU'
   if (id === 'copilot') return 'GH'

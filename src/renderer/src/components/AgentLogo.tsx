@@ -1,5 +1,4 @@
-import claudeCodeIcon from '../assets/agent-icons/claudecode-color.svg'
-import claudeDesktopIcon from '../assets/agent-icons/claude-color.svg'
+import claudeIcon from '../assets/agent-icons/claude-color.svg'
 import codexIcon from '../assets/agent-icons/codex-color.svg'
 import geminiCliIcon from '../assets/agent-icons/geminicli-color.svg'
 import cursorIcon from '../assets/agent-icons/cursor.svg'
@@ -16,8 +15,7 @@ import { accentFor, initials } from '../lib/format'
 import { Mark } from './Mark'
 
 const AGENT_ICONS: Record<string, string> = {
-  'claude-code': claudeCodeIcon,
-  'claude-desktop': claudeDesktopIcon,
+  claude: claudeIcon,
   codex: codexIcon,
   'gemini-cli': geminiCliIcon,
   cursor: cursorIcon,

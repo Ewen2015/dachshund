@@ -6,7 +6,10 @@ import { nodeRuntime } from './node-runtime'
 
 export function buildMcpSetup(agentId: string, bridgePath: string): McpSetup | null {
   const definition = findDefinition(agentId)
-  if (!definition || definition.mcp?.type !== 'manual') return null
+  const manualOnly =
+    Boolean(definition?.mcp.length) &&
+    definition!.mcp.every((target) => target.type === 'manual')
+  if (!definition || !manualOnly) return null
   return {
     agentId,
     agentName: definition.name,
@@ -32,7 +35,7 @@ export function getMcpConnectionStatus(agentId: string): McpConnectionStatus {
     }
   }
 
-  if (definition.mcp?.type === 'manual') {
+  if (definition.mcp.length && definition.mcp.every((target) => target.type === 'manual')) {
     const receipt = latestMcpClientReceipt(DATA_DIR, agentId)
     return {
       connected: Boolean(receipt),

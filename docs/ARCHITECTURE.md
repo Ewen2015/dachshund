@@ -13,7 +13,7 @@ MCP bridge:
 5. Update service: checks GitHub Releases and downloads a newer DMG.
 
 ```text
-Claude Code / Codex / Cursor / ...
+Claude / Codex / Cursor / ...
                  |
                  | MCP over stdio
                  v
@@ -57,7 +57,7 @@ updated: 2026-10-30T12:00:00.000Z
 status: active
 pinned: false
 sources:
-  - agent: claude-code
+  - agent: claude
     path: /Users/example/.claude/projects/.../memory/design.md
 ---
 
@@ -257,7 +257,7 @@ underlying client reports a generic name.
 
 The bridge advertises a shared-memory protocol during MCP initialization. For
 agents with a stable global instruction file, Connect also maintains an
-idempotent delimited block: Claude Code (`~/.claude/CLAUDE.md`), Codex
+idempotent delimited block: Claude (`~/.claude/CLAUDE.md` for Claude Code), Codex
 (`~/.codex/AGENTS.md`), Gemini CLI (`~/.gemini/GEMINI.md`), GitHub Copilot
 (`~/.copilot/instructions/dachshund.md`), OpenCode
 (`~/.config/opencode/AGENTS.md`), and DeepSeek Harness (`~/.dsh/AGENTS.md`).

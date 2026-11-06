@@ -61,7 +61,7 @@ if ("IntersectionObserver" in window) {
 
 const englishExamples = {
   decision: {
-    agents: ["codex-color.svg", "claudecode-color.svg"],
+    agents: ["codex-color.svg", "claude-color.svg"],
     kind: "Decision",
     title: "Ship the reader before the editor.",
     text:
@@ -69,7 +69,7 @@ const englishExamples = {
     tags: ["product", "roadmap", "scope"],
   },
   preference: {
-    agents: ["claudecode-color.svg", "cursor.svg", "codex-color.svg"],
+    agents: ["claude-color.svg", "cursor.svg", "codex-color.svg"],
     kind: "Preference",
     title: "Paper before pixels.",
     text:
@@ -88,14 +88,14 @@ const englishExamples = {
 
 const chineseExamples = {
   decision: {
-    agents: ["codex-color.svg", "claudecode-color.svg"],
+    agents: ["codex-color.svg", "claude-color.svg"],
     kind: "决定",
     title: "先交付阅读器，再做编辑器",
     text: "阅读器必须先能独立成立，编辑、协作和发布才进入第一个版本。功能完整不等于体验完成。",
     tags: ["产品", "路线图", "范围"],
   },
   preference: {
-    agents: ["claudecode-color.svg", "cursor.svg", "codex-color.svg"],
+    agents: ["claude-color.svg", "cursor.svg", "codex-color.svg"],
     kind: "偏好",
     title: "先做内容，再做界面",
     text: "界面要像纸质田野笔记：暖纸色、墨色、细分隔线和唯一重点色。元素开始像软件界面时，就把它删掉。",

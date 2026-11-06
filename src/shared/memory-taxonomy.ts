@@ -335,36 +335,21 @@ export function statusLabel(value: MemoryStatus): string {
 }
 
 export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
-  'claude-code': {
-    title: 'Typed auto memory + written instructions',
+  claude: {
+    title: 'Typed local memory + written instructions',
     summary:
-      'Claude Code keeps CLAUDE.md and rules separate from four typed auto-memory files scoped to each repository.',
-    path: '~/.claude/projects/<repo>/memory + CLAUDE.md + rules',
+      'Claude Code keeps CLAUDE.md, rules, and four typed auto-memory files scoped to each repository; Claude Desktop adds Cowork Space and account topic files in the same typed format. Account-side Chat and cloud project memory stay server-side and remain reachable over MCP.',
+    path: '~/.claude/projects/<repo>/memory + CLAUDE.md + rules · Claude-3p/.../spaces/<id>/memory',
     mappings: [
-      { native: 'user', description: 'Role, expertise, and stable user context', category: 'identity', kinds: ['profile'], imported: true },
+      { native: 'user', description: 'Role, expertise, and stable user context in Claude Code or a Desktop topic', category: 'identity', kinds: ['profile'], imported: true },
       { native: 'feedback', description: 'Explicit corrections become rules or preferences', category: 'guidance', kinds: ['preference', 'rule'], imported: true },
       { native: 'feedback outcome', description: 'A failed approach or reusable conclusion becomes an insight', category: 'knowledge', kinds: ['insight'], imported: true },
-      { native: 'project', description: 'Goals, constraints, and decisions under repository scope', category: 'current', kinds: ['goal', 'constraint', 'decision'], imported: true },
+      { native: 'project', description: 'Goals, constraints, and decisions under repository or Space scope', category: 'current', kinds: ['goal', 'constraint', 'decision'], imported: true },
       { native: 'reference', description: 'Where external context lives', category: 'knowledge', kinds: ['reference'], imported: true },
-      { native: 'CLAUDE.md / rules', description: 'Written global and project instructions', category: 'guidance', kinds: ['rule'], imported: true }
-    ]
-  },
-  'claude-desktop': {
-    title: 'Local Space memory + account topics',
-    summary:
-      'Claude Desktop keeps Cowork Space memory in local Markdown topic files. Account and ordinary Chat memory remain server-side; dachshund reads the local Space files and connects the rest over MCP.',
-    path: '~/Library/Application Support/Claude-3p/local-agent-mode-sessions/.../spaces/<id>/memory',
-    mappings: [
-      { native: 'user topic', description: 'Stable identity and long-lived user context', category: 'identity', kinds: ['profile'], imported: true },
-      { native: 'feedback topic', description: 'Corrections become preferences or rules', category: 'guidance', kinds: ['preference', 'rule'], imported: true },
-      { native: 'feedback outcome', description: 'A failed approach or reusable conclusion becomes an insight', category: 'knowledge', kinds: ['insight'], imported: true },
-      { native: 'project topic', description: 'Goals, constraints, and decisions under Space scope', category: 'current', kinds: ['goal', 'constraint', 'decision'], imported: true },
-      { native: 'reference topic', description: 'Where external information lives', category: 'knowledge', kinds: ['reference'], imported: true },
-      { native: 'local account topic', description: 'Untyped local topic resolved into a durable kind', category: 'knowledge', kinds: ['fact', 'reference', 'insight'], imported: true },
-      { native: 'local agent topic', description: 'Untyped local agent topic resolved into a durable kind', category: 'knowledge', kinds: ['fact', 'reference', 'insight'], imported: true },
+      { native: 'CLAUDE.md / rules', description: 'Written global and project instructions from Claude Code', category: 'guidance', kinds: ['rule'], imported: true },
+      { native: 'local Desktop topic', description: 'Untyped account, agent, or Space topic resolved into a durable kind', category: 'knowledge', kinds: ['fact', 'reference', 'insight'], imported: true },
       { native: 'MEMORY.md', description: 'Index only; topic files hold the memory bodies', category: 'knowledge', kinds: ['reference'], imported: false },
-      { native: 'server-side Chat memory', description: 'Ordinary Chat topics stored on the account', category: 'knowledge', kinds: ['fact'], imported: false },
-      { native: 'cloud project memory', description: 'Cloud project memory absent from the local topic store', category: 'current', kinds: ['goal', 'constraint', 'decision'], imported: false }
+      { native: 'server-side Chat memory', description: 'Ordinary Chat and cloud project memory stored on the account', category: 'knowledge', kinds: ['fact'], imported: false }
     ]
   },
   codex: {

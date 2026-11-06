@@ -1,5 +1,4 @@
-import claudeCodeDiagram from '../assets/agent-memory/claude-code.svg'
-import claudeDesktopDiagram from '../assets/agent-memory/claude-desktop.svg'
+import claudeDiagram from '../assets/agent-memory/claude.svg'
 import codexDiagram from '../assets/agent-memory/codex.svg'
 import hermesDiagram from '../assets/agent-memory/hermes.svg'
 import opencodeDiagram from '../assets/agent-memory/opencode.svg'
@@ -24,15 +23,10 @@ const AGENT_MEMORY_DIAGRAMS: Record<string, AgentMemoryDiagram> = {
     flow: 'Conversations → nightly summary → next chat · past sessions → search',
     alt: 'WorkBuddy Desktop memory mechanism: conversations produce a nightly summary for a later chat, while past sessions can also be searched directly.'
   },
-  'claude-code': {
-    src: claudeCodeDiagram,
-    flow: 'CLAUDE.md → every session · MEMORY.md index → topics on demand',
-    alt: 'Claude Code memory mechanism: CLAUDE.md loads as an instruction every session; a small MEMORY.md index points to topic files that load on demand.'
-  },
-  'claude-desktop': {
-    src: claudeDesktopDiagram,
-    flow: 'Local project → local memory · account topics → cloud · no sync',
-    alt: 'Claude Desktop memory mechanism: local project memory stays on the device, account topics support cloud Chat, and the two sides do not sync.'
+  claude: {
+    src: claudeDiagram,
+    flow: 'CLAUDE.md → every session · MEMORY.md index → repo topics · Space topics → local Cowork memory · account Chat stays cloud',
+    alt: 'Claude memory mechanism: Claude Code loads CLAUDE.md every session and a small MEMORY.md index pointing to repo-scoped topic files; Claude Desktop keeps Cowork Space topics locally while account Chat and cloud memory remain a separate, non-synced store.'
   },
   opencode: {
     src: opencodeDiagram,

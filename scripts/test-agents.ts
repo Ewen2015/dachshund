@@ -55,7 +55,7 @@ function definition(
     home,
     description: `${name} fixture`,
     accent: '#222222',
-    mcp: { type: 'json-mcpServers', path: mcpPath }
+    mcp: [{ type: 'json-mcpServers', path: mcpPath }]
   }
 }
 
@@ -181,7 +181,7 @@ function testPi(): void {
 
 function testClaudeTaxonomy(): void {
   const home = path.join(root, 'claude')
-  const agent = definition('claude-code', 'Claude Code', home, path.join(home, 'mcp.json'))
+  const agent = definition('claude', 'Claude', home, path.join(home, 'mcp.json'))
   const memoryFile = path.join(
     home,
     'projects',
@@ -227,7 +227,10 @@ function testClaudeTaxonomy(): void {
   assert.equal(memories.length, 3)
   assert.ok(
     memories.some(
-      (memory) => memory.kind === 'profile' && categoryForKind(memory.kind) === 'identity'
+      (memory) =>
+        memory.kind === 'profile' &&
+        categoryForKind(memory.kind) === 'identity' &&
+        memory.tags.includes('claude-code')
     )
   )
   assert.equal(
@@ -244,8 +247,8 @@ function testClaudeDesktopTaxonomy(): void {
   const legacyHome = path.join(root, 'claude-desktop-legacy')
   const agent: AgentDefinition = {
     ...definition(
-      'claude-desktop',
-      'Claude Desktop',
+      'claude',
+      'Claude',
       home,
       path.join(home, 'claude_desktop_config.json')
     ),
@@ -1249,7 +1252,7 @@ function testInstructionsAndObservedMemory(): void {
 }
 
 function testAgentModelMappings(): void {
-  assert.equal(Object.keys(AGENT_MEMORY_MODELS).length, 14)
+  assert.equal(Object.keys(AGENT_MEMORY_MODELS).length, 13)
   for (const [agentId, model] of Object.entries(AGENT_MEMORY_MODELS)) {
     assert.ok(model.title, `${agentId} needs a title`)
     assert.ok(model.mappings.length > 0, `${agentId} needs at least one mapping`)

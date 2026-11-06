@@ -114,7 +114,7 @@ server.registerTool(
     inputSchema: {
       query: z.string().describe('What to recall, in natural language or keywords'),
       limit: z.number().int().min(1).max(20).optional().describe('Maximum results (default 8)'),
-      agent: z.string().optional().describe('Optional agent id filter, such as codex or claude-code')
+      agent: z.string().optional().describe('Optional agent id filter, such as codex or claude')
     }
   },
   async ({ query, limit, agent }) => {

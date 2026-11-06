@@ -21,8 +21,8 @@ discover existing agent memory
   composer.
 - Per-agent memory mechanism diagrams with expandable full-window viewing.
 - A reusable landing view reachable from the brand mark in both app surfaces.
-- Local discovery for fourteen agent families.
-- Agent-specific read-only importers for all fourteen of them.
+- Local discovery for thirteen agent families.
+- Agent-specific read-only importers for all thirteen of them.
 - Four fixed knowledge categories, ten durable kinds, and a separate Evidence
   layer. Untyped content resolves into an existing durable kind.
 - An in-app Guide with a top-down native-file → kind → category diagram,
@@ -37,7 +37,7 @@ discover existing agent memory
 - MCP bridge with five tools.
 - MCP config installation for JSON, Codex TOML, OpenCode, Hermes YAML, and
   DeepSeek Harness Cordis patches.
-- Shared-memory instruction blocks for Claude Code, Codex, Gemini CLI, GitHub
+- Shared-memory instruction blocks for Claude, Codex, Gemini CLI, GitHub
   Copilot, OpenCode, and DeepSeek Harness.
 - Guided app-managed MCP setup for Doubao with verified client handshakes.
 - macOS app icon, tray template icon, and brand mark.
@@ -71,7 +71,7 @@ Verified in this repository:
 
 - TypeScript checks pass.
 - `npm run test:agents` passes fixture and config-writer checks for Hermes, Pi,
-  ZCode, DeepSeek Harness, and Claude Desktop. The DeepSeek Harness fixture
+  ZCode, DeepSeek Harness, and Claude. The DeepSeek Harness fixture
   covers multi-frame Zstandard, surface replacement, compaction summaries,
   user-global instructions, and the managed Cordis writer.
 - Agent fixtures cover the four knowledge categories, all six supporting kinds,
@@ -92,17 +92,17 @@ Verified in this repository:
   memory through `memory_search` and returned it through `memory_context`.
 - The development Connectors screen reports
   `/Users/ewen/Documents/GitHub/dachshund/out/mcp/index.cjs`.
-- `release/dachshund-0.1.23-arm64.dmg` was produced on 2026-11-04.
+- `release/dachshund-0.1.24-arm64.dmg` was produced on 2026-11-06.
 - The packaged app launched against an isolated data directory and reported a
-  packaged version of `0.1.23` and rendered `.app-shell`; the separate panel
+  packaged version of `0.1.24` and rendered `.app-shell`; the separate panel
   placement fixture passed with `visibleOnAllWorkspaces: true`.
-- The `0.1.23` DMG mounted read-only, contained a valid ad-hoc-signed app at
-  version `0.1.23`, and included an executable MCP bridge.
+- The `0.1.24` DMG mounted read-only, contained a valid ad-hoc-signed app at
+  version `0.1.24`, and included an executable MCP bridge.
 - A packaged `0.1.2` build containing the new installer downloaded a local
   `0.1.3` DMG, reached the installing state, replaced its bundle, passed
   `codesign --verify --deep --strict`, and reopened at version `0.1.3`.
 - The installer log reported `installed 0.1.3`.
-- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.23` passed the same
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.24` passed the same
   five-tool MCP smoke test.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
@@ -386,6 +386,17 @@ token are not a defense against a compromised account.
 - kept the inspector from covering category and agent filters in compact mode;
 - synchronized the taxonomy contract, screenshots, research notes, and both
   websites.
+
+#### 0.1.24: One Claude Agent
+
+- merged Claude Code and Claude Desktop into one Claude card, importer, taxonomy
+  model, icon, and memory diagram;
+- connected both installed Claude surfaces through one Connect action while
+  keeping a Desktop-only Mac free of Claude Code configuration;
+- migrated legacy agent ids, library frontmatter, sources, imports, and source
+  identities so rescans stay duplicate-free;
+- synchronized the Agent, taxonomy, README, research, screenshot, and website
+  surfaces with the merged identity.
 
 ### Next
 

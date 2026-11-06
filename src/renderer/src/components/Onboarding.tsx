@@ -49,7 +49,7 @@ export function Onboarding({
             One memory.
           </h1>
           <p className="onboarding-lede">
-            dachshund finds the memory Claude Code, Codex, Cursor and the other agents already
+            dachshund finds the memory Claude, Codex, Cursor and the other agents already
             keep on this Mac. It turns scattered context into one portable Markdown library,
             then serves it back through MCP.
           </p>
@@ -103,7 +103,7 @@ export function Onboarding({
           </div>
 
           <span className="orbit-chip chip-claude">
-            <AgentLogo agentId="claude-code" agentName="Claude Code" size={18} shape="circle" />
+            <AgentLogo agentId="claude" agentName="Claude" size={18} shape="circle" />
             Claude
           </span>
           <span className="orbit-chip chip-codex">

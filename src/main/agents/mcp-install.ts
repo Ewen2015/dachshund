@@ -5,7 +5,7 @@ import type { McpInstallResult } from '../../shared/types'
 import { DATA_DIR } from '../paths'
 import { mergeDeepSeekInstructions } from './deepseek-instructions'
 import { findDefinition } from './discovery'
-import { resolveAgentDefinition } from './registry'
+import { resolveAgentDefinition, type AgentDefinition, type McpTarget } from './registry'
 import { nodeRuntime } from './node-runtime'
 import { mergeSharedMemoryInstructions } from './shared-memory-instructions'
 
@@ -292,115 +292,61 @@ export function upsertDeepSeekCordis(
   }
 }
 
-export function installMcp(agentId: string, options: InstallOptions): McpInstallResult {
-  const source = findDefinition(agentId)
-  const definition = source ? resolveAgentDefinition(source) : null
-  if (!definition?.mcp) {
-    return {
-      ok: false,
-      agentId,
-      configPath: null,
-      message: 'This agent does not expose an MCP configuration'
-    }
-  }
-  if (definition.mcp.type === 'manual') {
-    return {
-      ok: false,
-      agentId,
-      configPath: null,
-      message: `Add the dachshund connector inside ${definition.name}`
-    }
-  }
-  if (!definition.mcp.path) {
-    return {
-      ok: false,
-      agentId,
-      configPath: null,
-      message: 'This agent does not expose an MCP configuration path'
-    }
-  }
-  const target = definition.mcp
+function installTarget(
+  definition: AgentDefinition,
+  target: McpTarget,
+  agentId: string,
+  options: InstallOptions
+): McpInstallResult {
   const configPath = target.path as string
   try {
-    let result: McpInstallResult
     switch (target.type) {
       case 'codex-toml':
-        result = upsertCodexToml(configPath, options.bridgePath, options.dryRun, agentId)
-        break
+        return upsertCodexToml(configPath, options.bridgePath, options.dryRun, agentId)
       case 'hermes-yaml':
-        result = upsertHermesYaml(configPath, options.bridgePath, options.dryRun, agentId)
-        break
+        return upsertHermesYaml(configPath, options.bridgePath, options.dryRun, agentId)
       case 'zcode-json':
-        result = upsertJsonMcp(
+        return upsertJsonMcp(
           configPath,
           options.bridgePath,
           options.dryRun,
           'zcode',
           agentId
         )
-        break
       case 'deepseek-cordis':
-        result = upsertDeepSeekCordis(
+        return upsertDeepSeekCordis(
           configPath,
           options.bridgePath,
           options.dryRun,
           definition.home
         )
-        break
       case 'opencode-json':
-        result = upsertJsonMcp(
+        return upsertJsonMcp(
           configPath,
           options.bridgePath,
           options.dryRun,
           'opencode',
           agentId
         )
-        break
       case 'pi-json':
       case 'json-mcpServers':
-        result = upsertJsonMcp(
+        return upsertJsonMcp(
           configPath,
           options.bridgePath,
           options.dryRun,
           'mcpServers',
           agentId
         )
-        break
       case 'trae-json':
-        result = upsertJsonMcp(
+        return upsertJsonMcp(
           configPath,
           options.bridgePath,
           options.dryRun,
           'trae',
           agentId
         )
-        break
       case 'manual':
         throw new Error(`Add the dachshund connector inside ${definition.name}`)
-    }
-    let instructionInstalled = false
-    if (result.ok && !options.dryRun && definition.instructionPath) {
-      try {
-        const existing = fs.existsSync(definition.instructionPath)
-          ? fs.readFileSync(definition.instructionPath, 'utf8')
-          : ''
-        const merged = mergeSharedMemoryInstructions(existing)
-        if (merged !== existing) {
-          fs.mkdirSync(path.dirname(definition.instructionPath), { recursive: true })
-          backup(definition.instructionPath)
-          writeFileAtomic(definition.instructionPath, merged)
-        }
-        instructionInstalled = true
-      } catch {
-        // The MCP connection is still valid if an optional instruction file cannot be updated.
-      }
-    }
-    return {
-      ...result,
-      agentId,
-      message:
-        result.message +
-        (instructionInstalled ? ' with shared-memory instructions' : '')
     }
   } catch (error) {
     return {
@@ -409,5 +355,71 @@ export function installMcp(agentId: string, options: InstallOptions): McpInstall
       configPath,
       message: error instanceof Error ? error.message : 'Could not update the MCP config'
     }
+  }
+}
+
+export function installMcp(agentId: string, options: InstallOptions): McpInstallResult {
+  const source = findDefinition(agentId)
+  const definition = source ? resolveAgentDefinition(source) : null
+  if (!definition?.mcp.length) {
+    return {
+      ok: false,
+      agentId,
+      configPath: null,
+      message: 'This agent does not expose an MCP configuration'
+    }
+  }
+  if (definition.mcp.every((target) => target.type === 'manual')) {
+    return {
+      ok: false,
+      agentId,
+      configPath: null,
+      message: `Add the dachshund connector inside ${definition.name}`
+    }
+  }
+  const targets = definition.mcp.filter((target) => target.type !== 'manual' && target.path)
+  if (!targets.length) {
+    return {
+      ok: false,
+      agentId,
+      configPath: null,
+      message: 'This agent does not expose an MCP configuration path'
+    }
+  }
+  const results = targets.map((target) =>
+    installTarget(definition, target, agentId, options)
+  )
+  const failed = results.filter((result) => !result.ok)
+  const ok = failed.length === 0
+  let instructionInstalled = false
+  if (ok && !options.dryRun && definition.instructionPath) {
+    try {
+      const existing = fs.existsSync(definition.instructionPath)
+        ? fs.readFileSync(definition.instructionPath, 'utf8')
+        : ''
+      const merged = mergeSharedMemoryInstructions(existing)
+      if (merged !== existing) {
+        fs.mkdirSync(path.dirname(definition.instructionPath), { recursive: true })
+        backup(definition.instructionPath)
+        writeFileAtomic(definition.instructionPath, merged)
+      }
+      instructionInstalled = true
+    } catch {
+      // The MCP connection is still valid if an optional instruction file cannot be updated.
+    }
+  }
+  const messages = results.map((result) => result.message)
+  const message = ok
+    ? options.dryRun
+      ? `Configuration is valid for ${targets.length} config file${targets.length === 1 ? '' : 's'} (dry run)`
+      : `Connected to dachshund in ${targets.length} config file${targets.length === 1 ? '' : 's'}` +
+        (instructionInstalled ? ' with shared-memory instructions' : '')
+    : messages.join(' · ')
+  return {
+    ok,
+    agentId,
+    configPath: results[0]?.configPath ?? null,
+    message,
+    dryRun: options.dryRun
   }
 }

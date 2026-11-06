@@ -263,33 +263,22 @@ function workbuddyScene() {
   return out.join("");
 }
 
-function claudeCodeScene() {
-  const out = [base(BASE, "REPO-SCOPED")];
-  out.push(ruleSign(-160, -46, 9, "CLAUDE.md", { subtitle: "EVERY SESSION", d: 23 }));
-  out.push(book(-147, 8, 9, "MEMORY.md", { w: 58, d: 30, h: 5 }));
-  out.push(fileDrawers(-35, -12, 9, "TOPICS"));
-  out.push(tray(112, -18, 9, "SESSION", { w: 68, d: 50 }));
-  out.push(routeArrow([[-102, -38], [-20, -50], [87, -50], [108, -28]], 12));
-  out.push(routeArrow([[-88, 23], [-60, 23], [-35, 12]], 11));
-  out.push(routeArrow([[19, -2], [55, -2], [85, -4], [108, -2]], 11));
-  out.push(topLabel(-9, 44, "ON DEMAND", 9.2, { size: 2.55 }));
-  return out.join("");
-}
-
-function claudeDesktopScene() {
-  const local = { x: -178, y: -61, w: 148, d: 112, r: 9 };
-  const cloud = { x: 30, y: -61, w: 148, d: 112, r: 9 };
+function claudeScene() {
+  const code = { x: -181, y: -62, w: 158, d: 114, r: 9 };
+  const cowork = { x: 23, y: -62, w: 158, d: 114, r: 9 };
   const out = [];
-  out.push(splitIsland(local, "LOCAL · ON DEVICE"));
-  out.push(splitIsland(cloud, "ACCOUNT · CLOUD"));
-  out.push(book(-151, -26, 9, "PROJECT", { w: 56, d: 31 }));
-  out.push(tray(-154, 17, 9, "LOCAL MEMORY", { w: 62, d: 30 }));
-  out.push(fileDrawers(54, -31, 9, "TOPICS"));
-  out.push(tray(61, 22, 9, "CLOUD CHAT", { w: 61, d: 26 }));
-  out.push(routeArrow([[-123, 5], [-123, 16]], 11));
-  out.push(routeArrow([[92, 14], [92, 21]], 11));
-  out.push(topLabel(-5, 47, "NO SYNC", 9.2, { size: 3.6, tone: "hi" }));
-  out.push(L(k.lineOnTop([0, -35], [0, 35], 9.3, P), { tone: "faint", dashed: true, free: true }));
+  out.push(splitIsland(code, "CODE · REPO SCOPED"));
+  out.push(splitIsland(cowork, "COWORK · SPACE SCOPED"));
+  out.push(ruleSign(-172, -40, 9, "CLAUDE.md", { subtitle: "EVERY SESSION", w: 60, d: 20 }));
+  out.push(book(-174, -14, 9, "MEMORY.md", { w: 56, d: 26, h: 5, labelSize: 2.5 }));
+  out.push(fileDrawers(-108, -22, 9, "TOPICS"));
+  out.push(arrow(-116, -108, -6, 11));
+  out.push(fileDrawers(33, -30, 9, "TOPICS"));
+  out.push(book(96, -30, 9, "ACCOUNT TOPICS", { w: 70, d: 26, h: 4, labelSize: 2.2 }));
+  out.push(tray(96, -4, 9, "CHAT · CLOUD", { w: 70, d: 30, tone: "lo", labelSize: 2.2 }));
+  out.push(topLabel(131, 34, "NOT LOCAL", 9.3, { size: 2.0, tone: "mid" }));
+  out.push(topLabel(-2, 56, "TWO STORES", 9.2, { size: 2.3, tone: "hi" }));
+  out.push(L(k.lineOnTop([0, -35], [0, 48], 9.3, P), { tone: "faint", dashed: true, free: true }));
   return out.join("");
 }
 
@@ -388,35 +377,23 @@ const AGENTS = [
     note: "WorkBuddy refreshes a private memory summary every night, injects relevant memory as background context, and also supports past-session retrieval."
   },
   {
-    slug: "claude-code",
+    slug: "claude",
     fig: "Fig 4",
-    title: "Claude Code · index + topics",
-    hint: "Official · repo scoped",
-    readout: "CLAUDE.md → SESSION · MEMORY.md → TOPICS",
-    scene: claudeCodeScene,
+    title: "Claude · two local scopes",
+    hint: "Official · Code + Desktop",
+    readout: "CLAUDE.md + MEMORY.md → REPO · SPACE TOPICS → LOCAL",
+    scene: claudeScene,
     flow: [
       ["CLAUDE.md", "EVERY SESSION"],
-      ["MEMORY.md (≤ 200 LINES)", "TOPIC FILES · ON DEMAND"]
+      ["MEMORY.md (≤ 200 LINES)", "REPO TOPIC FILES"],
+      ["SPACE TOPICS", "LOCAL COWORK MEMORY"],
+      ["ACCOUNT CHAT", "CLOUD · NOT IMPORTED"]
     ],
-    note: "CLAUDE.md carries instructions. Auto memory uses a small MEMORY.md index plus topic files; only the first 200 lines or 25 KB of the index load at session start."
-  },
-  {
-    slug: "claude-desktop",
-    fig: "Fig 5",
-    title: "Claude Desktop · separate scopes",
-    hint: "Official · local ≠ account",
-    readout: "LOCAL PROJECT MEMORY ≠ ACCOUNT MEMORY",
-    scene: claudeDesktopScene,
-    flow: [
-      ["LOCAL PROJECT", "LOCAL MEMORY"],
-      ["ACCOUNT TOPICS", "CHAT + CLOUD COWORK"],
-      ["NO SYNC"]
-    ],
-    note: "Local Cowork memory stays on the device. Account-side Chat and cloud-Cowork memory are a separate topic system. The two sides do not sync."
+    note: "One Claude card covers both surfaces. Claude Code loads CLAUDE.md every session and keeps a MEMORY.md index plus repo-scoped topics; Claude Desktop keeps Cowork Space and account topics locally. Account Chat and cloud project memory are server-side and reach dachshund only over MCP."
   },
   {
     slug: "opencode",
-    fig: "Fig 6",
+    fig: "Fig 5",
     title: "OpenCode · instructions first",
     hint: "Official · no typed auto memory",
     readout: "AGENTS.md + CONFIG → SESSION CONTEXT",
@@ -429,7 +406,7 @@ const AGENTS = [
   },
   {
     slug: "trae",
-    fig: "Fig 7",
+    fig: "Fig 6",
     title: "Trae · profile + project",
     hint: "Official · two memory scopes",
     readout: "USER PROFILE + PROJECT MEMORY → TASK",
@@ -442,7 +419,7 @@ const AGENTS = [
   },
   {
     slug: "pi",
-    fig: "Fig 8",
+    fig: "Fig 7",
     title: "Pi · session tree + compaction",
     hint: "Official · context recovery",
     readout: "ENTRIES → ACTIVE BRANCH → MODEL CONTEXT",
@@ -455,7 +432,7 @@ const AGENTS = [
   },
   {
     slug: "hermes",
-    fig: "Fig 9",
+    fig: "Fig 8",
     title: "Hermes · two bounded files",
     hint: "Official · frozen at session start",
     readout: "MEMORY + USER → FROZEN SNAPSHOT → SESSION",

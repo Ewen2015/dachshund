@@ -36,7 +36,7 @@ const rules = [
   {
     number: '01',
     title: 'The agent is provenance, not a category.',
-    copy: 'Claude Code, Codex, WorkBuddy and the rest remain visible as sources. Their names never become filing bins of their own.'
+    copy: 'Claude, Codex, WorkBuddy and the rest remain visible as sources. Their names never become filing bins of their own.'
   },
   {
     number: '02',

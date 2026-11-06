@@ -14,13 +14,12 @@ see the
 
 | Agent | Local memory import | MCP config | Imported sources |
 | --- | --- | --- | --- |
-| Claude Code | Yes | `~/.claude.json` | Project topic memory, written instructions, rules, and global memory |
+| Claude | Yes | `~/.claude.json` and `Claude(-3p)/claude_desktop_config.json` | Project topic memory, written instructions, rules, global memory, and local Cowork Space topics |
 | Codex | Yes | `~/.codex/config.toml` | Codex memory Markdown and readable memory SQLite |
 | Gemini CLI | Yes | `~/.gemini/settings.json` | `GEMINI.md` files |
 | Cursor | Yes | `~/.cursor/mcp.json` | Rules and agent Markdown/MDC files |
 | GitHub Copilot | Yes | `~/.copilot/mcp-config.json` | Memory and instruction Markdown |
 | OpenCode | Yes | `~/.config/opencode/opencode.json` | Global `AGENTS.md` and observed memory Markdown |
-| Claude Desktop | Yes | `Claude(-3p)/claude_desktop_config.json` | Local Cowork Space `MEMORY.md` topic files |
 | WorkBuddy | Yes | `~/.workbuddy/mcp.json` | Identity, user memory, and workspace memory Markdown |
 | Doubao | Yes | Guided STDIO connector | Agent Mode global and session memory Markdown |
 | TRAE | Yes | Detected `Trae CN`, `Trae`, or legacy `TRAE SOLO*` `User/mcp.json` | User profile, project memory, topics, and session memory JSONL |
@@ -33,11 +32,17 @@ Installation is detected from the agent home directory or known application
 path. The UI exposes a sharing toggle and an MCP connect action for each
 detected agent.
 
-## Claude Code
+## Claude
 
-Home: `~/.claude`
+One card covers both Claude surfaces: Claude Code and the Claude Desktop app.
 
-Imported:
+Homes:
+
+- `~/.claude` for Claude Code;
+- `~/Library/Application Support/Claude-3p` for the current Desktop deployment;
+- `~/Library/Application Support/Claude` for the legacy Desktop profile.
+
+Imported from Claude Code:
 
 - files under project `memory` directories:
   `~/.claude/projects/<project>/memory/*.md` except the `MEMORY.md` index;
@@ -50,7 +55,31 @@ The typed project files retain their native `user`, `feedback`, `project`, and
 Guidance, Knowledge, or Current work by type and body. Written instructions are
 imported as rules rather than as project memory.
 
-MCP target: `~/.claude.json`, under `mcpServers`.
+Imported from Claude Desktop:
+
+- topic Markdown under
+  `local-agent-mode-sessions/<account>/<org>/spaces/<space-id>/memory/`;
+- topic Markdown under
+  `local-agent-mode-sessions/<account>/<org>/memory/memory/` and
+  `local-agent-mode-sessions/<account>/<org>/agent/memory/`;
+- `user`, `feedback`, `project`, and `reference` frontmatter types through the
+  same source-aware taxonomy. Native type is evidence; the resulting kind is
+  resolved from type plus body.
+
+`MEMORY.md` is an index, not a memory body, and is skipped. The Space name in
+the sibling `spaces.json` becomes the memory's project label.
+
+Not imported: server-side ordinary Chat memory and cloud Project memory that are
+not present as local topic files. Those remain account-side.
+
+MCP targets: `~/.claude.json` under `mcpServers` for Claude Code, and the
+matching `claude_desktop_config.json` for Claude Desktop. Connect writes only
+the surfaces installed on this Mac, and the merged card is connected only when
+every installed surface has the connector. The shared-memory instruction block
+is merged into `~/.claude/CLAUDE.md` only when Claude Code is installed.
+
+Surfaces keep their own source tags (`claude-code`, `claude-desktop`), so
+provenance stays visible even though they share one agent card.
 
 ## Codex
 
@@ -122,38 +151,6 @@ Imported:
 Project-level `AGENTS.md` files and session history are not imported.
 
 MCP target: `~/.config/opencode/opencode.json`, as `mcp.dachshund`.
-
-## Claude Desktop
-
-Data home:
-
-- `~/Library/Application Support/Claude-3p` for the current 3p deployment;
-- `~/Library/Application Support/Claude` for the legacy profile.
-
-dachshund prefers `Claude-3p` when present and scans both homes. The matching
-`claude_desktop_config.json` is the MCP target.
-
-Imported:
-
-- topic Markdown under
-  `local-agent-mode-sessions/<account>/<org>/spaces/<space-id>/memory/`;
-- topic Markdown under
-  `local-agent-mode-sessions/<account>/<org>/memory/memory/` and
-  `local-agent-mode-sessions/<account>/<org>/agent/memory/`;
-- `user`, `feedback`, `project`, and `reference` frontmatter types through the
-  source-aware taxonomy. Native type is evidence; the resulting kind is resolved
-  from type plus body.
-
-`MEMORY.md` is an index, not a memory body, and is skipped. The Space name in
-the sibling `spaces.json` becomes the memory's project label.
-
-Not imported: server-side ordinary Chat memory and cloud Project memory that
-are not present as local topic files. Those remain account-side. Claude
-Desktop can still read dachshund's shared library through:
-
-```text
-~/Library/Application Support/Claude-3p/claude_desktop_config.json
-```
 
 ## WorkBuddy
 
@@ -388,7 +385,7 @@ source. The MCP initialization response also tells clients to consult
 For agents with a stable global instruction file, Connect maintains an
 idempotent managed block:
 
-- Claude Code: `~/.claude/CLAUDE.md`;
+- Claude: `~/.claude/CLAUDE.md` (Claude Code);
 - Codex: `~/.codex/AGENTS.md`;
 - Gemini CLI: `~/.gemini/GEMINI.md`;
 - GitHub Copilot: `~/.copilot/instructions/dachshund.md`;
@@ -412,7 +409,7 @@ Most agents receive:
       "args": ["node", "/path/to/dachshund/out/mcp/index.cjs"],
       "env": {
         "DACHSHUND_HOME": "/Users/example/Library/Application Support/dachshund",
-        "DACHSHUND_CLIENT_AGENT": "claude-code"
+        "DACHSHUND_CLIENT_AGENT": "claude"
       }
     }
   }

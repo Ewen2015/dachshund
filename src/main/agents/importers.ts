@@ -538,10 +538,9 @@ function projectFromClaudeDir(memoryFile: string): string | null {
   return parts.length ? parts.slice(-2).join('/') : human
 }
 
-function importClaude(agent: AgentDefinition): ImportedMemory[] {
-  const root = path.join(agent.home, 'projects')
+function importClaudeCodeHome(agent: AgentDefinition, root: string): ImportedMemory[] {
   const memoryFiles = walk(
-    root,
+    path.join(root, 'projects'),
     (file) =>
       file.endsWith('.md') &&
       file.includes(`${path.sep}memory${path.sep}`) &&
@@ -556,8 +555,8 @@ function importClaude(agent: AgentDefinition): ImportedMemory[] {
       })
     )
   const instructionFiles = [
-    path.join(agent.home, 'CLAUDE.md'),
-    ...walk(path.join(agent.home, 'rules'), (file) => file.endsWith('.md'), 160)
+    path.join(root, 'CLAUDE.md'),
+    ...walk(path.join(root, 'rules'), (file) => file.endsWith('.md'), 160)
   ].filter((file) => fs.existsSync(file))
   const instructions = instructionFiles.map((file) =>
     parseMarkdownFile(file, agent, {
@@ -567,7 +566,7 @@ function importClaude(agent: AgentDefinition): ImportedMemory[] {
     })
   )
   const globalMemories = walk(
-    path.join(agent.home, 'memory'),
+    path.join(root, 'memory'),
     (file) => file.endsWith('.md') && path.basename(file) !== 'MEMORY.md',
     80
   ).map((file) =>
@@ -624,27 +623,33 @@ function claudeDesktopSpace(file: string): { id: string; name: string } | null {
   return { id, name: `Claude Space ${id.slice(0, 8)}` }
 }
 
-function importClaudeDesktop(agent: AgentDefinition): ImportedMemory[] {
+function importClaudeDesktopHome(agent: AgentDefinition, root: string): ImportedMemory[] {
+  const out: ImportedMemory[] = []
+  const sessionRoot = path.join(root, 'local-agent-mode-sessions')
+  for (const file of walk(sessionRoot, isClaudeDesktopMemoryFile)) {
+    const space = claudeDesktopSpace(file)
+    const memory = parseMarkdownFile(file, agent, {
+      scope: space ? 'project' : 'user',
+      authority: 'agent_observed',
+      project: space?.name ?? null,
+      tags: [
+        'claude-desktop',
+        space ? 'space-memory' : 'local-memory',
+        ...(space ? [`space:${space.id}`] : [])
+      ]
+    })
+    if (!memory) continue
+    if (space) memory.sourceRef = `space:${space.id}`
+    out.push(memory)
+  }
+  return out
+}
+
+function importClaude(agent: AgentDefinition): ImportedMemory[] {
   const homes = [...new Set([agent.home, ...(agent.homes ?? [])])]
   const out: ImportedMemory[] = []
-  for (const home of homes) {
-    const sessionRoot = path.join(home, 'local-agent-mode-sessions')
-    for (const file of walk(sessionRoot, isClaudeDesktopMemoryFile)) {
-      const space = claudeDesktopSpace(file)
-      const memory = parseMarkdownFile(file, agent, {
-        scope: space ? 'project' : 'user',
-        authority: 'agent_observed',
-        project: space?.name ?? null,
-        tags: [
-          'claude-desktop',
-          space ? 'space-memory' : 'local-memory',
-          ...(space ? [`space:${space.id}`] : [])
-        ]
-      })
-      if (!memory) continue
-      if (space) memory.sourceRef = `space:${space.id}`
-      out.push(memory)
-    }
+  for (const root of homes) {
+    out.push(...importClaudeCodeHome(agent, root), ...importClaudeDesktopHome(agent, root))
   }
   return out
 }
@@ -1769,11 +1774,8 @@ function importDeepSeekHarness(agent: AgentDefinition): ImportedMemory[] {
 export function importAgentMemories(agent: AgentDefinition): ImportedMemory[] {
   let memories: ImportedMemory[] = []
   switch (agent.id) {
-    case 'claude-code':
+    case 'claude':
       memories = importClaude(agent)
-      break
-    case 'claude-desktop':
-      memories = importClaudeDesktop(agent)
       break
     case 'codex':
       memories = [...importCodexMarkdown(agent), ...importCodexSqlite(agent)]

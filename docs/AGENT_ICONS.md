@@ -48,8 +48,7 @@ npm run icons:agents -- --force
 
 | Agent | LobeHub icon |
 | --- | --- |
-| Claude Code | `claudecode-color.svg` |
-| Claude Desktop | `claude-color.svg` |
+| Claude | `claude-color.svg` |
 | Codex | `codex-color.svg` |
 | Gemini CLI | `geminicli-color.svg` |
 | Cursor | `cursor.svg` |

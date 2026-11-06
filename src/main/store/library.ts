@@ -141,6 +141,7 @@ export class Library {
   }
 
   syncToDb(db: Db): number {
+    this.migrateLegacyAgentIds()
     this.normalizeLegacyMetadata()
     const files = this.readAll()
     for (const file of files) {
@@ -171,6 +172,29 @@ export class Library {
       }
     }
     return files.length
+  }
+
+  private migrateLegacyAgentIds(): void {
+    const legacy = new Set(['claude-code', 'claude-desktop'])
+    for (const file of listMarkdown(MEMORY_DIR)) {
+      try {
+        const raw = fs.readFileSync(file, 'utf8')
+        if (!raw.includes('agent: claude-code') && !raw.includes('agent: claude-desktop')) {
+          continue
+        }
+        const memory = this.readFile(file)
+        if (!memory) continue
+        let changed = false
+        memory.sources = memory.sources.map((source) => {
+          if (!legacy.has(source.agentId)) return source
+          changed = true
+          return { ...source, agentId: 'claude' }
+        })
+        if (changed) this.write(memory, file)
+      } catch {
+        // A malformed library file is left untouched for normal read handling.
+      }
+    }
   }
 
   private normalizeLegacyMetadata(): void {
@@ -255,8 +279,7 @@ export function slugify(input: string): string {
 
 export function agentNameFor(id: string): string {
   const names: Record<string, string> = {
-    'claude-code': 'Claude Code',
-    'claude-desktop': 'Claude Desktop',
+    claude: 'Claude',
     codex: 'Codex',
     'gemini-cli': 'Gemini CLI',
     cursor: 'Cursor',

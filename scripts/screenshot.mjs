@@ -13,15 +13,15 @@ fs.writeFileSync(
   updateManifest,
   JSON.stringify(
     {
-      tag_name: 'v0.1.23',
-      name: 'dachshund v0.1.23',
+      tag_name: 'v0.1.24',
+      name: 'dachshund v0.1.24',
       body: 'A cleaner taxonomy, reliable legacy reclassification, and a detail view that no longer covers the library.',
-      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.23',
+      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.24',
       assets: [
         {
-          name: 'dachshund-0.1.23-arm64.dmg',
+          name: 'dachshund-0.1.24-arm64.dmg',
           browser_download_url:
-            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.23/dachshund-0.1.23-arm64.dmg'
+            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.24/dachshund-0.1.24-arm64.dmg'
         }
       ]
     },
@@ -114,7 +114,7 @@ await page.waitForTimeout(250)
 
 await page.getByRole('button', { name: 'Close detail' }).click()
 await page.waitForTimeout(250)
-await page.getByRole('button', { name: 'Open Claude Code memory' }).click()
+await page.getByRole('button', { name: 'Open Claude memory' }).click()
 await page.waitForTimeout(600)
 await page.screenshot({ path: path.join(shots, '09-agent-memory.png') })
 

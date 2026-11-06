@@ -10,7 +10,7 @@
 dachshund 找到这些 Agent 已经写在本机的 Memory，把它们汇入一份 Markdown
 记忆库，再通过 MCP 提供给所有 Agent 使用。无需账号，无需上云，也不依赖模型
 
-[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.23/dachshund-0.1.23-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
+[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.24/dachshund-0.1.24-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -48,7 +48,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 
 | 平台 | 架构 | 安装包 | 大小 | 下载 |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.23](https://github.com/Ewen2015/dachshund/releases/download/v0.1.23/dachshund-0.1.23-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.24](https://github.com/Ewen2015/dachshund/releases/download/v0.1.24/dachshund-0.1.24-arm64.dmg)** |
 
 **系统要求：** Apple Silicon Mac
 
@@ -57,7 +57,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 > 选择“打开”
 
 [所有版本](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.23/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.24/SHA256SUMS)
 
 **安装**
 
@@ -76,7 +76,7 @@ SHA-256 用于确认下载的 DMG 与正式发布文件一致。它不是激活�
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.23/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.24/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -111,16 +111,17 @@ Memory 导入：
 <table>
 <tr><td>
 
-Claude Code · Codex · Cursor · Gemini CLI · GitHub Copilot · OpenCode · Claude Desktop · WorkBuddy · Doubao · TRAE · Hermes · Pi · ZCode · DeepSeek Harness
+Claude · Codex · Cursor · Gemini CLI · GitHub Copilot · OpenCode · WorkBuddy · Doubao · TRAE · Hermes · Pi · ZCode · DeepSeek Harness
 
 </td></tr>
 </table>
 
-dachshund 只显示本机实际发现的 Agent。当前 14 个集成都支持只读导入。Claude
-Desktop 导入的是本地 Cowork Space memory；普通 Chat memory 仍保存在账号侧，
-Claude 通过 MCP 使用 dachshund 的共享记忆。Doubao 的自定义连接器保存在应用内，
-因此通过 STDIO 配置向导手动接入；接入后豆包可以通过 MCP 读写 dachshund
-的共享记忆，但豆包账号记忆和每个助手的独立记忆仍留在账号侧。
+dachshund 只显示本机实际发现的 Agent。当前 13 个集成都支持只读导入。Claude
+一张卡片同时覆盖 Claude Code 的项目记忆和 Claude Desktop 的本地 Cowork Space
+memory；普通 Chat memory 仍保存在账号侧，Claude 通过 MCP 使用 dachshund
+的共享记忆。Doubao 的自定义连接器保存在应用内，因此通过 STDIO 配置向导手动
+接入；接入后豆包可以通过 MCP 读写 dachshund 的共享记忆，但豆包账号记忆和每个
+助手的独立记忆仍留在账号侧。
 
 DeepSeek Harness 按事件证据处理，而不是寻找一个原生 memory 文件。dachshund
 从人工输入中提取明确的长期线索，把 compaction summary 导入 Evidence，把
@@ -133,7 +134,7 @@ session 和工具输出仍然只是外部证据，不会直接变成长期 memor
 ## 工作原理
 
 ```text
-Claude Code  ─┐
+Claude       ─┐
 Codex        ─┼─ 只读导入 ─→ ~/Documents/dachshund/memory/
 Cursor       ─┤                         │
 其他 Agents  ─┘                         ├─→ SQLite FTS5 + BM25 索引

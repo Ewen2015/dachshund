@@ -50,6 +50,16 @@ export function contentHash(content: string): string {
   return createHash('sha1').update(normalizeForHash(content)).digest('hex')
 }
 
+export function sourceKeyFor(
+  agentId: string,
+  sourcePath: string,
+  sourceRef?: string
+): string {
+  return createHash('sha1')
+    .update(JSON.stringify([agentId, sourcePath, sourceRef ?? '']))
+    .digest('hex')
+}
+
 export function makeId(prefix = 'mem'): string {
   return `${prefix}_${Date.now().toString(36)}${randomBytes(4).toString('hex')}`
 }
@@ -204,6 +214,47 @@ export class Db {
       WHERE scope IS NULL OR scope = '';
       UPDATE memories SET status = 'archived' WHERE archived = 1 AND status != 'archived';
     `)
+    this.migrateClaudeMerge()
+  }
+
+  private migrateClaudeMerge(): void {
+    // Claude Code and Claude Desktop were separate agents before the Claude merge.
+    const legacy = ['claude-code', 'claude-desktop']
+    const marks = legacy.map(() => '?').join(',')
+    const priorAgents = this.db
+      .prepare(`SELECT shared FROM agents WHERE id IN (${marks})`)
+      .all(...legacy) as Row[]
+    if (priorAgents.length) {
+      // Keep sharing on only if every former surface had it on.
+      const shared = priorAgents.some((row) => num(row.shared) === 0) ? 0 : 1
+      this.db
+        .prepare(`
+          INSERT INTO agents(id, name, kind, home, installed, shared, mcp_installed, mcp_config_path, last_scan_at)
+          VALUES('claude', 'Claude', 'cli', NULL, 0, ?, 0, NULL, NULL)
+          ON CONFLICT(id) DO UPDATE SET shared = MIN(shared, excluded.shared)
+        `)
+        .run(shared)
+      this.db.prepare(`DELETE FROM agents WHERE id IN (${marks})`).run(...legacy)
+    }
+    this.db
+      .prepare(`UPDATE sources SET agent_id = 'claude', agent_name = 'Claude' WHERE agent_id IN (${marks})`)
+      .run(...legacy)
+    this.db
+      .prepare(`UPDATE imports SET agent_id = 'claude' WHERE agent_id IN (${marks})`)
+      .run(...legacy)
+    // Source keys hash the agent id, so they must be recomputed or a rescan duplicates rows.
+    const records = this.db
+      .prepare(`SELECT * FROM source_records WHERE agent_id IN (${marks})`)
+      .all(...legacy) as Row[]
+    for (const row of records) {
+      const key = sourceKeyFor('claude', str(row.path), str(row.ref) || undefined)
+      this.db.prepare('DELETE FROM source_records WHERE source_key = ?').run(key)
+      this.db
+        .prepare(
+          `UPDATE source_records SET source_key = ?, agent_id = 'claude', agent_name = 'Claude' WHERE source_key = ?`
+        )
+        .run(key, str(row.source_key))
+    }
   }
 
   close(): void {
@@ -820,8 +871,7 @@ export function monogramFor(name: string): string {
 
 export function monogramForId(name: string, id: string): string {
   const known: Record<string, string> = {
-    'claude-code': 'CL',
-    'claude-desktop': 'CD',
+    claude: 'CL',
     codex: 'CX',
     'gemini-cli': 'GM',
     cursor: 'CU',
@@ -841,8 +891,7 @@ export function monogramForId(name: string, id: string): string {
 
 export function accentFor(id: string): string {
   const colors: Record<string, string> = {
-    'claude-code': '#C0663B',
-    'claude-desktop': '#B86A3F',
+    claude: '#C0663B',
     codex: '#2E2B27',
     'gemini-cli': '#4C6F91',
     cursor: '#66765A',

@@ -147,7 +147,7 @@ agent 已经由来源路径和 MCP 身份表达。把它再作为一级分类，
 ## 文档关系
 
 - [docs/MEMORY.md](../docs/MEMORY.md)：已实现分类契约；
-- [docs/AGENT_MEMORY_MAPPING.md](../docs/AGENT_MEMORY_MAPPING.md)：14 个 agent 的完整映射矩阵；
+- [docs/AGENT_MEMORY_MAPPING.md](../docs/AGENT_MEMORY_MAPPING.md)：13 个 agent 的完整映射矩阵；
 - [research/agent-memory-structures.md](agent-memory-structures.md)：各 agent 原生存储结构；
 - [research/cross-agent-memory-products.md](cross-agent-memory-products.md)：本地优先产品对比。
 

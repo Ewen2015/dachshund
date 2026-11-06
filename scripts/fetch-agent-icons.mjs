@@ -15,8 +15,7 @@ const REPO_COMMIT = 'aea0ecb0fe1439467219197c52ffaeb579dfe33f'
 const SOURCE_BASE = `https://unpkg.com/${PACKAGE_NAME}@${PACKAGE_VERSION}/icons`
 
 const LOBE_ICONS = [
-  { agentId: 'claude-code', file: 'claudecode-color.svg', source: 'claudecode-color.svg' },
-  { agentId: 'claude-desktop', file: 'claude-color.svg', source: 'claude-color.svg' },
+  { agentId: 'claude', file: 'claude-color.svg', source: 'claude-color.svg' },
   { agentId: 'codex', file: 'codex-color.svg', source: 'codex-color.svg' },
   { agentId: 'gemini-cli', file: 'geminicli-color.svg', source: 'geminicli-color.svg' },
   { agentId: 'cursor', file: 'cursor.svg', source: 'cursor.svg' },

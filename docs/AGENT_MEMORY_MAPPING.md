@@ -27,8 +27,7 @@ current local adapter. `-` means no mapping is needed for that row.
 | Agent | Identity | Guidance | Knowledge | Current work | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | **Codex** | Split `memory_summary.md` identity section | Summary guidance; `Reusable knowledge` may become `procedure` | Summary knowledge; reusable insight; unmatched sections by content | Explicit task-group goal, constraint, or decision | Task groups, raw threads, SQLite rollouts |
-| **Claude Code** | Typed `user` | Typed `feedback` -> preference/rule; `CLAUDE.md` and rules -> rule | Typed `reference`; feedback outcome -> insight; untyped memory by content | Typed `project` | Session transcripts: not imported |
-| **Claude Desktop** | Typed `user` topic | Typed `feedback` -> preference/rule or insight | Typed `reference`; feedback outcome -> insight; untyped topics by content | Typed `project` | - |
+| **Claude** | Typed `user` topics | Typed `feedback` -> preference/rule; `CLAUDE.md` and rules -> rule | Typed `reference`; feedback outcome -> insight; untyped memory by content | Typed `project` | Session transcripts: not imported |
 | **WorkBuddy** | `USER.md`, typed `user` | Typed `feedback`; `IDENTITY.md` -> rule | Typed `reference`; feedback outcome -> insight; untyped workspace Markdown by content | Typed `project` | Dated workspace logs |
 | **TRAE** | `user_profile.md` | Rules: not imported | Project memory resolved by content | `project_memory.md` | `topics.md`, `session_memory_*.jsonl` |
 | **Doubao** | Account memory: not imported | - | Agent Mode workspace/session files resolved by content | - | - |
@@ -51,10 +50,10 @@ current local adapter. `-` means no mapping is needed for that row.
 | **Codex** | `## Thread` in `raw_memories.md` | Yes | `task_rollout` |
 | **Codex** | `stage1_outputs` in `memories_1.sqlite` | When schema matches | `task_rollout` plus extracted reusable knowledge |
 | **Codex** | `cwd:` / `cwd=` | Metadata | Project scope only |
-| **Claude Code** | Project `memory/*.md` except `MEMORY.md` | Yes | Native `user`, `feedback`, `project`, `reference` normalized by content |
-| **Claude Code** | `CLAUDE.md`, `rules/*.md`, global memory | Yes | Rules and typed/global memory |
-| **Claude Desktop** | Cowork Space, account, and agent topic files | Yes | Typed topics normalized; untyped local topics stay classified conservatively |
-| **Claude Desktop** | ordinary Chat and cloud Project memory | No | Not present in the local topic store |
+| **Claude** | Claude Code project `memory/*.md` except `MEMORY.md` | Yes | Native `user`, `feedback`, `project`, `reference` normalized by content |
+| **Claude** | Claude Code `CLAUDE.md`, `rules/*.md`, global memory | Yes | Rules and typed/global memory |
+| **Claude** | Desktop Cowork Space, account, and agent topic files | Yes | Typed topics normalized; untyped local topics stay classified conservatively |
+| **Claude** | Desktop ordinary Chat and cloud Project memory | No | Not present in the local topic store |
 | **WorkBuddy** | `IDENTITY.md`, `USER.md`, `user-*/USER.md` | Yes | Assistant rule and user profile |
 | **WorkBuddy** | `memory/*.md` with `user`, `feedback`, `project`, `reference` | Yes | Normalized by native type and body |
 | **WorkBuddy** | Workspace `.workbuddy/memory/YYYY-MM-DD.md` | Yes | `workspace_log`; workspace label becomes scope |

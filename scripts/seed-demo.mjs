@@ -24,7 +24,7 @@ const memories = [
     project: 'Field Notes',
     tags: ['design', 'product', 'tone'],
     days: 0,
-    agents: ['claude-code', 'codex', 'cursor', 'workbuddy', 'hermes', 'pi'],
+    agents: ['claude', 'codex', 'cursor', 'workbuddy', 'hermes', 'pi'],
     content:
       'Field Notes should feel like a paper field journal, not a productivity dashboard. Cream paper, ink, hairline rules, and one warm accent. When a screen starts to feel like software, remove a panel before adding a color.'
   },
@@ -35,7 +35,7 @@ const memories = [
     project: 'Field Notes',
     tags: ['roadmap', 'scope'],
     days: 0,
-    agents: ['codex', 'claude-code', 'doubao', 'zcode', 'deepseek-harness'],
+    agents: ['codex', 'claude', 'doubao', 'zcode', 'deepseek-harness'],
     content:
       'The first release ships the reading experience only. Editing, collaboration, and publishing stay behind the next milestone. The reader has to feel finished on its own before we add authoring.'
   },
@@ -90,7 +90,7 @@ const memories = [
     project: null,
     tags: ['ux', 'onboarding'],
     days: 1,
-    agents: ['claude-code', 'workbuddy'],
+    agents: ['claude', 'workbuddy'],
     content:
       'Mira closes onboarding modals on principle. Teach the product in place with a real first document, a quiet hint, and one obvious action. Never block the canvas with a carousel.'
   },
@@ -123,7 +123,7 @@ const memories = [
     project: null,
     tags: ['writing', 'editorial'],
     days: 4,
-    agents: ['cursor', 'claude-code'],
+    agents: ['cursor', 'claude'],
     content:
       'Use the Oxford comma in editorial and marketing copy. Product UI labels stay terse and omit it when the sentence is only two items. Consistency matters more than the rule itself.'
   },
@@ -134,7 +134,7 @@ const memories = [
     project: 'Field Notes',
     tags: ['brand', 'story'],
     days: 6,
-    agents: ['claude-code'],
+    agents: ['claude'],
     content:
       'The field-journal metaphor came from a small linen notebook Mira bought in Kyoto in 2019. The brand story can mention it, but the product should never become nostalgic or precious about stationery.'
   },
@@ -156,7 +156,7 @@ const memories = [
     project: null,
     tags: ['publishing', 'trust'],
     days: 12,
-    agents: ['claude-code', 'gemini-cli'],
+    agents: ['claude', 'gemini-cli'],
     content:
       'Drafting is allowed. Publishing without an explicit human confirmation is not. This applies to every channel, including the ones with an API that makes it easy.'
   },
@@ -167,7 +167,7 @@ const memories = [
     project: 'Field Notes',
     tags: ['design', 'taste'],
     days: 16,
-    agents: ['claude-code', 'codex', 'cursor', 'trae'],
+    agents: ['claude', 'codex', 'cursor', 'trae'],
     content:
       'The interface should be quiet so the writing can be loud. Spend boldness on type, pacing, and one signature detail, not on gradients, shadows, or decoration. If everything is emphasized, nothing is.'
   },
@@ -198,7 +198,7 @@ const memories = [
 ]
 
 const agentNames = {
-  'claude-code': 'Claude Code',
+  'claude': 'Claude',
   codex: 'Codex',
   'gemini-cli': 'Gemini CLI',
   cursor: 'Cursor',
@@ -212,7 +212,7 @@ const agentNames = {
 }
 
 const sourcePaths = {
-  'claude-code': '~/.claude/projects/-Users-mira-Documents-field-notes/memory/',
+  'claude': '~/.claude/projects/-Users-mira-Documents-field-notes/memory/',
   codex: '~/.codex/memories/MEMORY.md',
   'gemini-cli': '~/.gemini/GEMINI.md',
   cursor: '~/.cursor/rules/',

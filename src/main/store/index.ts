@@ -26,7 +26,7 @@ import {
 import { discoverAgents, refreshAgents } from '../agents/discovery'
 import { importAgentMemories } from '../agents/importers'
 import { installMcp } from '../agents/mcp-install'
-import { Db, contentHash, makeId, type SourceRecord } from './db'
+import { Db, contentHash, makeId, sourceKeyFor, type SourceRecord } from './db'
 import { Library, slugify } from './library'
 
 export const SYNC_INTERVAL_MINUTES = 60
@@ -669,12 +669,6 @@ export class Store {
   fileNameFor(title: string): string {
     return slugify(title)
   }
-}
-
-function sourceKeyFor(agentId: string, sourcePath: string, sourceRef?: string): string {
-  return createHash('sha1')
-    .update(JSON.stringify([agentId, sourcePath, sourceRef ?? '']))
-    .digest('hex')
 }
 
 function changeFor(

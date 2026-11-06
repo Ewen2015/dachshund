@@ -116,8 +116,8 @@ async function main(): Promise<void> {
 
   const echo = store.ingestImport({
     ...base,
-    agentId: 'claude-code',
-    agentName: 'Claude Code',
+    agentId: 'claude',
+    agentName: 'Claude',
     sourcePath: '/tmp/fixture/CLAUDE.md',
     sourceRef: undefined,
     title: 'Use pnpm and never npm',

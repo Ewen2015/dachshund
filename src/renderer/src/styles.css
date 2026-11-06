@@ -834,9 +834,12 @@ kbd {
 }
 
 .category-legend-item.is-auxiliary {
-  border-left-color: var(--line);
-  border-left-style: dashed;
-  border-radius: 0 7px 7px 0;
+  color: var(--faint);
+}
+
+.category-legend-item.is-auxiliary:hover,
+.category-legend-item.is-auxiliary.active {
+  color: var(--ink);
 }
 
 .category-legend-item i {
@@ -5290,9 +5293,15 @@ body.panel-mode {
 }
 
 .panel-category.is-auxiliary {
-  border-left-color: var(--line);
-  border-left-style: dashed;
-  border-radius: 0 6px 6px 0;
+  color: var(--faint);
+}
+
+.panel-category.is-auxiliary:hover {
+  color: var(--ink-soft);
+}
+
+.panel-category.is-auxiliary.active {
+  color: var(--ink);
 }
 
 .panel-category i {

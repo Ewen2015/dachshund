@@ -17,6 +17,10 @@ Each page has a simple English mechanism diagram and a short Chinese explanation
 All diagrams are static and labeled in English. The research snapshot is dated
 **2026-11-02**.
 
+The two Claude pages stay separate product-level notes. In dachshund they share
+one agent card, so the app uses a merged `assets/agents/svg/claude.svg`; the
+per-product figures remain archived for this report.
+
 ## Format for dachshund
 
 The diagrams are archived in two formats so the same source works in the app and

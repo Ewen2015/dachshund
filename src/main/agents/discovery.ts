@@ -27,19 +27,31 @@ function exists(target: string): boolean {
   }
 }
 
+function mcpModeFor(targets: AgentDefinition['mcp']): AgentSummary['mcpMode'] {
+  if (!targets.length) return null
+  if (targets.every((target) => target.type === 'manual')) return 'manual'
+  return 'config'
+}
+
 export function isMcpInstalled(definition: AgentDefinition): boolean {
   const resolved = resolveAgentDefinition(definition)
-  if (!resolved.mcp) return false
-  if (resolved.mcp.type === 'manual') {
+  const targets = resolved.mcp
+  if (!targets.length) return false
+  if (mcpModeFor(targets) === 'manual') {
     return Boolean(latestMcpClientReceipt(DATA_DIR, resolved.id))
   }
-  if (!resolved.mcp.path) return false
-  try {
-    if (!fs.existsSync(resolved.mcp.path)) return false
-    return fs.readFileSync(resolved.mcp.path, 'utf8').includes('dachshund')
-  } catch {
-    return false
-  }
+  // A merged agent is connected only when every installed surface is configured.
+  const configured = targets.filter((target) => target.type !== 'manual' && target.path)
+  if (!configured.length) return false
+  return configured.every((target) => {
+    try {
+      const file = target.path as string
+      if (!fs.existsSync(file)) return false
+      return fs.readFileSync(file, 'utf8').includes('dachshund')
+    } catch {
+      return false
+    }
+  })
 }
 
 export function discoverAgents(): DetectedAgent[] {
@@ -60,14 +72,11 @@ export function discoverAgents(): DetectedAgent[] {
       ...definition,
       installed,
       mcpInstalled: isMcpInstalled(definition),
-      mcpConfigPath: definition.mcp?.path ?? null,
+      mcpConfigPath:
+        definition.mcp.find((target) => target.type !== 'manual' && target.path)?.path ??
+        null,
       appVersion: definition.appVersion,
-      mcpMode:
-        definition.mcp?.type === 'manual'
-          ? 'manual'
-          : definition.mcp
-            ? 'config'
-            : null
+      mcpMode: mcpModeFor(definition.mcp)
     }
   })
 }
@@ -94,12 +103,7 @@ export function refreshAgents(db: Db): AgentSummary[] {
       monogram: agent.monogram || monogramForId(agent.name, agent.id),
       description: definition?.description ?? '',
       appVersion: definition?.appVersion ?? null,
-      mcpMode:
-        definition?.mcp?.type === 'manual'
-          ? 'manual'
-          : definition?.mcp
-            ? 'config'
-            : null
+      mcpMode: mcpModeFor(definition?.mcp ?? [])
     }
   })
 }

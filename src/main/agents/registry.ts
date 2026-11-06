@@ -28,7 +28,7 @@ export interface AgentDefinition {
   homes?: string[]
   description: string
   accent: string
-  mcp: McpTarget | null
+  mcp: McpTarget[]
   instructionPath?: string
   appPath?: string
   appPaths?: string[]
@@ -36,6 +36,7 @@ export interface AgentDefinition {
 }
 
 const home = os.homedir()
+const claudeCodeHome = path.join(home, '.claude')
 const claudeDesktopLegacyHome = path.join(
   home,
   'Library',
@@ -48,9 +49,19 @@ const claudeDesktopCurrentHome = path.join(
   'Application Support',
   'Claude-3p'
 )
+const claudeAppPath = '/Applications/Claude.app'
 const claudeDesktopHome = fs.existsSync(claudeDesktopCurrentHome)
   ? claudeDesktopCurrentHome
   : claudeDesktopLegacyHome
+const claudeHome =
+  [claudeCodeHome, claudeDesktopCurrentHome, claudeDesktopLegacyHome].find((candidate) =>
+    fs.existsSync(candidate)
+  ) ?? claudeCodeHome
+const claudeCodeConfigPath = path.join(home, '.claude.json')
+const claudeDesktopConfigPath = path.join(
+  claudeDesktopHome,
+  'claude_desktop_config.json'
+)
 
 const TRAE_APP_NAMES = ['Trae CN.app', 'Trae.app', 'TRAE SOLO CN.app', 'TRAE SOLO.app']
 const TRAE_SUPPORT_NAMES = ['Trae CN', 'Trae', 'TRAE SOLO CN', 'TRAE SOLO']
@@ -130,30 +141,58 @@ export function resolveTraeInstallation(
   }
 }
 
+function claudeSurfaceAvailable(target: McpTarget): boolean {
+  if (target.path === claudeDesktopConfigPath) {
+    return (
+      fs.existsSync(claudeDesktopCurrentHome) ||
+      fs.existsSync(claudeDesktopLegacyHome) ||
+      fs.existsSync(claudeAppPath)
+    )
+  }
+  if (target.path === claudeCodeConfigPath) {
+    return fs.existsSync(claudeCodeHome)
+  }
+  return true
+}
+
 export function resolveAgentDefinition(definition: AgentDefinition): AgentDefinition {
   const resolved: AgentDefinition = {
     ...definition,
-    mcp: definition.mcp ? { ...definition.mcp } : null
+    mcp: definition.mcp.map((target) => ({ ...target }))
   }
-  if (definition.id !== 'trae') return resolved
-
-  const userHome = path.dirname(definition.home)
-  const installation = resolveTraeInstallation(userHome)
-  resolved.mcp = { type: 'trae-json', path: installation.mcpPath }
-  resolved.appVersion = installation.appVersion ?? undefined
+  if (definition.id === 'trae') {
+    const userHome = path.dirname(definition.home)
+    const installation = resolveTraeInstallation(userHome)
+    resolved.mcp = [{ type: 'trae-json', path: installation.mcpPath }]
+    resolved.appVersion = installation.appVersion ?? undefined
+    return resolved
+  }
+  if (definition.id === 'claude') {
+    // Connect writes each surface only where that surface is installed.
+    resolved.mcp = resolved.mcp.filter(claudeSurfaceAvailable)
+    // CLAUDE.md belongs to Claude Code; a Desktop-only Mac has no instruction layer to merge.
+    if (!fs.existsSync(claudeCodeHome)) resolved.instructionPath = undefined
+  }
   return resolved
 }
 
 export const AGENT_DEFINITIONS: AgentDefinition[] = [
   {
-    id: 'claude-code',
-    name: 'Claude Code',
+    id: 'claude',
+    name: 'Claude',
     kind: 'cli',
-    home: path.join(home, '.claude'),
-    description: 'Project memories and session history',
+    home: claudeHome,
+    homes: [claudeCodeHome, claudeDesktopCurrentHome, claudeDesktopLegacyHome].filter(
+      (candidate) => candidate !== claudeHome
+    ),
+    description: 'Claude Code project memory and instructions, plus Cowork Space topics',
     accent: '#C0663B',
-    mcp: { type: 'json-mcpServers', path: path.join(home, '.claude.json') },
-    instructionPath: path.join(home, '.claude', 'CLAUDE.md')
+    mcp: [
+      { type: 'json-mcpServers', path: claudeCodeConfigPath },
+      { type: 'json-mcpServers', path: claudeDesktopConfigPath }
+    ],
+    instructionPath: path.join(claudeCodeHome, 'CLAUDE.md'),
+    appPath: claudeAppPath
   },
   {
     id: 'codex',
@@ -162,7 +201,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, '.codex'),
     description: 'Task memories, rollouts, and preferences',
     accent: '#2E2B27',
-    mcp: { type: 'codex-toml', path: path.join(home, '.codex', 'config.toml') },
+    mcp: [{ type: 'codex-toml', path: path.join(home, '.codex', 'config.toml') }],
     instructionPath: path.join(home, '.codex', 'AGENTS.md')
   },
   {
@@ -172,7 +211,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, '.gemini'),
     description: 'Global instructions and project context',
     accent: '#4C6F91',
-    mcp: { type: 'json-mcpServers', path: path.join(home, '.gemini', 'settings.json') },
+    mcp: [{ type: 'json-mcpServers', path: path.join(home, '.gemini', 'settings.json') }],
     instructionPath: path.join(home, '.gemini', 'GEMINI.md')
   },
   {
@@ -182,7 +221,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, '.cursor'),
     description: 'Rules, agents, and editor context',
     accent: '#66765A',
-    mcp: { type: 'json-mcpServers', path: path.join(home, '.cursor', 'mcp.json') },
+    mcp: [{ type: 'json-mcpServers', path: path.join(home, '.cursor', 'mcp.json') }],
     appPath: '/Applications/Cursor.app'
   },
   {
@@ -192,7 +231,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, '.copilot'),
     description: 'Copilot CLI sessions and instructions',
     accent: '#5C6570',
-    mcp: { type: 'json-mcpServers', path: path.join(home, '.copilot', 'mcp-config.json') },
+    mcp: [{ type: 'json-mcpServers', path: path.join(home, '.copilot', 'mcp-config.json') }],
     instructionPath: path.join(home, '.copilot', 'instructions', 'dachshund.md')
   },
   {
@@ -202,22 +241,8 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, '.config', 'opencode'),
     description: 'Agent sessions and local configuration',
     accent: '#8A6A4F',
-    mcp: { type: 'opencode-json', path: path.join(home, '.config', 'opencode', 'opencode.json') },
+    mcp: [{ type: 'opencode-json', path: path.join(home, '.config', 'opencode', 'opencode.json') }],
     instructionPath: path.join(home, '.config', 'opencode', 'AGENTS.md')
-  },
-  {
-    id: 'claude-desktop',
-    name: 'Claude Desktop',
-    kind: 'desktop',
-    home: claudeDesktopHome,
-    homes: [claudeDesktopLegacyHome, claudeDesktopCurrentHome],
-    description: 'Local Space memory and connector host',
-    accent: '#B86A3F',
-    mcp: {
-      type: 'json-mcpServers',
-      path: path.join(claudeDesktopHome, 'claude_desktop_config.json')
-    },
-    appPath: '/Applications/Claude.app'
   },
   {
     id: 'workbuddy',
@@ -226,7 +251,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, '.workbuddy'),
     description: 'User memory and workspace notes',
     accent: '#01C886',
-    mcp: { type: 'json-mcpServers', path: path.join(home, '.workbuddy', 'mcp.json') },
+    mcp: [{ type: 'json-mcpServers', path: path.join(home, '.workbuddy', 'mcp.json') }],
     appPath: '/Applications/WorkBuddy.app'
   },
   {
@@ -236,7 +261,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, 'Library', 'Application Support', 'Doubao'),
     description: 'Shared memory over MCP and Agent Mode files',
     accent: '#1E37FC',
-    mcp: { type: 'manual' },
+    mcp: [{ type: 'manual' }],
     appPath: '/Applications/Doubao.app'
   },
   {
@@ -247,10 +272,12 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     homes: [path.join(home, '.trae')],
     description: 'Agent and IDE modes with durable profile, project, and session memory',
     accent: '#111111',
-    mcp: {
-      type: 'trae-json',
-      path: path.join(home, 'Library', 'Application Support', 'Trae CN', 'User', 'mcp.json')
-    },
+    mcp: [
+      {
+        type: 'trae-json',
+        path: path.join(home, 'Library', 'Application Support', 'Trae CN', 'User', 'mcp.json')
+      }
+    ],
     appPath: '/Applications/Trae CN.app',
     appPaths: ['/Applications/Trae.app', '/Applications/TRAE SOLO CN.app', '/Applications/TRAE SOLO.app']
   },
@@ -261,7 +288,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, '.hermes'),
     description: 'Native memory files and local sessions',
     accent: '#D45B90',
-    mcp: { type: 'hermes-yaml', path: path.join(home, '.hermes', 'config.yaml') },
+    mcp: [{ type: 'hermes-yaml', path: path.join(home, '.hermes', 'config.yaml') }],
     appPath: '/Applications/Hermes Agent.app',
     appPaths: ['/Applications/Hermes.app']
   },
@@ -272,7 +299,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, '.pi', 'agent'),
     description: 'Session summaries and durable instructions',
     accent: '#1C1C1C',
-    mcp: { type: 'pi-json', path: path.join(home, '.pi', 'agent', 'mcp.json') }
+    mcp: [{ type: 'pi-json', path: path.join(home, '.pi', 'agent', 'mcp.json') }]
   },
   {
     id: 'zcode',
@@ -281,7 +308,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, '.zcode'),
     description: 'Session history and durable user context',
     accent: '#2D2D2D',
-    mcp: { type: 'zcode-json', path: path.join(home, '.zcode', 'cli', 'config.json') },
+    mcp: [{ type: 'zcode-json', path: path.join(home, '.zcode', 'cli', 'config.json') }],
     appPath: '/Applications/ZCode.app'
   },
   {
@@ -291,17 +318,19 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     home: path.join(home, '.dsh'),
     description: 'Event evidence and shared MCP memory',
     accent: '#4D6BFE',
-    mcp: {
-      type: 'deepseek-cordis',
-      path: path.join(home, '.dsh', 'profiles', 'desktop', 'cordis.patch.yml')
-    },
+    mcp: [
+      {
+        type: 'deepseek-cordis',
+        path: path.join(home, '.dsh', 'profiles', 'desktop', 'cordis.patch.yml')
+      }
+    ],
     instructionPath: path.join(home, '.dsh', 'AGENTS.md'),
     appPath: '/Applications/DeepSeek Harness.app'
   }
 ]
 
 export const DEMO_AGENT_IDS = [
-  'claude-code',
+  'claude',
   'codex',
   'gemini-cli',
   'cursor',
@@ -313,6 +342,5 @@ export const DEMO_AGENT_IDS = [
   'zcode',
   'deepseek-harness',
   'copilot',
-  'opencode',
-  'claude-desktop'
+  'opencode'
 ]
