@@ -27,6 +27,7 @@ npm install
 | `npm run typecheck` | Type-check main and renderer projects |
 | `npm run test:agents` | Validate the Hermes, Pi, ZCode and DeepSeek Harness importers and MCP writers |
 | `npm run test:sync` | Validate source versioning, lifecycle fields, and legacy Markdown migration |
+| `npm run test:recall` | Validate hooks, context index shape, consolidation, redaction, and tombstones |
 | `npm run test:panel` | Validate menu bar placement and full-screen Space visibility |
 | `npm run test:outline` | Validate dense Contents layout in compact and expanded detail views |
 | `npm run test:mcp` | Run isolated HTTP and MCP integration tests |
@@ -88,6 +89,12 @@ successful run.
 integrations, including concatenated Zstandard frames and a read-only SQLite
 fixture. It also verifies each new MCP writer against a copied configuration and
 never touches a real agent home.
+
+`npm run test:recall` creates an isolated store and local HTTP server. It covers
+deterministic summary hooks, the grouped context index, secret rejection on
+write, near-duplicate consolidation and its dry run, project and Evidence
+filters, and the source-missing tombstone lifecycle. It never reads the real
+library.
 
 ## Build Sequence
 
@@ -182,9 +189,9 @@ and notarized.
 
 Verified build:
 
-- output: `release/dachshund-0.1.26-arm64.dmg`
+- output: `release/dachshund-0.1.27-arm64.dmg`
 - SHA-256:
-  `1706b0a5764c46d4dfd1cdfaa6d1a115bfb14f3161748458734f258ba1897617`
+  `0314f034507007744163cdf709617b942ad19607efde726d1058c023d7c7f21e`
 - packaged app launch and packaged MCP bridge smoke test pass
 - code signing: ad-hoc only
 - Gatekeeper assessment: fails without Developer ID signing and notarization

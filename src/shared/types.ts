@@ -38,6 +38,7 @@ export interface MemorySource {
 export interface MemorySummary {
   id: string
   title: string
+  summary: string
   excerpt: string
   kind: string
   scope: MemoryScope
@@ -49,6 +50,8 @@ export interface MemorySummary {
   updatedAt: number
   archived: boolean
   pinned: boolean
+  supersededBy: string | null
+  sourceMissing: boolean
   sources: MemorySource[]
   echoCount: number
   score?: number
@@ -73,6 +76,27 @@ export interface Counts {
   agents: number
   sources: number
   echoes: number
+  superseded: number
+  sourceMissing: number
+}
+
+export interface ConsolidationResult {
+  startedAt: number
+  finishedAt: number
+  dryRun: boolean
+  candidates: number
+  groups: number
+  merged: number
+}
+
+export interface MemoryHealth {
+  superseded: number
+  sourceMissing: number
+  oversized: number
+  stale: number
+  emptyIndexes: number
+  lastConsolidationAt: number | null
+  lastConsolidation: ConsolidationResult | null
 }
 
 export interface AppState {
@@ -80,6 +104,7 @@ export interface AppState {
   memories: MemorySummary[]
   pulseMemories: PulseMemory[]
   counts: Counts
+  health: MemoryHealth
   libraryPath: string
   onboarded: boolean
   scanning: boolean
@@ -110,6 +135,7 @@ export interface ScanResult {
   added: number
   updated: number
   unchanged: number
+  redacted: number
   failures: ScanFailure[]
   changes: ScanChange[]
   ok: boolean
@@ -166,11 +192,15 @@ export interface SearchQuery {
   limit?: number
   includeArchived?: boolean
   includeEvidence?: boolean
+  includeSuperseded?: boolean
+  project?: string
+  scope?: MemoryScope
 }
 
 export interface CreateMemoryInput {
   title: string
   content: string
+  summary?: string
   kind?: string
   scope?: MemoryScope
   authority?: MemoryAuthority
@@ -184,6 +214,7 @@ export interface CreateMemoryInput {
 export interface UpdateMemoryInput {
   title?: string
   content?: string
+  summary?: string
   kind?: string
   scope?: MemoryScope
   authority?: MemoryAuthority
@@ -235,6 +266,7 @@ export interface Settings {
 export interface MemoryFile {
   id: string
   title: string
+  summary: string
   content: string
   kind: string
   scope: MemoryScope
@@ -246,11 +278,14 @@ export interface MemoryFile {
   updatedAt: number
   archived: boolean
   pinned: boolean
+  supersededBy?: string | null
+  sourceMissing?: boolean
   sources: Array<{ agentId: string; path: string; ref?: string }>
 }
 
 export interface ImportedMemory {
   title: string
+  summary?: string
   content: string
   kind: string
   scope?: MemoryScope

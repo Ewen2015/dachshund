@@ -105,7 +105,9 @@ export function AgentsView({
               <div className="agent-numbers">
                 <strong>{agent.memoryCount}</strong>
                 <span>memories</span>
-                <small>{agent.sourceCount} sources</small>
+                <small>
+                  {agent.sourceCount} {agent.sourceCount === 1 ? 'source' : 'sources'}
+                </small>
               </div>
               <div className="agent-controls">
                 <button

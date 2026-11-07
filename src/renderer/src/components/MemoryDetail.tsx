@@ -251,6 +251,7 @@ export function MemoryDetail({
 
         <div className="detail-scroll" ref={scrollRef}>
           <h2>{memory.title}</h2>
+          {memory.summary && <p className="detail-summary">{memory.summary}</p>}
           <div className="detail-meta">
             <span className="tag project-tag">
               <FolderIcon size={12} />
@@ -266,6 +267,8 @@ export function MemoryDetail({
               <span className="meta-key">Status</span>
               {statusLabel(memory.status)}
             </span>
+            {memory.supersededBy && <span className="tag tag-warning">Superseded</span>}
+            {memory.sourceMissing && <span className="tag tag-warning">Source missing</span>}
             {memory.tags.map((tag) => (
               <span className="tag" key={tag}>
                 {tag}
@@ -317,6 +320,18 @@ export function MemoryDetail({
                 </div>
               ))}
             </div>
+            {memory.supersededBy && (
+              <p className="echo-note">
+                A newer memory ({memory.supersededBy}) covers this one. It stays in the library for
+                provenance and is hidden from recall unless superseded records are requested.
+              </p>
+            )}
+            {memory.sourceMissing && (
+              <p className="echo-note">
+                The original agent file is no longer on disk. dachshund keeps this library copy so
+                the knowledge is not lost.
+              </p>
+            )}
             {memory.echoCount > 1 && (
               <p className="echo-note">
                 This memory appeared independently in {memory.echoCount} agents. dachshund keeps one

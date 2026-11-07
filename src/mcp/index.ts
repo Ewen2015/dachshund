@@ -110,18 +110,33 @@ server.registerTool(
   {
     title: 'Search shared memory',
     description:
-      'Search the user’s local dachshund memory. Use this when prior preferences, rules, goals, constraints, decisions, facts, or insights from another AI agent could change the answer. Evidence records are excluded by default. Results include which agents remembered each item.',
+      'Search the user’s local dachshund memory. Use this when prior preferences, rules, goals, constraints, decisions, facts, or insights from another AI agent could change the answer. Each result carries a one-line summary; read a full note only when the summary is not enough. Evidence records are excluded unless explicitly requested. Results include which agents remembered each item.',
     inputSchema: {
       query: z.string().describe('What to recall, in natural language or keywords'),
       limit: z.number().int().min(1).max(20).optional().describe('Maximum results (default 8)'),
-      agent: z.string().optional().describe('Optional agent id filter, such as codex or claude')
+      agent: z.string().optional().describe('Optional agent id filter, such as codex or claude'),
+      project: z
+        .string()
+        .optional()
+        .describe('Optional project path or name; user-scope memories still apply'),
+      scope: z
+        .enum(['user', 'project', 'workspace', 'path', 'session'])
+        .optional()
+        .describe('Optional scope filter'),
+      include_evidence: z
+        .boolean()
+        .optional()
+        .describe('Include session evidence records (default false)')
     }
   },
-  async ({ query, limit, agent }) => {
+  async ({ query, limit, agent, project, scope, include_evidence }) => {
     const result = await call<{ memories: unknown[] }>('/api/mcp/search', {
       query,
       limit: limit ?? 8,
-      agentId: agent
+      agentId: agent,
+      project,
+      scope,
+      includeEvidence: include_evidence === true
     })
     return text(JSON.stringify(result.memories, null, 2))
   }
@@ -132,16 +147,33 @@ server.registerTool(
   {
     title: 'Build memory context',
     description:
-      'Return a compact, prompt-ready block of relevant memories from all agents on this Mac. Prefer this over memory_search when you are about to answer and want to inject context.',
+      'Return a prompt-ready memory index grouped into Apply, Context, and Background, with one-line hooks and ids for follow-up. The first few notes include their body. Prefer this over memory_search when you are about to answer and want to inject context.',
     inputSchema: {
       query: z.string().describe('The topic, task, or question to gather context for'),
-      limit: z.number().int().min(1).max(20).optional().describe('Maximum memories (default 8)')
+      limit: z.number().int().min(1).max(20).optional().describe('Maximum memories (default 8)'),
+      detail: z
+        .enum(['index', 'full'])
+        .optional()
+        .describe('index (default) shows a few bodies plus hooks; full returns every note body'),
+      project: z
+        .string()
+        .optional()
+        .describe('Optional project path or name; user-scope memories still apply'),
+      scope: z.enum(['user', 'project', 'workspace', 'path', 'session']).optional(),
+      include_evidence: z
+        .boolean()
+        .optional()
+        .describe('Include session evidence records (default false)')
     }
   },
-  async ({ query, limit }) => {
+  async ({ query, limit, detail, project, scope, include_evidence }) => {
     const result = await call<{ context: string }>('/api/mcp/context', {
       query,
-      limit: limit ?? 8
+      limit: limit ?? 8,
+      detail: detail ?? 'index',
+      project,
+      scope,
+      includeEvidence: include_evidence === true
     })
     return text(result.context)
   }
@@ -156,6 +188,10 @@ server.registerTool(
     inputSchema: {
       content: z.string().min(1).describe('The memory itself. Be specific and self-contained.'),
       title: z.string().optional().describe('Short human-readable title'),
+      summary: z
+        .string()
+        .optional()
+        .describe('One-line hook shown in the memory index; derived from content when omitted'),
       kind: z
         .enum([
           'profile',
@@ -178,10 +214,11 @@ server.registerTool(
       tags: z.array(z.string()).max(12).optional()
     }
   },
-  async ({ content, title, kind, scope, project, tags }) => {
+  async ({ content, title, summary, kind, scope, project, tags }) => {
     const result = await call<{ id: string; title: string }>('/api/mcp/remember', {
       content,
       title: title ?? '',
+      summary,
       kind: kind ?? 'fact',
       scope,
       project: project ?? null,
@@ -212,11 +249,12 @@ server.registerTool(
   'memory_stats',
   {
     title: 'Memory stats',
-    description: 'Show how many memories, agents, sources, and cross-agent echoes dachshund has indexed.',
+    description:
+      'Show how many memories, agents, sources, and cross-agent echoes dachshund has indexed, plus library health (superseded, source-missing, oversized, stale, empty indexes, last consolidation).',
     inputSchema: {}
   },
   async () => {
-    const stats = await call<Record<string, number>>('/api/mcp/stats')
+    const stats = await call<Record<string, unknown>>('/api/mcp/stats')
     return text(JSON.stringify(stats, null, 2))
   }
 )

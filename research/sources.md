@@ -24,6 +24,45 @@ contracts.
 | Pi | Session format | https://pi.dev/docs/latest/session-format | JSONL v3 header, entry types, `parentId`, `context_edit`, `branch_summary` |
 | Hermes | Persistent memory | https://hermes-agent.nousresearch.com/docs/user-guide/features/memory | `MEMORY.md`, `USER.md`, character limits, frozen prompt snapshot, tools, session DB |
 
+## Mechanism Sources
+
+The agent page exposes three lifecycle answers (when memory forms, how it is
+updated, and when it is recalled) plus a collapsed source list. The copy and
+links live in
+[`src/shared/agent-memory-mechanisms.ts`](../src/shared/agent-memory-mechanisms.ts);
+this table keeps the research provenance beside the other source notes.
+Checked **2026-11-07**.
+
+| Agent | Source | URL | Evidence |
+| --- | --- | --- | --- |
+| Claude | The components of agent memory | https://www.anthropic.com/research/components-of-agent-memory | Official research; index cap and dreaming |
+| Claude Code | How Claude remembers your project | https://code.claude.com/docs/en/memory | Official; auto memory, index, topic notes, limits |
+| Claude Desktop | Data storage | https://claude.com/docs/third-party/claude-desktop/data-storage | Official; local topic layout and cloud boundary |
+| Codex | Memories | https://learn.chatgpt.com/codex/customization/memories | Official; off by default, background extraction, local artifacts |
+| Cursor | Memories | https://cursor.com/docs/context/memories | Official; conversation-derived, repo-scoped memories |
+| Cursor | Cloud agent automations | https://cursor.com/docs/cloud-agent/automations | Official; automation-owned `MEMORIES.md` |
+| GitHub Copilot | About Copilot memory | https://docs.github.com/copilot/concepts/agents/copilot-memory | Official; citations, verification, 28-day expiry, scopes |
+| GitHub Copilot | Copilot CLI session data | https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/chronicle | Official; session store and `/chronicle` |
+| Gemini CLI | Memory tool | https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/memory.md | Official; `save_memory`, global added-memories section |
+| Gemini CLI | GEMINI.md context files | https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/gemini-md.md | Official; hierarchical instruction loading |
+| OpenCode | Rules | https://opencode.ai/docs/rules/ | Official; global/project/nested instructions, no typed auto memory |
+| WorkBuddy | 记忆 | https://www.workbuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Memory | Official; nightly extraction, private summary, session search |
+| Doubao | 如何让豆包记忆内容、更新记忆 | https://helpdesk.bytedance.com/sites/standalone/helpcenter/question-detail/index.html?biz_id=65&question_id=13385 | Official; extraction, update/forget controls, caps |
+| Doubao | 官方帮助中心手册（beta） | https://lf9-cdn-tos.draftstatic.com/obj/ies-hotsoon-draft/grace_legal/doubao_member_copywrite_for_ai.html | Official; short-term and long-term memory layers |
+| TRAE | Memories | https://docs.trae.ai/ide/memories | Official; global profile, project memory, local-only storage |
+| TRAE | Rules | https://docs.trae.ai/ide/rules | Official; rules as a separate layer |
+| Hermes | Persistent memory | https://hermes-agent.nousresearch.com/docs/user-guide/features/memory | Official; bounded files, frozen snapshot, memory tool |
+| Pi | Sessions | https://pi.dev/docs/latest/sessions | Official; session tree, active branch, compaction |
+| Pi | Compaction | https://pi.dev/docs/latest/compaction | Official; summary entries and retained history |
+| ZCode | Memory | https://zcode.z.ai/en/docs/memory | Official; background review, project scope, storage layout |
+| ZCode | Agents and instructions | https://zcode-ai.com/newdocs/agents | Official; `AGENTS.md` as a separate layer |
+| the agent harness | Source-code analysis (community) | https://www.iceyao.com.cn/post/2026-08-13-deepseek-harness%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90 | Community; session, spill, and compaction behavior. No public vendor memory doc was found. |
+
+Evidence labels are deliberately conservative. Doubao is **Partly documented**
+because account memory is documented while the Agent Mode workspace files that
+dachshund imports are not. the agent harness is **Observed locally** and has no
+public vendor memory documentation.
+
 ## Public Code
 
 ### Codex

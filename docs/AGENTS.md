@@ -32,6 +32,29 @@ Installation is detected from the agent home directory or known application
 path. The UI exposes a sharing toggle and an MCP connect action for each
 detected agent.
 
+## Mechanism Cards
+
+Each agent page keeps the mechanism illustration, or a compact four-stage flow
+for agents without one, and the native-to-shared mapping visible. A collapsed
+**Learn more** panel holds the native-model summary, three lifecycle answers
+(when memory forms, how it is updated, and when it is recalled), the longer
+notes, the official documentation links, and an evidence label.
+
+The evidence label is conservative:
+
+- **Official docs** — the mechanism is described by the vendor.
+- **Partly documented** — part of the mechanism is documented, but the local
+  store dachshund reads is not.
+- **Observed locally** — no public vendor memory documentation was found; the
+  description comes from local files and observed behavior.
+
+The copy and links are centralized in
+[`src/shared/agent-memory-mechanisms.ts`](../src/shared/agent-memory-mechanisms.ts)
+and mirrored in [`research/sources.md`](../research/sources.md). Do not label an
+agent Official when its local store is undocumented. Doubao account memory is
+documented, but Agent Mode's workspace files are Observed; the DeepSeek Harness
+card is Observed as a whole.
+
 ## Claude
 
 One card covers both Claude surfaces: Claude Code and the Claude Desktop app.
@@ -389,8 +412,18 @@ to spawn the bridge without an app restart and record
 Every config-managed MCP entry sets `DACHSHUND_CLIENT_AGENT` to the agent id.
 The bridge forwards that identity on `memory_remember`, so writes remain
 attributable and exact duplicate content from another agent attaches a second
-source. The MCP initialization response also tells clients to consult
-`memory_context` before answering when prior context could change the result.
+source. Writes are rejected with a `400` when the title or body still looks like
+an API key, GitHub token, bearer token, or private key. The MCP initialization
+response also tells clients to consult `memory_context` before answering when
+prior context could change the result.
+
+`memory_context` returns a bounded index grouped into Apply, Context, and
+Background. It shows one-line hooks with ids, sources, and dates, includes the
+first few note bodies, and accepts `detail: "full"`, `project`, `scope`, and an
+explicit Evidence opt-in. `memory_search` returns the same hooks and excludes
+Evidence by default; connected agents should read a full note only when the hook
+is not enough. Superseded echoes stay out of default recall and remain available
+through the internal `includeSuperseded` query.
 
 For agents with a stable global instruction file, Connect maintains an
 idempotent managed block:
@@ -526,9 +559,11 @@ file.
 
 - Import is bounded to avoid walking an entire home directory.
 - Very large files are skipped.
-- Exact duplicate detection only; no semantic consolidation.
+- Exact duplicates merge at import; a bounded, model-free consolidation pass
+  supersedes near-duplicates within one source family or title.
 - Source edits replace the prior active memory through persisted source identity;
-  removed sources have no tombstone yet.
+  a source that disappears for a full scan marks its memory `source_missing`
+  instead of deleting it.
 - Agent-specific formats may change upstream and require importer updates.
 - A source file is copied into the dachshund library; the source path is
   retained as provenance but the source itself remains immutable.

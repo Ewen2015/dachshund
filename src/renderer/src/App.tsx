@@ -54,6 +54,7 @@ export default function App() {
   })
   const updater = useUpdater()
   const searchRef = useRef<HTMLInputElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const toastTimer = useRef<number | null>(null)
   const syncReloadRef = useRef<() => void>(() => {})
 
@@ -101,6 +102,10 @@ export default function App() {
     },
     [activeAgentId, query]
   )
+
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0 })
+  }, [activeAgentId, view])
 
   useEffect(() => {
     syncReloadRef.current = () => {
@@ -382,7 +387,7 @@ export default function App() {
               onDismiss={() => setSyncNotice(null)}
             />
           )}
-          <div className="content-scroll">
+          <div className="content-scroll" ref={contentRef}>
             {view === 'memory' &&
               (activeAgent ? (
                 <AgentMemoryView
@@ -423,6 +428,7 @@ export default function App() {
                 memories={state.pulseMemories}
                 agents={state.agents}
                 counts={state.counts}
+                health={state.health}
                 scanning={scanning || state.scanning}
                 onScan={() => void scan()}
                 onOpenCategory={(category) => {

@@ -95,6 +95,66 @@ The `project` field remains a human-readable project or workspace label. It is
 not the same thing as the `project` scope. A Codex rollout can have project
 scope and still belong to the Evidence layer.
 
+## Summary hooks
+
+Every record carries a one-line `summary` in frontmatter. An importer uses a
+native `summary` or `description` field when the source provides one; otherwise
+dachshund derives the hook deterministically from the first meaningful body
+line. The hook is what feeds and search results show, and what `memory_context`
+puts beside each record, so an agent can judge relevance without loading the
+body. The body remains the source of truth; the hook is recomputed when an
+imported body changes and no explicit hook was supplied.
+
+## Recall shape
+
+`memory_context` follows Claude's injected-index pattern:
+
+- results are grouped into **Apply** (Identity, Guidance, and Current work),
+  **Context** (Knowledge), and **Background** (Evidence);
+- the first few notes include their body; every other note is one line with its
+  id, kind, scope, source agents, update date, and project;
+- the block has a fixed character budget, so a large library cannot crowd out
+  the conversation;
+- a caller can request `full` detail, a project, a scope, or Evidence explicitly.
+
+Default search hides archived and superseded records and excludes Evidence.
+`includeSuperseded`, `includeEvidence`, `project`, and `scope` are explicit
+opt-ins. A project filter returns memories filed under that project plus
+user-scope memories, because those apply everywhere.
+
+## Consolidation and tombstones
+
+Exact duplicate content still merges at import. A deterministic second pass
+handles the same knowledge recorded in slightly different words:
+
+- candidates are active, non-superseded records with `agent_observed` or
+  `inferred` authority;
+- records are grouped by a single source family (an agent plus a stable source
+  ref such as a Codex `:knowledge:` slice) or by an identical normalized title;
+- within a group, normalized equality, a long substring, or high token Jaccard
+  similarity merges the records;
+- the canonical record is chosen by authority, then source breadth, then body
+  length, then age;
+- every other record gets `superseded_by` in frontmatter and is hidden from
+  default recall while remaining inspectable.
+
+Consolidation never edits an agent's source file and never deletes library
+content. It runs after a clean scan at most once per 24 hours, only once the
+library has at least 25 records, under a `.consolidate-lock` file that expires
+after ten minutes. `POST /api/consolidate` accepts a dry run for inspection.
+
+When a source has not been seen for a full scan, its memory is marked
+`source_missing` instead of being deleted; seeing the source again clears the
+mark. This is a tombstone, not a lifecycle change.
+
+## Secret guard
+
+Import redacts recognizable credentials before a memory is written and tags the
+record `redacted-secret`. Writes through MCP or the local API are rejected with a
+400 when the content still looks like an API key, GitHub token, bearer token, or
+private key. Detection is deliberately narrow and pattern-based; it is a
+guardrail, not a data-loss-prevention product.
+
 ## Normalization and migration
 
 Importers resolve kind in this order:
@@ -176,21 +236,29 @@ library.
 - **The menu bar panel** uses the same taxonomy and click-through behavior as
   the full app.
 - **MCP recall** includes durable knowledge by default and excludes Evidence
-  records unless a caller explicitly opts in through an internal query path.
+  records unless a caller explicitly opts in. It returns a bounded index of
+  one-line hooks with ids, sources, and dates, plus a few full notes.
 - **An echo is not a second memory.** Identical content from several agents
   remains one item with multiple sources.
+- **Near-duplicates have a lifecycle.** Rule-based consolidation marks echoes of
+  the same knowledge as superseded instead of leaving every wording visible.
+- **Health is visible.** Pulse reports superseded, source-missing, oversized,
+  stale, and empty-index records, plus the last consolidation pass.
 - **MCP writes keep caller provenance.** A write from Codex, Claude, Doubao, or
-  another connected client keeps that agent as its source.
+  another connected client keeps that agent as its source. Writes that look like
+  credentials are rejected rather than stored.
 
 ## Boundaries
 
 - The taxonomy is curated, not learned. A new agent or memory format requires
   code and tests, not an opaque model update.
-- Exact duplicate detection is separate from classification. Echo merging does
-  not perform semantic deduplication.
-- Different wording is not merged automatically.
-- Source files remain read-only. Reclassifying or sharing a memory changes the
-  dachshund copy, not the agent's native file.
+- Deduplication has two deterministic stages: exact content hashes merge echoes
+  at import, and the bounded consolidation rules above supersede near-duplicates
+  within one source family or title. Neither stage calls a model.
+- Different wording is not merged by a model. Only the consolidation rules merge
+  near-duplicates, and a superseded record stays in the library for provenance.
+- Source files remain read-only. Reclassifying, sharing, or consolidating a
+  memory changes the dachshund copy, not the agent's native file.
 - Evidence records are first-class records for review, but not durable knowledge
   for prompt injection.
 

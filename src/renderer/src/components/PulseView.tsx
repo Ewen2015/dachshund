@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { AgentSummary, Counts, PulseMemory } from '../../../shared/types'
+import type { AgentSummary, Counts, MemoryHealth, PulseMemory } from '../../../shared/types'
 import {
   ALL_MEMORY_CATEGORIES,
   categoryForKind,
@@ -190,6 +190,7 @@ export function PulseView({
   memories,
   agents,
   counts,
+  health,
   scanning,
   onScan,
   onOpenCategory,
@@ -199,6 +200,7 @@ export function PulseView({
   memories: PulseMemory[]
   agents: AgentSummary[]
   counts: Counts
+  health: MemoryHealth
   scanning: boolean
   onScan: () => void
   onOpenCategory: (category: MemoryCategoryId) => void
@@ -296,6 +298,21 @@ export function PulseView({
   const selectedAgent = agentFilter === 'all' ? null : agents.find((agent) => agent.id === agentFilter)
   const libraryTotal = selectedAgent?.memoryCount ?? counts.memories
   const seriesTotal = series.reduce((sum, item) => sum + item.count, 0)
+  const healthItems = [
+    {
+      label: 'Superseded',
+      value: health.superseded,
+      hint: 'Echoes hidden behind a canonical note'
+    },
+    {
+      label: 'Source missing',
+      value: health.sourceMissing,
+      hint: 'Agent files gone; library copies kept'
+    },
+    { label: 'Oversized', value: health.oversized, hint: 'Notes over 8 KB' },
+    { label: 'Stale', value: health.stale, hint: 'Untouched for 180 days' },
+    { label: 'Empty indexes', value: health.emptyIndexes, hint: 'MEMORY.md with no entries' }
+  ].filter((item) => item.value > 0)
 
   return (
     <div className="page pulse-page">
@@ -612,6 +629,35 @@ export function PulseView({
           )}
         </section>
       </div>
+
+      <section className="pulse-panel pulse-health">
+        <div className="pulse-panel-head compact">
+          <div>
+            <p className="section-label">Library health</p>
+            <h2>What needs attention</h2>
+          </div>
+          <span>
+            {health.lastConsolidationAt
+              ? `Consolidated ${relativeTime(health.lastConsolidationAt)}`
+              : 'Not consolidated yet'}
+          </span>
+        </div>
+        {healthItems.length ? (
+          <div className="pulse-health-grid">
+            {healthItems.map((item) => (
+              <div className="pulse-health-item" key={item.label}>
+                <strong>{item.value}</strong>
+                <span>{item.label}</span>
+                <small>{item.hint}</small>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="pulse-card-empty">
+            No superseded, source-missing, oversized, stale, or empty-index memories.
+          </p>
+        )}
+      </section>
     </div>
   )
 }

@@ -199,8 +199,7 @@ Any stronger synchronization model should preserve the local-only boundary and
 make every automated change reviewable.
 
 - Add debounced file watching with a bounded rescan on wake or reconnect.
-- Define archive and removal-tombstone semantics for source records that
-  disappear.
+- Add explicit review and dismissal actions for records marked `source_missing`.
 - Keep revision history and provenance so a user can compare the old and new
   source records before accepting a change.
 - Add explicit conflict review when both dachshund and a native source changed
@@ -210,6 +209,6 @@ make every automated change reviewable.
 - Do not infer cloud-account memory or add a hosted synchronization service as
   part of this work.
 
-The remaining direction is not scheduled. Automatic sync and source-version
-replacement are implemented; revision history, removal tombstones, conflict
-review, and native writeback are not.
+The remaining direction is not scheduled. Automatic sync, source-version
+replacement, `source_missing` tombstones, and bounded consolidation are
+implemented; revision history, conflict review, and native writeback are not.

@@ -13,6 +13,7 @@ questions.
 | What crosses agent boundaries? | Echoes are the core value of dachshund. | Shared versus single-source bars |
 | How is memory distributed across dachshund categories? | A library of rules behaves differently from a library of facts. | Category mix bar |
 | Is the knowledge getting old? | Old project constraints can mislead an agent. | Median age and last-7-days count |
+| Is the library tidy? | Superseded echoes, missing sources, and empty indexes need review. | Library health strip |
 | How far does the shared layer reach? | Imported memory and MCP-connected memory are different states. | Connected-agent count |
 
 The tab deliberately does not show request counts, token counts, cost, or a
@@ -31,6 +32,9 @@ deterministic local library should not invent a model-based score.
    and populated Evidence.
 7. **Cross-agent echoes** - the highest-overlap memories, with source marks and
    direct links into the library.
+8. **Library health** - superseded, source-missing, oversized, stale, and
+   empty-index counts, plus when consolidation last ran. A healthy library shows
+   the empty state instead of a row of zeroes.
 
 ## Definitions
 
@@ -49,6 +53,12 @@ deterministic local library should not invent a model-based score.
   memories.
 - **Memory added** uses `createdAt`. Re-importing or updating a memory does not
   increase the growth count.
+- **Superseded** means a record hidden behind a canonical note by consolidation;
+  it is not archived and still appears when superseded records are requested.
+- **Source missing** means the originating agent file was absent from the last
+  full scan. The library copy is retained.
+- **Oversized** means a body over 8 KB. **Stale** means no update in 180 days.
+- **Empty index** means a `MEMORY.md` record with no entries beyond its heading.
 
 ## Interaction
 
@@ -79,6 +89,8 @@ That index includes only the fields needed for grouping and chart interaction:
 identity, title, kind, timestamps, sources, and echo count. It excludes memory
 content and excerpts, so the main app state can continue to keep only its latest
 90 full memory summaries without making Pulse disagree with the library totals.
+The health strip is computed by the database from aggregate counts; it does not
+load memory bodies.
 
 Pulse performs no network request, model call, or embedding search. If libraries
 grow large enough that even the lightweight index becomes expensive, the next

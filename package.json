@@ -1,6 +1,6 @@
 {
   "name": "dachshund",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "description": "All your agents. One memory.",
   "main": "./out/main/index.js",
   "author": "Ewen Wang",
@@ -17,6 +17,7 @@
     "test:panel": "node --experimental-strip-types scripts/test-panel-placement.mjs",
     "test:outline": "node scripts/test-outline-layout.mjs",
     "test:sync": "esbuild scripts/test-sync.ts --bundle --platform=node --format=cjs --outfile=out/test-sync.cjs && node out/test-sync.cjs",
+    "test:recall": "esbuild scripts/test-recall.ts --bundle --platform=node --format=cjs --outfile=out/test-recall.cjs && node out/test-recall.cjs",
     "dist:mac": "npm run build && electron-builder --mac dmg --arm64",
     "mcp": "node out/mcp/index.cjs",
     "test:agents": "node scripts/test-agents.mjs",

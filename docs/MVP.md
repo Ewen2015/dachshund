@@ -28,9 +28,15 @@ discover existing agent memory
 - An in-app Guide with a top-down native-file → kind → category diagram,
   category focus states, classification guardrails, and orthogonal dimensions.
 - Orthogonal scope, authority, and lifecycle status on every memory record.
-- Markdown library with YAML frontmatter.
+- Markdown library with YAML frontmatter and a one-line summary hook.
 - SQLite index with FTS5 and BM25 search.
 - Exact content deduplication with multiple source echoes.
+- Rule-based near-duplicate consolidation with `superseded_by`, a dry run, and
+  a bounded 24-hour schedule.
+- Source-missing tombstones and library health in Pulse.
+- Bounded index-style `memory_context` grouped into Apply, Context, and
+  Background, with hooks, ids, sources, and on-demand full detail.
+- Credential redaction on import and rejection on MCP or API writes.
 - MCP write attribution and exact-content upsert across connected agents.
 - Explicit **Share** promotion for a dachshund-owned shared copy.
 - Loopback-only HTTP service with a random bearer token.
@@ -52,17 +58,19 @@ The MVP is considered healthy when:
 1. `npm run typecheck` passes.
 2. `npm run test:agents` passes fixture and config-writer checks.
 3. `npm run test:sync` passes source-version and lifecycle transition checks.
-4. `npm run build` completes.
-5. `npm run test:mcp` passes in an isolated temporary home.
-6. Search finds a memory created through `memory_remember`.
-7. `memory_context` returns a labeled prompt block.
-8. `memory_forget` archives the memory and removes it from default search.
-9. The compact panel remains usable at 420 x 620 logical pixels.
-10. The compact panel opens above a macOS full-screen Space without switching
-   away from it.
-11. The Connectors screen reports the correct MCP bridge path.
-12. `npm run dist:mac` produces a DMG.
-13. A packaged previous version can download a newer release, replace itself
+4. `npm run test:recall` passes summary, context-index, consolidation,
+   redaction, and source-missing checks.
+5. `npm run build` completes.
+6. `npm run test:mcp` passes in an isolated temporary home.
+7. Search finds a memory created through `memory_remember`.
+8. `memory_context` returns a grouped, labeled prompt block with hooks and ids.
+9. `memory_forget` archives the memory and removes it from default search.
+10. The compact panel remains usable at 420 x 620 logical pixels.
+11. The compact panel opens above a macOS full-screen Space without switching
+    away from it.
+12. The Connectors screen reports the correct MCP bridge path.
+13. `npm run dist:mac` produces a DMG.
+14. A packaged previous version can download a newer release, replace itself
     in place, pass code-signature verification, and reopen.
 
 ## Current Verification
@@ -99,6 +107,9 @@ Verified in this repository:
 - Sync fixtures cover echo metadata ownership, repeated echo imports, trailing
   whitespace in titles, and Codex reusable-knowledge slices that must stay
   `insight`.
+- Recall fixtures cover deterministic summary hooks, grouped context indexes,
+  near-duplicate consolidation with `superseded_by`, credential redaction and
+  rejection, project filters, Evidence opt-in, and source-missing tombstones.
 - `release/dachshund-0.1.25-arm64.dmg` was produced on 2026-11-06.
 - The packaged app launched against an isolated data directory and reported a
   packaged version of `0.1.25` and rendered `.app-shell`; the separate panel
@@ -121,6 +132,16 @@ Verified in this repository:
   five-tool MCP smoke test, including remember, search, context, and forget.
 - A read-only import of the current Claude homes found three `MEMORY.md`
   indexes: one repository project, one Desktop account, and one Cowork Space.
+- `release/dachshund-0.1.27-arm64.dmg` was produced on 2026-11-07 with SHA-256
+  `0314f034507007744163cdf709617b942ad19607efde726d1058c023d7c7f21e`.
+- The packaged `0.1.27` app launched against an isolated data directory, wrote
+  its runtime manifest, and reported version `0.1.27`.
+- The `0.1.27` DMG mounted read-only, contained a valid ad-hoc-signed app at
+  version `0.1.27`, and included an executable MCP bridge.
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.27` passed the
+  five-tool MCP smoke test, including the grouped context index.
+- Layout captures cover 46 states at 920 x 700, 800 x 600, sidebar navigation,
+  and the 420 x 620 menu bar panel without horizontal overflow.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
 - The compact panel remained visible, focused, and always on top while the
@@ -172,15 +193,18 @@ The DMG SHA-256 from this build is:
 
 ### Import Reconciliation
 
-Stable source identity and content hashes are now persisted, so an edited source
-updates its existing memory instead of creating a parallel active copy. There is
-still no source tombstone, revision history, or conflict review when two sources
-converge on the same content or disappear.
+Stable source identity and content hashes are persisted, so an edited source
+updates its existing memory instead of creating a parallel active copy. A source
+that disappears from a full scan is marked `source_missing` rather than deleted;
+seeing it again clears the mark. Revision history and conflict review when two
+sources converge are still future work.
 
 ### Deduplication
 
-Duplicates are detected only when normalized content is identical. Similar but
-non-identical knowledge is not merged.
+Identical normalized content merges at import. A bounded, deterministic
+consolidation pass then groups `agent_observed` and `inferred` records by source
+family or normalized title and supersedes near-duplicates within a group. It
+does not call a model, edit source files, or delete content.
 
 ### File Watching
 
@@ -442,6 +466,26 @@ token are not a defense against a compromised account.
 - synchronized fixtures, screenshots, research notes, README, and both
   websites.
 
+#### 0.1.27: Bounded Recall and Library Health
+
+- added a deterministic one-line summary hook to every record, reused in feeds,
+  search, and MCP recall;
+- rebuilt `memory_context` as a bounded Apply / Context / Background index with
+  hooks, ids, sources, dates, and on-demand full notes;
+- hid archived, superseded, and Evidence records from default search while
+  keeping explicit opt-ins;
+- added rule-based near-duplicate consolidation with `superseded_by`, a dry run,
+  and a bounded 24-hour schedule;
+- marked disappearing sources `source_missing` instead of deleting their
+  library copies;
+- redacted credentials on import and rejected credential-looking writes;
+- added a Pulse library health strip and summary, supersession, and
+  source-missing states to the memory detail;
+- moved the agent mechanism explanation behind **Learn more** while keeping the
+  diagram and taxonomy mapping visible;
+- tightened layouts across all pages, including narrow windows, sidebar
+  navigation, and the menu bar panel.
+
 ### Next
 
 - near-duplicate suggestions;
@@ -450,7 +494,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.27: Recall Quality
+#### 0.1.28: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -458,7 +502,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-#### 0.1.28: Distribution
+#### 0.1.29: Distribution
 
 - signed and notarized universal build;
 - update channel;

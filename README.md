@@ -11,7 +11,7 @@ dachshund finds the memory files your agents already keep, brings them into one
 Markdown library, and serves that library back through MCP. No account, no cloud,
 no model requirement.
 
-[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.26/dachshund-0.1.26-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
+[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.27/dachshund-0.1.27-arm64.dmg) [![Status](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Local](https://img.shields.io/badge/runtime-local%20only-25845f)](#privacy)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -41,7 +41,13 @@ surface:
 - **Keep one portable library.** Store the unified result as plain Markdown, with
   source provenance retained.
 - **See cross-agent echoes.** When two agents remember the same thing, keep one
-  memory and show every source.
+  memory and show every source. A deterministic consolidation pass folds
+  near-duplicates into one canonical note without calling a model.
+- **Recall with a bounded index.** Connected agents get one-line hooks grouped
+  into Apply, Context and Background, with ids and sources for reading more only
+  when it matters.
+- **Keep secrets out.** Recognizable credentials are redacted on import and
+  rejected when an agent tries to remember them.
 - **Share forward.** Promote a source memory into a durable dachshund copy, or
   write through MCP with the calling agent retained as provenance.
 - **Keep the library current.** Sync on demand or rescan every 60 minutes, with
@@ -58,7 +64,7 @@ already remembers everything you need, you probably do not need dachshund.
 
 | Platform | Architecture | Package | Size | Download |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.26](https://github.com/Ewen2015/dachshund/releases/download/v0.1.26/dachshund-0.1.26-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | About 120 MB | **[Download v0.1.27](https://github.com/Ewen2015/dachshund/releases/download/v0.1.27/dachshund-0.1.27-arm64.dmg)** |
 
 **System requirement:** macOS on Apple Silicon
 
@@ -67,7 +73,7 @@ already remembers everything you need, you probably do not need dachshund.
 > **Open** on first launch.
 
 [All releases](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.26/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.27/SHA256SUMS)
 
 **Install**
 
@@ -88,7 +94,7 @@ into the app.
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.26/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.27/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -189,11 +195,15 @@ Zstandard logs, Codex memory files and readable Codex SQLite rows.
 
 ### See how every agent remembers
 
-Each supported agent view explains the native memory model, its storage path and
-how it maps into dachshund's shared categories. A compact mechanism diagram
-shows the write, persistence and recall path; open it for a larger reading view.
+Each supported agent view keeps the native memory model visible: a mechanism
+diagram shows the write, persistence and recall path, and the mapping matrix
+shows how native entries become dachshund categories. The longer explanation,
+including when memory forms, how it updates, when it is recalled, official source
+links and an evidence label, stays behind a **Learn more** disclosure. That keeps
+the illustration and mapping readable and leaves the memory entries below close
+at hand.
 
-<img src="docs/screenshots/09-agent-memory.png" width="900" alt="dachshund agent memory view with a native memory mechanism diagram and taxonomy mapping">
+<img src="docs/screenshots/09-agent-memory.png" width="900" alt="dachshund agent memory view with a memory mechanism diagram, Learn more disclosure, and taxonomy mapping">
 
 ### One memory, visible echoes
 
@@ -228,8 +238,10 @@ choice.
 Pulse is a memory-specific view, not a vanity usage dashboard. See which agents
 are growing the library, how much knowledge is echoed across agents, how memory
 is distributed across the four knowledge categories and supporting Evidence
-layer, and whether the library is getting stale. The same summary
-is available from the menu bar panel.
+layer, and whether the library is getting stale. A library health strip calls out
+superseded echoes, missing source files, oversized or stale notes, empty
+`MEMORY.md` indexes, and when consolidation last ran. The same summary is
+available from the menu bar panel.
 
 <img src="docs/screenshots/07-pulse.png" width="900" alt="dachshund Pulse tab with memory growth, cross-agent overlap and freshness">
 
@@ -268,19 +280,19 @@ installation fails.
 
 Connected agents can:
 
-- search shared memory;
-- request a prompt-ready context block;
-- write a durable memory;
+- search shared memory with one-line hooks and source agents;
+- request a grouped, prompt-ready index and read full notes on demand;
+- write a durable memory, with credential-looking content rejected;
 - archive a shared memory;
-- inspect library statistics.
+- inspect library statistics and health.
 
 | Tool | Purpose |
 | :-- | :-- |
-| `memory_search` | Find relevant memories with source agents |
-| `memory_context` | Build a compact prompt-ready context block |
-| `memory_remember` | Save a durable shared memory |
+| `memory_search` | Find relevant memories with hooks and source agents |
+| `memory_context` | Build a bounded Apply / Context / Background index |
+| `memory_remember` | Save a durable shared memory with an optional hook |
 | `memory_forget` | Archive a shared copy without deleting the source |
-| `memory_stats` | Show memories, agents, sources and echoes |
+| `memory_stats` | Show memories, agents, sources, echoes and health |
 
 ### Plain files, real identities
 
@@ -336,12 +348,14 @@ directories. They never modify a real user agent configuration.
 
 ## Current limitations
 
-- Deduplication is exact, not semantic.
+- Deduplication is deterministic: exact hashes merge at import, and bounded
+  rule-based consolidation handles near-duplicates without a model.
 - Library search is lexical, with no local embedding model.
 - Imports run at startup and on explicit scans, with an optional hourly sync
   while the app is running; there is no live file watcher.
-- Source edits replace the prior active memory; removed sources have no
-  tombstone yet.
+- Source edits replace the prior active memory; a source missing from a full
+  scan is marked `source_missing` rather than deleted. Conflict review is still
+  manual.
 - The build is Apple Silicon only and not notarized.
 - There is no cloud sync, team mode or multi-device history.
 

@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import {
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties
+} from 'react'
 import { createPortal } from 'react-dom'
 import type { AgentSummary, MemorySummary } from '../../../shared/types'
 import {
@@ -11,12 +17,29 @@ import {
   memoryCategoryCounts,
   type MemoryCategoryId
 } from '../../../shared/memory-taxonomy'
+import {
+  MEMORY_EVIDENCE_DESCRIPTIONS,
+  MEMORY_EVIDENCE_LABELS,
+  agentMemoryMechanism,
+  type MemoryEvidence
+} from '../../../shared/agent-memory-mechanisms'
 import { AgentFilterBar } from './AgentFilterBar'
 import { AgentLogo } from './AgentLogo'
 import { CategoryLegend } from './CategoryLegend'
-import { FolderIcon } from './Icons'
+import { ArrowUpRightIcon, ChevronRightIcon, FolderIcon } from './Icons'
 import { MemoryTimeline } from './MemoryTimeline'
 import { agentMemoryDiagram } from '../lib/agent-memory-diagrams'
+
+function EvidencePill({ evidence }: { evidence: MemoryEvidence }) {
+  return (
+    <span
+      className={`evidence-pill is-${evidence}`}
+      title={MEMORY_EVIDENCE_DESCRIPTIONS[evidence]}
+    >
+      {MEMORY_EVIDENCE_LABELS[evidence]}
+    </span>
+  )
+}
 
 export function AgentMemoryView({
   agent,
@@ -44,9 +67,12 @@ export function AgentMemoryView({
   scanning: boolean
 }) {
   const [diagramOpen, setDiagramOpen] = useState(false)
+  const [openMechanismId, setOpenMechanismId] = useState<string | null>(null)
   const closeDiagramRef = useRef<HTMLButtonElement>(null)
   const model = agentMemoryModel(agent.id)
   const diagram = agentMemoryDiagram(agent.id)
+  const mechanism = agentMemoryMechanism(agent.id)
+  const mechanismOpen = openMechanismId === agent.id
 
   useEffect(() => {
     if (!diagramOpen) return
@@ -106,7 +132,10 @@ export function AgentMemoryView({
           {diagram && (
             <figure className="native-model-diagram">
               <div className="native-model-diagram-head">
-                <span className="native-model-diagram-label">Memory mechanism</span>
+                <span className="native-model-diagram-meta">
+                  <span className="native-model-diagram-label">Memory mechanism</span>
+                  {mechanism && <EvidencePill evidence={mechanism.evidence} />}
+                </span>
                 <span className="native-model-diagram-flow">{diagram.flow}</span>
               </div>
               <button
@@ -126,14 +155,134 @@ export function AgentMemoryView({
               </button>
             </figure>
           )}
+          {!diagram && mechanism && (
+            <figure className="native-model-diagram native-model-flow-figure">
+              <div className="native-model-diagram-head">
+                <span className="native-model-diagram-meta">
+                  <span className="native-model-diagram-label">Memory mechanism</span>
+                  <EvidencePill evidence={mechanism.evidence} />
+                </span>
+              </div>
+              <div
+                className="mechanism-flow"
+                role="img"
+                aria-label={`${agent.name} memory mechanism: ${mechanism.flow.join(' to ')}`}
+              >
+                {Array.from(
+                  { length: Math.ceil(mechanism.flow.length / 2) },
+                  (_, rowIndex) => mechanism.flow.slice(rowIndex * 2, rowIndex * 2 + 2)
+                ).map((row, rowIndex) => (
+                  <Fragment key={`flow-row-${rowIndex}`}>
+                    {row.map((step, index) => {
+                      const stepIndex = rowIndex * 2 + index
+                      return (
+                        <Fragment key={`${step}-${stepIndex}`}>
+                          {index > 0 && (
+                            <span className="mechanism-flow-arrow" aria-hidden="true">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                                <path d="M5 12h14M14 7l5 5-5 5" />
+                              </svg>
+                            </span>
+                          )}
+                          <span
+                            className={`mechanism-flow-node ${
+                              stepIndex === 0 ? 'is-input' : ''
+                            } ${
+                              stepIndex === mechanism.flow.length - 1 ? 'is-output' : ''
+                            }`}
+                          >
+                            <span className="mechanism-flow-index">
+                              {String(stepIndex + 1).padStart(2, '0')}
+                            </span>
+                            {step}
+                          </span>
+                        </Fragment>
+                      )
+                    })}
+                  </Fragment>
+                ))}
+              </div>
+              {mechanism.caveat && (
+                <figcaption className="mechanism-flow-caption">{mechanism.caveat}</figcaption>
+              )}
+            </figure>
+          )}
           <div className="native-model-intro">
             <small>Native classification</small>
             <h2>{model.title}</h2>
-            <p>{model.summary}</p>
+            {!mechanism && <p>{model.summary}</p>}
             <div className="native-path">
               <FolderIcon size={13} />
               <span>{model.path}</span>
             </div>
+            {mechanism && (
+              <div className="mechanism-disclosure">
+                <button
+                  className="mechanism-toggle"
+                  type="button"
+                  aria-expanded={mechanismOpen}
+                  aria-controls={`mechanism-detail-${agent.id}`}
+                  onClick={() => setOpenMechanismId(mechanismOpen ? null : agent.id)}
+                >
+                  <span>Learn more</span>
+                  <span className="mechanism-toggle-meta">
+                    {mechanism.sources.length}{' '}
+                    {mechanism.sources.length === 1 ? 'source' : 'sources'}
+                    <ChevronRightIcon size={13} />
+                  </span>
+                </button>
+                {mechanismOpen && (
+                  <div className="mechanism-detail" id={`mechanism-detail-${agent.id}`}>
+                    <p className="mechanism-summary">{model.summary}</p>
+                    <div className="memory-lifecycle" role="group" aria-label="Memory lifecycle">
+                      <div className="memory-lifecycle-row">
+                        <span className="memory-lifecycle-label">Forms</span>
+                        <span className="memory-lifecycle-text">{mechanism.forms}</span>
+                      </div>
+                      <div className="memory-lifecycle-row">
+                        <span className="memory-lifecycle-label">Updates</span>
+                        <span className="memory-lifecycle-text">{mechanism.updates}</span>
+                      </div>
+                      <div className="memory-lifecycle-row">
+                        <span className="memory-lifecycle-label">Recalls</span>
+                        <span className="memory-lifecycle-text">{mechanism.recalls}</span>
+                      </div>
+                    </div>
+                    <ul className="mechanism-notes">
+                      {mechanism.notes.map((note) => (
+                        <li key={note}>{note}</li>
+                      ))}
+                    </ul>
+                    {mechanism.caveat && diagram && (
+                      <p className="mechanism-caveat">{mechanism.caveat}</p>
+                    )}
+                    {mechanism.sources.length > 0 && (
+                      <div className="mechanism-sources">
+                        {mechanism.sources.map((source) => (
+                          <a
+                            className="mechanism-source"
+                            href={source.url}
+                            key={source.url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <span className={`mechanism-source-kind is-${source.kind}`}>
+                              {source.kind === 'official' ? 'Official' : 'Community'}
+                            </span>
+                            <span>{source.label}</span>
+                            <ArrowUpRightIcon size={12} />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                    <p className="mechanism-evidence-note">
+                      <span className={`evidence-dot is-${mechanism.evidence}`} />
+                      {MEMORY_EVIDENCE_DESCRIPTIONS[mechanism.evidence]}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <div className="mapping-list">
@@ -159,6 +308,9 @@ export function AgentMemoryView({
                 }
               >
                 <div className="mapping-source-list">
+                  {mappings.length === 0 && (
+                    <span className="mapping-empty">No native equivalent</span>
+                  )}
                   {mappings.map((mapping) => (
                     <div
                       className={`mapping-source ${mapping.imported ? '' : 'not-imported'}`}
@@ -211,7 +363,10 @@ export function AgentMemoryView({
             >
               <div className="diagram-lightbox-head">
                 <div>
-                  <span className="native-model-diagram-label">Memory mechanism</span>
+                  <span className="native-model-diagram-meta">
+                    <span className="native-model-diagram-label">Memory mechanism</span>
+                    {mechanism && <EvidencePill evidence={mechanism.evidence} />}
+                  </span>
                   <h2 id="diagram-lightbox-title">{agent.name}</h2>
                 </div>
                 <button

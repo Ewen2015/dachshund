@@ -126,6 +126,10 @@ export class Library {
       return {
         id,
         title,
+        summary:
+          (typeof data.summary === 'string' && data.summary.trim()) ||
+          (typeof data.description === 'string' && data.description.trim()) ||
+          '',
         content: body,
         kind,
         scope: normalizeMemoryScope(data.scope, project),
@@ -137,6 +141,8 @@ export class Library {
         updatedAt: toTime(data.updated, fallbackTime),
         archived: status === 'archived' || data.archived === true,
         pinned: data.pinned === true,
+        supersededBy: typeof data.superseded_by === 'string' ? data.superseded_by : null,
+        sourceMissing: data.source_missing === true,
         sources,
         filePath: file
       }
@@ -153,6 +159,7 @@ export class Library {
       db.upsertMemory({
         id: file.id,
         title: file.title,
+        summary: file.summary,
         content: file.content,
         kind: file.kind,
         scope: file.scope,
@@ -164,6 +171,8 @@ export class Library {
         updatedAt: file.updatedAt,
         archived: file.archived,
         pinned: file.pinned,
+        supersededBy: file.supersededBy,
+        sourceMissing: file.sourceMissing,
         filePath: file.filePath
       })
       for (const source of file.sources) {
@@ -236,6 +245,7 @@ export class Library {
     const frontmatter: Record<string, unknown> = {
       id: file.id,
       title: file.title,
+      summary: file.summary,
       kind: normalizeMemoryKind(file.kind, file.content),
       scope: normalizeMemoryScope(file.scope, file.project),
       authority: normalizeMemoryAuthority(file.authority),
@@ -251,6 +261,8 @@ export class Library {
       )
     }
     if (file.project) frontmatter.project = file.project
+    if (file.supersededBy) frontmatter.superseded_by = file.supersededBy
+    if (file.sourceMissing) frontmatter.source_missing = true
     const output = matter.stringify(`${file.content.trim()}\n`, frontmatter)
     fs.writeFileSync(target, output, 'utf8')
     return target

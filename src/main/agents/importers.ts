@@ -168,6 +168,10 @@ function parseMarkdownRaw(
   )
   return {
     title: title.length > 110 ? `${title.slice(0, 107).trimEnd()}…` : title,
+    summary:
+      (typeof data.summary === 'string' && data.summary.trim()) ||
+      (typeof data.description === 'string' && data.description.trim()) ||
+      undefined,
     content: body,
     kind,
     scope: normalizeMemoryScope(data.scope || defaults.scope, project),

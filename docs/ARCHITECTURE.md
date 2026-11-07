@@ -44,6 +44,7 @@ Each file contains YAML frontmatter and Markdown:
 ---
 id: mem_example
 title: Paper before pixels
+summary: Sketch the layout on paper before writing component code.
 kind: preference
 scope: project
 authority: user_explicit
@@ -54,7 +55,6 @@ tags:
   - product
 created: 2026-10-30T12:00:00.000Z
 updated: 2026-10-30T12:00:00.000Z
-status: active
 pinned: false
 sources:
   - agent: claude
@@ -96,6 +96,7 @@ kind table, alias rules, and per-agent mapping.
 | `~/Documents/dachshund/memory/` | Markdown memory library |
 | `~/Library/Application Support/dachshund/runtime.json` | Active loopback port and token |
 | `~/Library/Application Support/dachshund/mcp-clients.jsonl` | MCP client handshake receipts |
+| `~/Library/Application Support/dachshund/.consolidate-lock` | Transient consolidation lock |
 
 The following environment variables override defaults for tests and development:
 
@@ -121,13 +122,17 @@ On startup, after onboarding, on manual scan, and when automatic sync is due:
 1. Known agent homes and application paths are checked for installation.
 2. Enabled agents are read using agent-specific importers.
 3. Imported records shorter than 30 characters are ignored.
-4. A normalized content hash is computed.
-5. Exact duplicate content attaches a new source to the existing memory.
-6. Stable source identity (agent, path, and source ref) is checked against
+4. Recognizable credentials are redacted and the record is tagged
+   `redacted-secret`.
+5. A one-line summary hook is taken from the source or derived deterministically.
+6. A normalized content hash is computed.
+7. Exact duplicate content attaches a new source to the existing memory.
+8. Stable source identity (agent, path, and source ref) is checked against
    `source_records`.
-7. New content is written to the dachshund Markdown library.
-8. Changed content for the same source updates the existing memory in place.
-9. The SQLite index is updated.
+9. New content is written to the dachshund Markdown library.
+10. Changed content for the same source updates the existing memory in place.
+11. The SQLite index is updated.
+12. A clean scan may trigger the bounded consolidation pass.
 
 Source files are opened read-only. dachshund does not move, rewrite, or delete
 them.
@@ -135,15 +140,17 @@ them.
 `source_records` stores the current memory, content hash, title, and first/last
 seen time for each stable source identity. The older `imports` table remains as
 legacy schema. If a source's content changes, its existing memory is rewritten
-and indexed instead of creating a parallel copy. Removed-source tombstones and
-conflict review are still future work.
+and indexed instead of creating a parallel copy. A source that a full scan no
+longer sees marks its memory `source_missing` rather than deleting it; importing
+the source again clears the mark. Conflict review remains future work.
 
 MCP writes take the same path. The bridge sends
 `DACHSHUND_CLIENT_AGENT`, the local service resolves that identity to an agent
 name, and the store hashes the content. A new hash writes a `mcp://<agent>`
 source; an existing hash attaches another source. The detail action can promote
 an existing record with a `dachshund` source, which preserves the original
-sources and makes the shared copy explicit.
+sources and makes the shared copy explicit. A write whose title or body still
+matches a credential pattern is rejected before any file is written.
 
 ## Automatic Sync
 
@@ -157,16 +164,31 @@ process schedules at most one catch-up scan. Every result reports added and
 updated memory counts, unchanged state, per-agent failures, and the last
 successful sync time. Agent source files remain read-only.
 
-## Deduplication
+## Deduplication And Consolidation
 
-Deduplication currently uses an exact normalized-content hash:
+Exact duplicate detection uses a normalized-content hash:
 
 1. lowercase;
 2. remove all characters except letters and numbers;
 3. SHA-1 the result.
 
-This is deterministic and catches identical text. It does not perform semantic
-near-duplicate detection. The UI calls additional sources "echoes".
+This is deterministic and catches identical text. The UI calls additional
+sources "echoes".
+
+A second, rule-based pass handles the same knowledge recorded in different
+words. `src/main/store/consolidate.ts` is a pure planner: it groups active,
+non-superseded `agent_observed` or `inferred` records by source family (an agent
+plus a stable ref, including Codex `:knowledge:` slices) or by normalized title,
+then merges within a group on normalized equality, a long substring, or high
+token Jaccard similarity. The canonical record wins by authority, source breadth,
+body length, then age. Other members receive `superseded_by` in frontmatter and
+are hidden from default recall.
+
+The pass runs after a clean scan, at most once every 24 hours, only when the
+library has at least 25 records. A `.consolidate-lock` file in the data directory
+prevents concurrent runs and expires after ten minutes. `Store.consolidate()`
+also supports a dry run, exposed as `POST /api/consolidate`. Neither stage calls
+a model, edits an agent file, or deletes library content.
 
 ## Search
 
@@ -174,9 +196,15 @@ SQLite FTS5 provides lexical search. The implementation supports:
 
 - title, body, tags, and project fields;
 - BM25 ranking;
-- optional agent filtering;
-- active-only results by default;
+- optional agent, project, and scope filtering;
+- active and non-superseded results by default;
+- explicit `includeSuperseded` and `includeArchived` opt-ins;
+- Evidence excluded unless `includeEvidence` is set;
 - a bounded result limit.
+
+`memory_context` turns the ranked result into a bounded index grouped into
+Apply, Context, and Background. A few top notes include their body; the rest are
+one-line hooks with id, kind, scope, source agents, update date, and project.
 
 There is no vector index and no embedding model in the current MVP.
 
@@ -204,12 +232,14 @@ Routes:
 | `POST` | `/api/memories/:id/archive` | Archive memory |
 | `POST` | `/api/scan` | Scan agents |
 | `POST` | `/api/mcp/search` | MCP-shaped search result |
-| `POST` | `/api/mcp/context` | Prompt-ready context block |
+| `POST` | `/api/mcp/context` | Prompt-ready grouped context block |
 | `POST` | `/api/mcp/remember` | Create memory |
 | `POST` | `/api/mcp/forget` | Archive shared memory |
-| `GET` | `/api/mcp/stats` | Counts |
+| `GET` | `/api/mcp/stats` | Counts plus library health |
+| `POST` | `/api/consolidate` | Run or dry-run echo consolidation |
 
-Every route except `/health` requires the bearer token.
+Every route except `/health` requires the bearer token. A write containing a
+recognizable credential is rejected with `400` and the matched kinds.
 
 ## MCP Bridge
 
@@ -234,6 +264,9 @@ Tools:
 - `memory_stats`
 
 `memory_context` explicitly labels result content as context, not instructions.
+It returns the grouped index by default; `detail: "full"` includes every note
+body. Search results carry a one-line summary and exclude Evidence and
+superseded records unless the caller opts in.
 
 ## Agent MCP Installation
 

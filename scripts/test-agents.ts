@@ -28,6 +28,7 @@ import {
   categoryForKind,
   normalizeMemoryKind
 } from '../src/shared/memory-taxonomy'
+import { AGENT_MEMORY_MECHANISMS } from '../src/shared/agent-memory-mechanisms'
 import {
   appendMcpClientReceipt,
   latestMcpClientReceipt,
@@ -1318,9 +1319,24 @@ function testInstructionsAndObservedMemory(): void {
 
 function testAgentModelMappings(): void {
   assert.equal(Object.keys(AGENT_MEMORY_MODELS).length, 13)
+  assert.equal(
+    Object.keys(AGENT_MEMORY_MECHANISMS).length,
+    Object.keys(AGENT_MEMORY_MODELS).length
+  )
   for (const [agentId, model] of Object.entries(AGENT_MEMORY_MODELS)) {
     assert.ok(model.title, `${agentId} needs a title`)
     assert.ok(model.mappings.length > 0, `${agentId} needs at least one mapping`)
+    const mechanism = AGENT_MEMORY_MECHANISMS[agentId]
+    assert.ok(mechanism, `${agentId} needs a mechanism card`)
+    assert.ok(mechanism.forms, `${agentId} needs a formation condition`)
+    assert.ok(mechanism.updates, `${agentId} needs an update mechanism`)
+    assert.ok(mechanism.recalls, `${agentId} needs a recall rule`)
+    assert.ok(mechanism.flow.length >= 3, `${agentId} needs a three-stage flow`)
+    assert.ok(mechanism.notes.length >= 2, `${agentId} needs mechanism notes`)
+    assert.ok(mechanism.sources.length >= 1, `${agentId} needs a source`)
+    for (const source of mechanism.sources) {
+      assert.match(source.url, /^https:\/\//, `${agentId} source must use HTTPS`)
+    }
     for (const mapping of model.mappings) {
       const category = ALL_MEMORY_CATEGORIES.find((item) => item.id === mapping.category)
       assert.ok(category, `${agentId} uses an unknown category: ${mapping.category}`)

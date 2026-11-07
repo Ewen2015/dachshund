@@ -10,7 +10,7 @@
 dachshund 找到这些 Agent 已经写在本机的 Memory，把它们汇入一份 Markdown
 记忆库，再通过 MCP 提供给所有 Agent 使用。无需账号，无需上云，也不依赖模型
 
-[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.26/dachshund-0.1.26-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
+[![下载 macOS 版](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-111111?logo=apple&logoColor=white)](https://github.com/Ewen2015/dachshund/releases/download/v0.1.27/dachshund-0.1.27-arm64.dmg) [![状态](https://img.shields.io/badge/status-working%20MVP-111111)](docs/MVP.md) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![本地运行](https://img.shields.io/badge/runtime-local%20only-25845f)](#隐私)
 
 **[English](README.md)** &nbsp;·&nbsp; **[简体中文](README.zh-CN.md)**
 
@@ -35,7 +35,9 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 - **看懂每个 Agent 如何记忆**：进入 Agent 详情，对比原生 Memory 模型与 dachshund
   的统一分类，并按需放大查看机制图
 - **维护统一记忆库**：把结果保存为普通 Markdown，同时保留来源信息
-- **合并跨 Agent 回声**：多个 Agent 记住同一件事时，只保留一份内容并展示全部来源
+- **合并跨 Agent 回声**：多个 Agent 记住同一件事时，只保留一份内容并展示全部来源；确定性的整理流程会把措辞相近的重复内容归入一条主记录，全程不调用模型
+- **用有界索引召回**：连接的 Agent 会收到按 Apply、Context、Background 分组的单行摘要，并带 id 与来源，只有需要时才读取正文
+- **挡住密钥**：导入时自动脱敏可识别的凭证；Agent 尝试写入类似密钥的内容时会被拒绝
 - **主动共享**：把单条来源记忆提升为 dachshund 的持久共享副本，或通过 MCP 写入并保留调用方 Agent
 - **保持记忆库更新**：可手动同步，也可每 60 分钟自动扫描；休眠时暂停，并根据来源版本稳定更新
 - **让任意 Agent 召回**：通过仅绑定回环地址的 MCP Bridge 提供搜索、上下文、写入、归档和统计能力
@@ -48,7 +50,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 
 | 平台 | 架构 | 安装包 | 大小 | 下载 |
 | :-- | :-- | :-- | :-- | :-- |
-| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.26](https://github.com/Ewen2015/dachshund/releases/download/v0.1.26/dachshund-0.1.26-arm64.dmg)** |
+| macOS | Apple Silicon | DMG | 约 120 MB | **[下载 v0.1.27](https://github.com/Ewen2015/dachshund/releases/download/v0.1.27/dachshund-0.1.27-arm64.dmg)** |
 
 **系统要求：** Apple Silicon Mac
 
@@ -57,7 +59,7 @@ dachshund 把已经存在的 Memory 收进一个安静、统一的入口：
 > 选择“打开”
 
 [所有版本](https://github.com/Ewen2015/dachshund/releases) ·
-[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.26/SHA256SUMS)
+[SHA256SUMS](https://github.com/Ewen2015/dachshund/releases/download/v0.1.27/SHA256SUMS)
 
 **安装**
 
@@ -76,7 +78,7 @@ SHA-256 用于确认下载的 DMG 与正式发布文件一致。它不是激活�
 
 ```sh
 cd ~/Downloads
-curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.26/SHA256SUMS
+curl -LO https://github.com/Ewen2015/dachshund/releases/download/v0.1.27/SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
@@ -164,11 +166,13 @@ SQLite 记录
 
 ### 看懂每个 Agent 如何记忆
 
-每个受支持 Agent 的详情页都会解释它的原生 Memory 模型、存储路径，以及它如何
-映射到 dachshund 的统一分类。紧凑机制图展示写入、持久化和召回路径，点击即可
-进入大图阅读视图
+每个受支持 Agent 的详情页都会保留可视化的原生 Memory 模型：机制图展示写入、
+持久化和召回路径，映射矩阵展示原生条目如何进入 dachshund 分类。更长的说明，
+包括 memory 何时形成、如何更新、何时被召回，以及官方文档链接和证据等级，收在
+**Learn more** 折叠区里。这样折叠时示意图和映射关系始终可见，下面的 memory
+条目也不会被大段文字推得太远
 
-<img src="docs/screenshots/09-agent-memory.png" width="900" alt="dachshund Agent Memory 详情页，展示原生 Memory 机制图和分类映射">
+<img src="docs/screenshots/09-agent-memory.png" width="900" alt="dachshund Agent Memory 详情页，展示 Memory 机制图、Learn more 折叠区和分类映射">
 
 ### 一份记忆，多个来源
 
@@ -198,8 +202,9 @@ Agent 读取，也仍然保留 Codex 来源。第二个 Agent 写入完全相同
 
 Pulse 不是一张为了好看而做的使用量报表。它能看出哪些 Agent 正在扩充记忆库、
 多少知识被多个 Agent 共同记住、Memory 在四个知识分类以及 Evidence 辅助层中的
-分布，以及记忆是否正在变旧。菜单栏小窗里也有同一组数据
-的紧凑视图
+分布，以及记忆是否正在变旧。记忆库健康区会单独列出已被取代的回声、来源文件缺失、
+过大或过旧的记录、空的 `MEMORY.md` 索引，以及最近一次整理的时间。菜单栏小窗里
+也有同一组数据的紧凑视图
 
 <img src="docs/screenshots/07-pulse.png" width="900" alt="dachshund Pulse 页面，展示 Memory 增长、跨 Agent 重合和新鲜度">
 
@@ -233,19 +238,19 @@ Fact，路径和资料指针落到 Reference。
 
 已连接 Agent 可以使用以下工具：
 
-- 搜索共享 Memory
-- 请求可直接放入 Prompt 的上下文块
-- 写入持久 Memory
+- 搜索共享 Memory，返回单行摘要与来源 Agent
+- 请求按组整理、可直接放入 Prompt 的索引，并按需读取正文
+- 写入持久 Memory；疑似凭证的内容会被拒绝
 - 归档共享 Memory
-- 查看记忆库统计
+- 查看记忆库统计与健康状态
 
 | 工具 | 用途 |
 | :-- | :-- |
-| `memory_search` | 搜索相关 Memory，并返回来源 Agent |
-| `memory_context` | 生成紧凑、可直接用于 Prompt 的上下文块 |
-| `memory_remember` | 保存一条持久共享 Memory |
+| `memory_search` | 搜索相关 Memory，返回摘要与来源 Agent |
+| `memory_context` | 生成有界的 Apply / Context / Background 索引 |
+| `memory_remember` | 保存一条持久共享 Memory，可附带单行摘要 |
 | `memory_forget` | 归档共享副本，不删除 Agent 原始文件 |
-| `memory_stats` | 显示 Memory、Agent、来源与回声数量 |
+| `memory_stats` | 显示 Memory、Agent、来源、回声与健康状态 |
 
 ### 普通文件，真实身份
 
@@ -301,10 +306,10 @@ npm run screenshot
 
 ## 当前限制
 
-- 去重基于完全相同的内容，不做语义合并
+- 去重是确定性的：完全相同的内容在导入时合并，措辞相近的重复内容由有界规则整理，不调用模型
 - 搜索使用词法检索，暂不包含本地 Embedding 模型
 - 启动和手动扫描时导入；开启自动同步后，应用运行期间每小时扫描一次。暂无实时文件监听
-- 来源内容修改后会替换原 memory；暂不做冲突合并，删除来源也暂不保留墓碑
+- 来源内容修改后会替换原 memory；来源在完整扫描中消失时标记 `source_missing` 而不是删除，暂不做自动冲突合并
 - 目前只构建 Apple Silicon 版本，且未公证
 - 暂不支持云同步、团队模式和多设备历史
 
