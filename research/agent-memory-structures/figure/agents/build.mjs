@@ -269,14 +269,18 @@ function claudeScene() {
   const out = [];
   out.push(splitIsland(code, "CODE · REPO SCOPED"));
   out.push(splitIsland(cowork, "COWORK · SPACE SCOPED"));
-  out.push(ruleSign(-172, -40, 9, "CLAUDE.md", { subtitle: "EVERY SESSION", w: 60, d: 20 }));
-  out.push(book(-174, -14, 9, "MEMORY.md", { w: 56, d: 26, h: 5, labelSize: 2.5 }));
-  out.push(fileDrawers(-108, -22, 9, "TOPICS"));
-  out.push(arrow(-116, -108, -6, 11));
-  out.push(fileDrawers(33, -30, 9, "TOPICS"));
-  out.push(book(96, -30, 9, "ACCOUNT TOPICS", { w: 70, d: 26, h: 4, labelSize: 2.2 }));
-  out.push(tray(96, -4, 9, "CHAT · CLOUD", { w: 70, d: 30, tone: "lo", labelSize: 2.2 }));
-  out.push(topLabel(131, 34, "NOT LOCAL", 9.3, { size: 2.0, tone: "mid" }));
+  out.push(ruleSign(-172, -36, 9, "CLAUDE.md", { subtitle: "EVERY SESSION", w: 58, d: 16 }));
+  out.push(book(-174, -16, 9, "MEMORY.md", { w: 56, d: 18, h: 6, labelSize: 2.5 }));
+  out.push(topLabel(-146, 7, "INJECTED · ≤ 200 LINES", 9.5, { size: 1.7, tone: "mid" }));
+  out.push(fileDrawers(-108, -26, 9, "TOPICS"));
+  out.push(topLabel(-82, 23, "ON DEMAND", 9.5, { size: 1.8, tone: "mid" }));
+  out.push(arrow(-116, -108, -6, 15));
+  out.push(tray(-172, 28, 9, "TRANSCRIPTS · GROUND TRUTH", { w: 116, d: 20, tone: "lo", labelSize: 2.05 }));
+  out.push(fileDrawers(30, -30, 9, "TOPICS"));
+  out.push(book(30, 20, 9, "MEMORY.md", { w: 52, d: 12, h: 4, labelSize: 2.0 }));
+  out.push(book(96, -42, 9, "ACCOUNT TOPICS", { w: 70, d: 22, h: 4, labelSize: 2.2 }));
+  out.push(tray(96, -16, 9, "CHAT · CLOUD", { w: 70, d: 28, tone: "lo", labelSize: 2.2 }));
+  out.push(topLabel(131, 19, "NOT LOCAL", 9.3, { size: 2.0, tone: "mid" }));
   out.push(topLabel(-2, 56, "TWO STORES", 9.2, { size: 2.3, tone: "hi" }));
   out.push(L(k.lineOnTop([0, -35], [0, 48], 9.3, P), { tone: "faint", dashed: true, free: true }));
   return out.join("");
@@ -379,17 +383,18 @@ const AGENTS = [
   {
     slug: "claude",
     fig: "Fig 4",
-    title: "Claude · two local scopes",
+    title: "Claude · index on top",
     hint: "Official · Code + Desktop",
-    readout: "CLAUDE.md + MEMORY.md → REPO · SPACE TOPICS → LOCAL",
+    readout: "CLAUDE.md + MEMORY.md → INJECTED · TOPICS ON DEMAND",
     scene: claudeScene,
     flow: [
       ["CLAUDE.md", "EVERY SESSION"],
-      ["MEMORY.md (≤ 200 LINES)", "REPO TOPIC FILES"],
+      ["MEMORY.md (≤ 200 LINES)", "INJECTED INDEX", "TOPIC NOTES ON DEMAND"],
+      ["SESSION TRANSCRIPTS", "GROUND TRUTH"],
       ["SPACE TOPICS", "LOCAL COWORK MEMORY"],
       ["ACCOUNT CHAT", "CLOUD · NOT IMPORTED"]
     ],
-    note: "One Claude card covers both surfaces. Claude Code loads CLAUDE.md every session and keeps a MEMORY.md index plus repo-scoped topics; Claude Desktop keeps Cowork Space and account topics locally. Account Chat and cloud project memory are server-side and reach dachshund only over MCP."
+    note: "One Claude card covers both surfaces. Claude Code loads CLAUDE.md every session, injects only the first 200 lines or 25 KB of MEMORY.md as an index, and leaves topic notes on disk until they are read on demand. Session transcripts remain the ground truth that notes are checked against. Claude Desktop keeps the same index-and-topic layout for Space, agent, and account topics; account Chat and cloud project memory stay server-side and reach dachshund only over MCP."
   },
   {
     slug: "opencode",
@@ -484,7 +489,7 @@ const page = k
   .pageHtml({
     title: "Agent memory mechanisms — individual diagrams",
     theme: "light",
-    body: `<header class="atlas-head"><p>OFFICIAL CONTRACT ATLAS · 2026-11-02</p><h1>Eight memory mechanisms</h1><p>Simple, product-specific views. WorkBuddy means the desktop app only.</p></header>${pages}`,
+    body: `<header class="atlas-head"><p>OFFICIAL CONTRACT ATLAS · 2026-11-07</p><h1>Eight memory mechanisms</h1><p>Simple, product-specific views. WorkBuddy means the desktop app only.</p></header>${pages}`,
     script: "",
     width: 980
   })

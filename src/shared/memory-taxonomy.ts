@@ -336,19 +336,20 @@ export function statusLabel(value: MemoryStatus): string {
 
 export const AGENT_MEMORY_MODELS: Record<string, AgentMemoryModel> = {
   claude: {
-    title: 'Typed local memory + written instructions',
+    title: 'Injected index + notes on demand',
     summary:
-      'Claude Code keeps CLAUDE.md, rules, and four typed auto-memory files scoped to each repository; Claude Desktop adds Cowork Space and account topic files in the same typed format. Account-side Chat and cloud project memory stay server-side and remain reachable over MCP.',
-    path: '~/.claude/projects/<repo>/memory + CLAUDE.md + rules · Claude-3p/.../spaces/<id>/memory',
+      'Claude Code injects the first 200 lines or 25 KB of a MEMORY.md index into every session and keeps typed topic notes on disk for on-demand reading; session transcripts remain the ground truth that offline consolidation (dreaming) checks those notes against. Claude Desktop keeps the same index-and-topic layout for account, agent, and Space topics. Account Chat and cloud project memory stay server-side and reach dachshund over MCP.',
+    path: '~/.claude/projects/<repo>/memory/MEMORY.md + topics + CLAUDE.md · Claude-3p/.../memory/MEMORY.md',
     mappings: [
-      { native: 'user', description: 'Role, expertise, and stable user context in Claude Code or a Desktop topic', category: 'identity', kinds: ['profile'], imported: true },
+      { native: 'MEMORY.md index', description: 'Injected top layer: first 200 lines or 25 KB, linking to notes read on demand', category: 'knowledge', kinds: ['reference'], imported: true },
+      { native: 'user', description: 'Role, expertise, and stable user context in a Claude Code note or Desktop topic', category: 'identity', kinds: ['profile'], imported: true },
       { native: 'feedback', description: 'Explicit corrections become rules or preferences', category: 'guidance', kinds: ['preference', 'rule'], imported: true },
-      { native: 'feedback outcome', description: 'A failed approach or reusable conclusion becomes an insight', category: 'knowledge', kinds: ['insight'], imported: true },
+      { native: 'feedback outcome', description: 'A failed approach, correction, or trap becomes an insight', category: 'knowledge', kinds: ['insight'], imported: true },
       { native: 'project', description: 'Goals, constraints, and decisions under repository or Space scope', category: 'current', kinds: ['goal', 'constraint', 'decision'], imported: true },
       { native: 'reference', description: 'Where external context lives', category: 'knowledge', kinds: ['reference'], imported: true },
       { native: 'CLAUDE.md / rules', description: 'Written global and project instructions from Claude Code', category: 'guidance', kinds: ['rule'], imported: true },
       { native: 'local Desktop topic', description: 'Untyped account, agent, or Space topic resolved into a durable kind', category: 'knowledge', kinds: ['fact', 'reference', 'insight'], imported: true },
-      { native: 'MEMORY.md', description: 'Index only; topic files hold the memory bodies', category: 'knowledge', kinds: ['reference'], imported: false },
+      { native: 'session transcript', description: 'Ground truth for offline consolidation (dreaming); read or searched instead of imported as a note', category: 'evidence', kinds: ['session_summary'], imported: false },
       { native: 'server-side Chat memory', description: 'Ordinary Chat and cloud project memory stored on the account', category: 'knowledge', kinds: ['fact'], imported: false }
     ]
   },

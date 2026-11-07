@@ -111,6 +111,16 @@ Verified in this repository:
 - The installer log reported `installed 0.1.3`.
 - The packaged `Contents/Resources/mcp/index.cjs` from `0.1.25` passed the same
   five-tool MCP smoke test.
+- `release/dachshund-0.1.26-arm64.dmg` was produced on 2026-11-07 with SHA-256
+  `1706b0a5764c46d4dfd1cdfaa6d1a115bfb14f3161748458734f258ba1897617`.
+- The packaged `0.1.26` app launched against an isolated data directory, wrote
+  its runtime manifest, and reported version `0.1.26`.
+- The `0.1.26` DMG mounted read-only, contained a valid ad-hoc-signed app at
+  version `0.1.26`, and included an executable MCP bridge.
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.26` passed the
+  five-tool MCP smoke test, including remember, search, context, and forget.
+- A read-only import of the current Claude homes found three `MEMORY.md`
+  indexes: one repository project, one Desktop account, and one Cowork Space.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
   Space before hiding, with no blank fullscreen surface left behind.
 - The compact panel remained visible, focused, and always on top while the
@@ -418,6 +428,20 @@ token are not a defense against a compromised account.
 - added sync fixtures for echo ownership, repeated imports, padded titles, and
   Codex knowledge slices.
 
+#### 0.1.26: Claude Memory Layers
+
+- imported Claude Code project and global `MEMORY.md` indexes, plus Desktop
+  account, agent, and Space indexes, as reference memories tagged
+  `memory-index`;
+- rebuilt the Claude model and mechanism diagram around the injected index,
+  on-demand topic notes, and session transcripts as ground truth;
+- showed transcripts and other non-imported Claude sources directly in the
+  mapping;
+- rendered relative Markdown links as inert references so imported indexes
+  cannot navigate the app window;
+- synchronized fixtures, screenshots, research notes, README, and both
+  websites.
+
 ### Next
 
 - near-duplicate suggestions;
@@ -426,7 +450,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.26: Recall Quality
+#### 0.1.27: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -434,7 +458,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-#### 0.1.27: Distribution
+#### 0.1.28: Distribution
 
 - signed and notarized universal build;
 - update channel;

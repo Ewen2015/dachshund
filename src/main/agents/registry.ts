@@ -185,7 +185,7 @@ export const AGENT_DEFINITIONS: AgentDefinition[] = [
     homes: [claudeCodeHome, claudeDesktopCurrentHome, claudeDesktopLegacyHome].filter(
       (candidate) => candidate !== claudeHome
     ),
-    description: 'Claude Code project memory and instructions, plus Cowork Space topics',
+    description: 'Injected MEMORY.md index, repo topic notes, and local Cowork topics',
     accent: '#C0663B',
     mcp: [
       { type: 'json-mcpServers', path: claudeCodeConfigPath },

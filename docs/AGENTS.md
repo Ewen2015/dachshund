@@ -14,7 +14,7 @@ see the
 
 | Agent | Local memory import | MCP config | Imported sources |
 | --- | --- | --- | --- |
-| Claude | Yes | `~/.claude.json` and `Claude(-3p)/claude_desktop_config.json` | Project topic memory, written instructions, rules, global memory, and local Cowork Space topics |
+| Claude | Yes | `~/.claude.json` and `Claude(-3p)/claude_desktop_config.json` | Project topic memory with the injected `MEMORY.md` index, written instructions, rules, global memory, and local Cowork account, agent, and Space topics |
 | Codex | Yes | `~/.codex/config.toml` | Codex memory Markdown and readable memory SQLite |
 | Gemini CLI | Yes | `~/.gemini/settings.json` | `GEMINI.md` files |
 | Cursor | Yes | `~/.cursor/mcp.json` | Rules and agent Markdown/MDC files |
@@ -44,16 +44,24 @@ Homes:
 
 Imported from Claude Code:
 
-- files under project `memory` directories:
-  `~/.claude/projects/<project>/memory/*.md` except the `MEMORY.md` index;
+- the `MEMORY.md` index and topic files under project `memory` directories:
+  `~/.claude/projects/<project>/memory/MEMORY.md` and
+  `~/.claude/projects/<project>/memory/*.md`;
 - `~/.claude/CLAUDE.md`;
 - Markdown under `~/.claude/rules/`;
-- Markdown under `~/.claude/memory/` except the `MEMORY.md` index.
+- the global `MEMORY.md` index and topic files under `~/.claude/memory/`.
 
 The typed project files retain their native `user`, `feedback`, `project`, and
 `reference` frontmatter as source evidence, then normalize into Identity,
 Guidance, Knowledge, or Current work by type and body. Written instructions are
 imported as rules rather than as project memory.
+
+Claude Code injects only the first 200 lines or 25 KB of `MEMORY.md` into each
+session; the rest of auto memory stays on disk and is read on demand. The index
+is imported as a `reference` record tagged `memory-index`, because it is the
+injected top layer and the map to the topic notes. An index with no entries
+beyond its heading is skipped. Session transcripts are not imported as memories;
+they remain the ground truth that notes are checked against.
 
 Imported from Claude Desktop:
 
@@ -66,8 +74,10 @@ Imported from Claude Desktop:
   same source-aware taxonomy. Native type is evidence; the resulting kind is
   resolved from type plus body.
 
-`MEMORY.md` is an index, not a memory body, and is skipped. The Space name in
-the sibling `spaces.json` becomes the memory's project label.
+The local `MEMORY.md` index in each account, agent, and Space memory directory
+is imported as a `reference` record tagged `memory-index`, with the surface
+(`account`, `agent`, or `space`) in an additional tag. The Space name in the
+sibling `spaces.json` becomes the memory's project label.
 
 Not imported: server-side ordinary Chat memory and cloud Project memory that are
 not present as local topic files. Those remain account-side.

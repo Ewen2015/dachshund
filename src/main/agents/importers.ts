@@ -110,6 +110,7 @@ function parseMarkdownFile(
   file: string,
   agent: AgentDefinition,
   defaults: {
+    title?: string
     kind?: string
     scope?: MemoryScope
     authority?: MemoryAuthority
@@ -128,6 +129,7 @@ function parseMarkdownRaw(
   agent: AgentDefinition,
   raw: string,
   defaults: {
+    title?: string
     kind?: string
     scope?: MemoryScope
     authority?: MemoryAuthority
@@ -146,6 +148,7 @@ function parseMarkdownRaw(
       ? (data.metadata as Record<string, unknown>)
       : {}
   const title =
+    (defaults.title && defaults.title.trim()) ||
     (typeof data.title === 'string' && data.title.trim()) ||
     (typeof data.description === 'string' && data.description.trim()) ||
     (typeof data.name === 'string' && humanize(data.name)) ||
@@ -538,22 +541,63 @@ function projectFromClaudeDir(memoryFile: string): string | null {
   return parts.length ? parts.slice(-2).join('/') : human
 }
 
+function isClaudeMemoryIndex(file: string): boolean {
+  return path.basename(file).toLowerCase() === 'memory.md'
+}
+
+function hasClaudeIndexEntries(content: string): boolean {
+  return content.split('\n').some((line) => {
+    const trimmed = line.trim()
+    return Boolean(trimmed) && !trimmed.startsWith('#')
+  })
+}
+
+function parseClaudeMemoryIndex(
+  file: string,
+  agent: AgentDefinition,
+  defaults: {
+    title: string
+    scope: MemoryScope
+    project: string | null
+    tags: string[]
+    sourceRef?: string
+  }
+): ImportedMemory | null {
+  const memory = parseMarkdownFile(file, agent, {
+    title: defaults.title,
+    kind: 'reference',
+    scope: defaults.scope,
+    authority: 'agent_observed',
+    project: defaults.project,
+    tags: defaults.tags
+  })
+  if (!memory || !hasClaudeIndexEntries(memory.content)) return null
+  if (defaults.sourceRef) memory.sourceRef = defaults.sourceRef
+  return memory
+}
+
 function importClaudeCodeHome(agent: AgentDefinition, root: string): ImportedMemory[] {
   const memoryFiles = walk(
     path.join(root, 'projects'),
-    (file) =>
-      file.endsWith('.md') &&
-      file.includes(`${path.sep}memory${path.sep}`) &&
-      path.basename(file) !== 'MEMORY.md'
+    (file) => file.endsWith('.md') && file.includes(`${path.sep}memory${path.sep}`)
   )
   const projectMemories = memoryFiles
-    .map((file) =>
-      parseMarkdownFile(file, agent, {
+    .map((file) => {
+      const project = projectFromClaudeDir(file)
+      if (isClaudeMemoryIndex(file)) {
+        return parseClaudeMemoryIndex(file, agent, {
+          title: project ? `Memory index · ${project}` : 'Memory index',
+          scope: project ? 'project' : 'user',
+          project,
+          tags: ['claude-code', 'auto-memory', 'memory-index', 'project-index']
+        })
+      }
+      return parseMarkdownFile(file, agent, {
         authority: 'agent_observed',
-        project: projectFromClaudeDir(file),
+        project,
         tags: ['claude-code', 'auto-memory']
       })
-    )
+    })
   const instructionFiles = [
     path.join(root, 'CLAUDE.md'),
     ...walk(path.join(root, 'rules'), (file) => file.endsWith('.md'), 160)
@@ -567,25 +611,43 @@ function importClaudeCodeHome(agent: AgentDefinition, root: string): ImportedMem
   )
   const globalMemories = walk(
     path.join(root, 'memory'),
-    (file) => file.endsWith('.md') && path.basename(file) !== 'MEMORY.md',
+    (file) => file.endsWith('.md'),
     80
   ).map((file) =>
-    parseMarkdownFile(file, agent, {
-      authority: 'agent_observed',
-      tags: ['claude-code', 'global-memory']
-    })
+    isClaudeMemoryIndex(file)
+      ? parseClaudeMemoryIndex(file, agent, {
+          title: 'Global memory index',
+          scope: 'user',
+          project: null,
+          tags: ['claude-code', 'global-memory', 'memory-index', 'global-index']
+        })
+      : parseMarkdownFile(file, agent, {
+          authority: 'agent_observed',
+          tags: ['claude-code', 'global-memory']
+        })
   )
   return [...projectMemories, ...instructions, ...globalMemories].filter(
     (item): item is ImportedMemory => Boolean(item)
   )
 }
 
+type ClaudeDesktopSurface = 'account' | 'agent' | 'space'
+
+function claudeDesktopSurface(file: string): ClaudeDesktopSurface {
+  const normalized = file.split(path.sep).join('/')
+  if (/\/spaces\/[^/]+\/memory\//i.test(normalized)) return 'space'
+  if (/\/agent\/memory\//i.test(normalized)) return 'agent'
+  return 'account'
+}
+
+function claudeDesktopSurfaceTag(surface: ClaudeDesktopSurface): string {
+  return surface === 'space' ? 'space-memory' : 'local-memory'
+}
+
 function isClaudeDesktopMemoryFile(file: string): boolean {
   const normalized = file.split(path.sep).join('/')
-  return (
-    /\/local-agent-mode-sessions\/[^/]+\/[^/]+\/(?:memory|agent\/memory|spaces\/[^/]+\/memory)\/.+\.md$/i.test(
-      normalized
-    ) && path.basename(file).toLowerCase() !== 'memory.md'
+  return /\/local-agent-mode-sessions\/[^/]+\/[^/]+\/(?:memory|agent\/memory|spaces\/[^/]+\/memory)\/.+\.md$/i.test(
+    normalized
   )
 }
 
@@ -627,19 +689,39 @@ function importClaudeDesktopHome(agent: AgentDefinition, root: string): Imported
   const out: ImportedMemory[] = []
   const sessionRoot = path.join(root, 'local-agent-mode-sessions')
   for (const file of walk(sessionRoot, isClaudeDesktopMemoryFile)) {
-    const space = claudeDesktopSpace(file)
-    const memory = parseMarkdownFile(file, agent, {
-      scope: space ? 'project' : 'user',
-      authority: 'agent_observed',
-      project: space?.name ?? null,
-      tags: [
-        'claude-desktop',
-        space ? 'space-memory' : 'local-memory',
-        ...(space ? [`space:${space.id}`] : [])
-      ]
-    })
+    const surface = claudeDesktopSurface(file)
+    const space = surface === 'space' ? claudeDesktopSpace(file) : null
+    const tags = [
+      'claude-desktop',
+      claudeDesktopSurfaceTag(surface),
+      ...(space ? [`space:${space.id}`] : [])
+    ]
+    const memory = isClaudeMemoryIndex(file)
+      ? parseClaudeMemoryIndex(file, agent, {
+          title:
+            surface === 'space'
+              ? `Memory index · ${space?.name ?? 'Space'}`
+              : surface === 'agent'
+                ? 'Agent memory index'
+                : 'Account memory index',
+          scope: space ? 'project' : 'user',
+          project: space?.name ?? null,
+          tags: [
+            ...tags,
+            'memory-index',
+            `${surface}-index`,
+            ...(surface === 'agent' ? ['agent-memory'] : [])
+          ],
+          sourceRef: space ? `space:${space.id}` : undefined
+        })
+      : parseMarkdownFile(file, agent, {
+          scope: space ? 'project' : 'user',
+          authority: 'agent_observed',
+          project: space?.name ?? null,
+          tags
+        })
     if (!memory) continue
-    if (space) memory.sourceRef = `space:${space.id}`
+    if (space && !isClaudeMemoryIndex(file)) memory.sourceRef = `space:${space.id}`
     out.push(memory)
   }
   return out

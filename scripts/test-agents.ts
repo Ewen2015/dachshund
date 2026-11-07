@@ -212,6 +212,11 @@ function testClaudeTaxonomy(): void {
     path.join(home, 'rules', 'release.md'),
     'Release notes must stay in the local documentation directory and mirror the shipped version.'
   )
+  write(path.join(home, 'memory', 'MEMORY.md'), '# Memory Index\n')
+  write(
+    path.join(home, 'memory', 'environment.md'),
+    'The local build uses Node 22.'
+  )
   write(
     path.join(
       home,
@@ -224,7 +229,7 @@ function testClaudeTaxonomy(): void {
   )
 
   const memories = importAgentMemories(agent)
-  assert.equal(memories.length, 3)
+  assert.equal(memories.length, 5)
   assert.ok(
     memories.some(
       (memory) =>
@@ -239,7 +244,26 @@ function testClaudeTaxonomy(): void {
     ).length,
     2
   )
-  assert.ok(!memories.some((memory) => memory.content.includes('Memory Index')))
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'reference' &&
+        memory.title === 'Memory index · claude/project' &&
+        memory.scope === 'project' &&
+        memory.tags.includes('memory-index') &&
+        memory.tags.includes('project-index') &&
+        memory.content.includes('[Concise delivery](preference.md)')
+    )
+  )
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'fact' &&
+        memory.tags.includes('global-memory') &&
+        memory.content.includes('Node 22')
+    )
+  )
+  assert.ok(!memories.some((memory) => memory.tags.includes('global-index')))
 }
 
 function testClaudeDesktopTaxonomy(): void {
@@ -314,6 +338,14 @@ function testClaudeDesktopTaxonomy(): void {
     ].join('\n')
   )
   write(
+    path.join(organization, 'memory', 'memory', 'MEMORY.md'),
+    '# Memory Index\n\n- [Release dashboard](reference_dashboard.md) — shipped artifacts'
+  )
+  write(
+    path.join(organization, 'agent', 'memory', 'MEMORY.md'),
+    '# Memory Index\n\n- [User role](user_role.md) — product direction'
+  )
+  write(
     path.join(organization, 'agent', 'memory', 'user_role.md'),
     [
       '---',
@@ -345,7 +377,7 @@ function testClaudeDesktopTaxonomy(): void {
   )
 
   const memories = importAgentMemories(agent)
-  assert.equal(memories.length, 5)
+  assert.equal(memories.length, 8)
   assert.ok(
     memories.some(
       (memory) =>
@@ -382,7 +414,40 @@ function testClaudeDesktopTaxonomy(): void {
         memory.sourcePath.startsWith(legacyHome)
     )
   )
-  assert.ok(!memories.some((memory) => memory.content.includes('Memory index')))
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'reference' &&
+        memory.title === 'Memory index · Memory research' &&
+        memory.project === 'Memory research' &&
+        memory.sourceRef === `space:${spaceId}` &&
+        memory.tags.includes('memory-index') &&
+        memory.tags.includes('space-index')
+    )
+  )
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'reference' &&
+        memory.title === 'Account memory index' &&
+        memory.scope === 'user' &&
+        memory.tags.includes('memory-index') &&
+        memory.tags.includes('account-index') &&
+        memory.sourcePath.endsWith(
+          `${path.sep}memory${path.sep}memory${path.sep}MEMORY.md`
+        )
+    )
+  )
+  assert.ok(
+    memories.some(
+      (memory) =>
+        memory.kind === 'reference' &&
+        memory.title === 'Agent memory index' &&
+        memory.tags.includes('memory-index') &&
+        memory.tags.includes('agent-index') &&
+        memory.tags.includes('agent-memory')
+    )
+  )
 }
 
 function testCodexRolloutTaxonomy(): void {

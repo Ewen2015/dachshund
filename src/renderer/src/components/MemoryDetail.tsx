@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import ReactMarkdown from 'react-markdown'
+import ReactMarkdown, { type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { MemoryDetail as MemoryDetailType } from '../../../shared/types'
 import {
@@ -28,6 +28,23 @@ type OutlineItem = {
   id: string
   level: number
   text: string
+}
+
+const markdownComponents: Components = {
+  a({ href, children }) {
+    if (href && /^(https?:\/\/|mailto:)/i.test(href)) {
+      return (
+        <a href={href} target="_blank" rel="noreferrer">
+          {children}
+        </a>
+      )
+    }
+    return (
+      <span className="prose-local-link" title={href}>
+        {children}
+      </span>
+    )
+  }
 }
 
 export function MemoryDetail({
@@ -257,7 +274,12 @@ export function MemoryDetail({
           </div>
 
           <div className="prose" ref={proseRef}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{memory.content}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={markdownComponents}
+            >
+              {memory.content}
+            </ReactMarkdown>
           </div>
 
           <section className="sources">

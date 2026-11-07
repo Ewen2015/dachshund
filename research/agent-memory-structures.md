@@ -2,7 +2,9 @@
 
 ## Codex、WorkBuddy、Claude Code、Claude Desktop、OpenCode、Trae、Pi、Hermes
 
-研究日期：**2026-11-02**
+研究日期：**2026-11-02**；**2026-11-07** 按 Anthropic 的
+[The components of agent memory](https://www.anthropic.com/research/components-of-agent-memory)
+补充“注入索引 → 按需 notes → transcripts ground truth”的分层模型。
 
 本文研究的不是“哪个产品有 memory”这种是非题，而是一个更具体的问题：
 
@@ -13,7 +15,8 @@
 
 - **Codex** 是“后台提炼 + 全局合并”的两阶段管线；
 - **WorkBuddy 桌面版** 是“夜间总结 + 会话检索”，记忆摘要和历史检索是两条不同的路径；
-- **Claude Code** 是“小型 MEMORY.md 索引 + 按需 topic files”；
+- **Claude Code** 是“注入的小型 MEMORY.md 索引 + 按需 topic files”，
+  session transcripts 作为校验 notes 的 ground truth；
 - **Claude Desktop** 同时存在本地项目记忆和账号侧云端记忆；
 - **OpenCode** 目前以 instructions-first 为主，持久 session 不是用户长期记忆；
 - **Trae** 是“全局 user profile + 项目 memory”，session JSONL 是另一层；
@@ -53,7 +56,7 @@ Instruction 不应该被悄悄归一化成 memory；episode 也不应该因为�
 | --- | --- | --- | --- | --- | --- | --- |
 | **Codex** | rollout 提炼结果、summary、durable entries、evidence | 后台两阶段 agent | 本机用户，跨项目证据可合并 | 汇总进入 memory context；`AGENTS.md` 承担硬规则 | SQLite staging + Markdown workspace + git baseline | 手写指令仓库 |
 | **WorkBuddy 桌面版** | 夜间生成的 memory summary；历史会话检索结果 | 桌面应用后台总结 | 用户 / 会话 / 工作区 | 作为 background context 注入；会话检索补充 | `~/.workbuddy` 文件与 `workbuddy.db` | 手写 instruction 仓库 |
-| **Claude Code** | `MEMORY.md` 索引 + typed topic files | Claude 自写，也可人工编辑 | Git repo 级，worktree 共享 | 索引自动载入，topic 按需读取 | 项目目录下 Markdown | `CLAUDE.md` 指令 |
+| **Claude Code** | `MEMORY.md` 索引 + typed topic files | Claude 自写，也可人工编辑 | Git repo 级，worktree 共享 | 索引前 200 行 / 25 KB 自动载入，topic 按需读取 | 项目目录下 Markdown；transcripts 另存 | `CLAUDE.md` 指令 |
 | **Claude Desktop** | 本地 project/account topic files；账号侧 topics | 本地 Cowork / Claude 或云端账号系统 | local project / local account / cloud account 三种作用域 | 依据 project 与 local/cloud 模式决定 | 本地 Markdown 或服务端 | 一个统一的“Desktop memory” |
 | **OpenCode** | Instructions values；durable sessions | 用户写 instructions；系统记录 sessions | global / project / session | 每轮重新读取 instruction sources；session replay | 内容寻址 instruction store + session DB | typed auto memory |
 | **Trae** | `user_profile.md`、`project_memory.md` | AI 可主动增删改，用户也可编辑 | global / project | 全局画像与项目记忆分别注入 | 本地 Markdown | `session_memory_*.jsonl` |
@@ -261,6 +264,14 @@ Claude Code 明确有两套完全不同的东西：
 small `MEMORY.md` index, while topic files stay on disk until Claude reads them on demand.
 [单页说明](agent-memory-structures/agents/claude-code.md)。*
 
+**官方研究（2026-11-06）：** Anthropic 的
+[The components of agent memory](https://www.anthropic.com/research/components-of-agent-memory)
+把 agent memory 描述为分层结构：注入的顶层索引（Claude Code 只加载
+`MEMORY.md` 的前 200 行或 25 KB）→ 按需读取的 memory notes → 链接化表示
+（wiki）→ 作为 ground truth 的 session transcripts。Dreaming 在离线阶段用
+transcript 校正 notes、合并或补全表示，并把仍然重要的内容提升到顶层。
+Claude Code 的 auto memory 是该分层结构在官方产品中的直接例子。
+
 ### Auto Memory 的物理结构
 
 **官方**路径：
@@ -287,7 +298,7 @@ repository
 
 **官方**：
 
-- `MEMORY.md` 是索引；
+- `MEMORY.md` 是注入的索引层，不是完整记忆正文；
 - 会话开始时只自动载入前 200 行，且受 25KB 上限约束；
 - topic files 按需读取；
 - 四类 native type：`user`、`feedback`、`project`、`reference`；
@@ -310,16 +321,19 @@ modified: 2026-...
 Claude Code 不是“一个大 MEMORY.md”。它是：
 
 ```text
-small index  →  on-demand topic files  →  source session
+small injected index  →  on-demand topic files  →  session transcripts
 ```
 
-索引负责发现，topic 负责细节，frontmatter 负责类型和来源。
+索引负责发现，topic 负责细节，transcript 负责校验，frontmatter 负责类型和来源。
 
 ### 对 dachshund 的含义
 
 - 保留 native type，不要只映射成 dachshund 的 `profile/preference/...`；
 - `originSessionId` 应进入 `native.ref` 或独立的 `source_session` 字段；
-- `MEMORY.md` 本身不应该被当成一条内容记录，它是 index；
+- `MEMORY.md` 不应被当成 topic 正文；它是注入的顶层索引，可作为一条
+  `reference` 记录导入并标记 `memory-index`，从而保留“Claude 知道什么、
+  去哪里找”的表示；
+- transcript 不导入为长期记忆，只作为后续校正 notes 的 ground truth；
 - topic file 的 `modified` 与文件 mtime 可能不同，导入时应同时保留。
 
 ## 4. Claude Desktop
@@ -812,7 +826,8 @@ project_id:
 
 2. **不要把 `MEMORY.md` 当成同一种东西。**
    Hermes 的 `MEMORY.md` 是正文条目；Codex 的 `MEMORY.md` 是更长的 handbook；
-   Claude Code 的 `MEMORY.md` 是索引。
+   Claude Code 的 `MEMORY.md` 是注入的索引，可以作为 `reference` 记录导入，
+   但不应与 topic 正文混为一类。
 
 3. **不要把 compaction 当长期记忆。**
    Pi、OpenCode、Trae 的 compaction/session summary 首先是重建上下文的机制。

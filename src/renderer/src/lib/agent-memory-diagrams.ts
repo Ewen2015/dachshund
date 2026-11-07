@@ -25,8 +25,8 @@ const AGENT_MEMORY_DIAGRAMS: Record<string, AgentMemoryDiagram> = {
   },
   claude: {
     src: claudeDiagram,
-    flow: 'CLAUDE.md → every session · MEMORY.md index → repo topics · Space topics → local Cowork memory · account Chat stays cloud',
-    alt: 'Claude memory mechanism: Claude Code loads CLAUDE.md every session and a small MEMORY.md index pointing to repo-scoped topic files; Claude Desktop keeps Cowork Space topics locally while account Chat and cloud memory remain a separate, non-synced store.'
+    flow: 'CLAUDE.md → every session · MEMORY.md index (≤ 200 lines) → notes on demand · transcripts → ground truth · account Chat stays cloud',
+    alt: 'Claude memory mechanism: Claude Code loads CLAUDE.md every session and injects only the first 200 lines or 25 KB of MEMORY.md as an index to repo topic notes that are read on demand; session transcripts remain the ground truth, while Claude Desktop keeps Space, agent, and account topics locally and account Chat stays a separate, non-synced cloud store.'
   },
   opencode: {
     src: opencodeDiagram,
