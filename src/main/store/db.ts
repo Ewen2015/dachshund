@@ -187,7 +187,6 @@ export class Db {
       CREATE INDEX IF NOT EXISTS idx_memories_hash ON memories(hash);
       CREATE INDEX IF NOT EXISTS idx_memories_updated ON memories(updated_at DESC);
       CREATE INDEX IF NOT EXISTS idx_memories_kind ON memories(kind);
-      CREATE INDEX IF NOT EXISTS idx_memories_superseded ON memories(superseded_by);
 
       CREATE TABLE IF NOT EXISTS sources (
         memory_id TEXT NOT NULL,

@@ -140,6 +140,18 @@ Verified in this repository:
   version `0.1.27`, and included an executable MCP bridge.
 - The packaged `Contents/Resources/mcp/index.cjs` from `0.1.27` passed the
   five-tool MCP smoke test, including the grouped context index.
+- `release/dachshund-0.1.28-arm64.dmg` was produced on 2026-11-07 with SHA-256
+  `2cad024456c4b98105d4f655075b9df77aabb7502803db31ffe61dea7f300739`.
+- The `0.1.28` upgrade fixture opens a database with the pre-0.1.27 shape and
+  asserts that the legacy row, the added lifecycle columns, and
+  `idx_memories_superseded` survive migration.
+- The packaged `0.1.28` app launched against a copy of a real 263-record
+  library, migrated it in place, and reported version `0.1.28` with the memory
+  feed rendered.
+- The `0.1.28` DMG mounted read-only, contained a valid ad-hoc-signed app at
+  version `0.1.28`, and included an executable MCP bridge.
+- The packaged `Contents/Resources/mcp/index.cjs` from `0.1.28` passed the
+  five-tool MCP smoke test.
 - Layout captures cover 46 states at 920 x 700, 800 x 600, sidebar navigation,
   and the 420 x 620 menu bar panel without horizontal overflow.
 - Closing or minimizing a fullscreen main window exits the macOS fullscreen
@@ -186,7 +198,7 @@ Verified in this repository:
 The DMG SHA-256 from this build is:
 
 ```text
-0c2d7c60f75bbbe604e040be61d80cba28e66c51777b36001fb4d0290dd2ac50
+2cad024456c4b98105d4f655075b9df77aabb7502803db31ffe61dea7f300739
 ```
 
 ## Known Limitations
@@ -486,6 +498,16 @@ token are not a defense against a compromised account.
 - tightened layouts across all pages, including narrow windows, sidebar
   navigation, and the menu bar panel.
 
+#### 0.1.28: Startup Migration Repair
+
+- moved the `superseded_by` index behind the column migration so an existing
+  library upgrades in place instead of aborting startup;
+- added a legacy-database upgrade fixture that fails if a pre-0.1.27 database
+  cannot open;
+- logs startup failures to
+  `~/Library/Logs/dachshund/startup-error.log` and shows an error dialog
+  instead of leaving an invisible background process.
+
 ### Next
 
 - near-duplicate suggestions;
@@ -494,7 +516,7 @@ token are not a defense against a compromised account.
 - preserved supersession history;
 - user-approved cleanup rather than automatic silent rewrites.
 
-#### 0.1.28: Recall Quality
+#### 0.1.29: Recall Quality
 
 - optional local embeddings;
 - hybrid lexical and semantic ranking;
@@ -502,7 +524,7 @@ token are not a defense against a compromised account.
 - context budget controls;
 - retrieval evaluation corpus.
 
-#### 0.1.29: Distribution
+#### 0.1.30: Distribution
 
 - signed and notarized universal build;
 - update channel;

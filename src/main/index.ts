@@ -874,6 +874,23 @@ if (!gotLock) {
     })
 
     app.on('activate', showWindow)
+  }).catch((error: unknown) => {
+    // Startup failures must be visible. Without this, a throw before the
+    // window exists leaves a windowless process the user cannot see or open.
+    const detail =
+      error instanceof Error ? `${error.message}\n\n${error.stack ?? ''}` : String(error)
+    console.error('dachshund failed to start', error)
+    try {
+      fs.mkdirSync(app.getPath('logs'), { recursive: true })
+      fs.appendFileSync(
+        path.join(app.getPath('logs'), 'startup-error.log'),
+        `${new Date().toISOString()} ${detail}\n\n`
+      )
+    } catch {
+      // ignore logging failures
+    }
+    dialog.showErrorBox('dachshund could not start', detail)
+    app.exit(1)
   })
 
   app.on('before-quit', () => {

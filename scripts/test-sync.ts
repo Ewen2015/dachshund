@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { DatabaseSync } from 'node:sqlite'
 import matter from 'gray-matter'
 import { nextSyncDelay } from '../src/main/sync-schedule.ts'
 
@@ -379,6 +380,55 @@ async function main(): Promise<void> {
     ].join('\n')
   )
   assert.equal(new Library().readFile(codexThreadFile)?.kind, 'task_rollout')
+
+  // An existing database from before the lifecycle columns must upgrade in
+  // place. The 0.1.27 build created an index on superseded_by before adding
+  // the column, which crashed startup for every upgraded install.
+  const legacyDbFile = path.join(root, 'legacy-data', 'dachshund.db')
+  fs.mkdirSync(path.dirname(legacyDbFile), { recursive: true })
+  const legacyDb = new DatabaseSync(legacyDbFile)
+  legacyDb.exec(`
+    CREATE TABLE memories (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      kind TEXT NOT NULL DEFAULT 'fact',
+      project TEXT,
+      tags TEXT NOT NULL DEFAULT '[]',
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      archived INTEGER NOT NULL DEFAULT 0,
+      pinned INTEGER NOT NULL DEFAULT 0,
+      hash TEXT NOT NULL,
+      origin TEXT NOT NULL DEFAULT 'shared',
+      file_path TEXT
+    );
+    INSERT INTO memories(id, title, content, kind, created_at, updated_at, hash)
+    VALUES('mem_legacy_upgrade', 'Legacy record', 'Body', 'fact', 1, 2, 'h');
+  `)
+  legacyDb.close()
+  const { Db } = await import('../src/main/store/db.ts')
+  new Db(legacyDbFile)
+  const upgradedDb = new DatabaseSync(legacyDbFile)
+  const migratedRow = upgradedDb
+    .prepare(
+      'SELECT title, summary, scope, authority, status, superseded_by, source_missing FROM memories WHERE id = ?'
+    )
+    .get('mem_legacy_upgrade') as Record<string, unknown>
+  assert.equal(migratedRow.title, 'Legacy record')
+  assert.equal(migratedRow.summary, '')
+  assert.equal(migratedRow.scope, 'user')
+  assert.equal(migratedRow.authority, 'agent_observed')
+  assert.equal(migratedRow.status, 'active')
+  assert.equal(migratedRow.superseded_by, null)
+  assert.equal(migratedRow.source_missing, 0)
+  const supersededIndex = upgradedDb
+    .prepare(
+      "SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'idx_memories_superseded'"
+    )
+    .get() as Record<string, unknown> | undefined
+  assert.ok(supersededIndex)
+  upgradedDb.close()
 
   store.db.close()
   fs.rmSync(root, { recursive: true, force: true })

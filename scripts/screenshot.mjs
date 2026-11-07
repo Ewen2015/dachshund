@@ -13,15 +13,15 @@ fs.writeFileSync(
   updateManifest,
   JSON.stringify(
     {
-      tag_name: 'v0.1.27',
-      name: 'dachshund v0.1.27',
+      tag_name: 'v0.1.28',
+      name: 'dachshund v0.1.28',
       body: 'Memory now keeps a one-line hook, recalls through a bounded Apply / Context / Background index, consolidates near-duplicates, guards credentials, and reports library health.',
-      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.27',
+      html_url: 'https://github.com/Ewen2015/dachshund/releases/tag/v0.1.28',
       assets: [
         {
-          name: 'dachshund-0.1.27-arm64.dmg',
+          name: 'dachshund-0.1.28-arm64.dmg',
           browser_download_url:
-            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.27/dachshund-0.1.27-arm64.dmg'
+            'https://github.com/Ewen2015/dachshund/releases/download/v0.1.28/dachshund-0.1.28-arm64.dmg'
         }
       ]
     },
